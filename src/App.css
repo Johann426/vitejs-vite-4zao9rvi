@@ -1,0 +1,50 @@
+
+table {
+  color: lightgray;
+  border-collapse: collapse;
+  border: 3px solid rgb(96, 96, 96);
+  letter-spacing: 1px;
+  font-size: 12px;
+  /* white-space: nowrap; */ /* Text will never wrap to the next line. */
+  table-layout: fixed; /* table's width of each column to be fixed (or to be determined if not specified) */
+}
+
+tr:nth-child(even) {
+  background-color: rgb(36, 36, 36);
+}
+
+tr:nth-child(odd) {
+  background-color: rgb(48, 48, 48);
+}
+
+td,
+th {
+  border: 1px solid rgb(96, 96, 96);
+  height: 20px;
+  padding: 5px 10px; /* top and bottom, right and left */
+  user-select: none;
+}
+
+td.selected,
+th.selected {
+  background-color: rgb(35, 60, 96);
+}
+
+th {
+  background-color: rgb(24, 24, 24);
+  font-weight: bold;
+}
+
+td {
+  text-align: center;
+  /* font-weight: bold; */
+  width: 100px;   /* 셀 너비 */
+}
+
+td input {
+  width: 100%;
+  height: 100%;
+  outline: none;
+  font: inherit;
+  text-align: inherit;
+}
