@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 
-interface Head {
+interface Header {
   val: string;
   onPointerDown: () => void;
 }
 
-function Th({ val, onPointerDown }: Head) {
+function Th({ val, onPointerDown }: Header) {
   return <th onPointerDown={onPointerDown}>{val}</th>;
 }
 
@@ -70,21 +70,21 @@ interface TableData {
 }
 
 export default function Table({ header, data }: TableData) {
-  type CellCoords = { row: number; col: number } | null;
+  type CellCoord = { row: number; col: number } | null;
   type CellRange = { imin: number; imax: number; jmin: number; jmax: number };
-  const [head, setHead] = useState<string[]>(header);
+  const [keys, setKeys] = useState<string[]>(header);
   const [rows, setRows] = useState<string[][]>(data);
-  const [coord, setCoord] = useState<CellCoords>(null); // Coordinates of the cell being edited
-  const [lead, setLead] = useState<CellCoords>(null); // Coordinates of drag start
-  const [tail, setTail] = useState<CellCoords>(null); // Coordinates of drag end
+  const [coor, setCoor] = useState<CellCoord>(null); // Coordinates of the cell being edited
+  const [lead, setLead] = useState<CellCoord>(null); // Coordinates of drag start
+  const [tail, setTail] = useState<CellCoord>(null); // Coordinates of drag end
   const [drag, setDrag] = useState<boolean>(false); // state of pointer being dragging
 
   useEffect(() => {
-    setHead(header);
+    setKeys(header);
     setRows(data);
   }, [header, data]);
 
-  const getRange = (lead: CellCoords, tail: CellCoords): CellRange | null => {
+  const getRange = (lead: CellCoord, tail: CellCoord): CellRange | null => {
     if (!lead || !tail) return null;
     return {
       imin: Math.min(lead.row, tail.row),
@@ -110,7 +110,7 @@ export default function Table({ header, data }: TableData) {
   };
 
   const onDoubleClick = (i: number, j: number): void => {
-    setCoord({ row: i, col: j });
+    setCoor({ row: i, col: j });
   };
 
   const onChange = (i: number, j: number, val: string): void => {
@@ -183,7 +183,7 @@ export default function Table({ header, data }: TableData) {
     if (e.key === "Escape") {
       setLead(null);
     }
-    if (e.key === "Delete" && !coord) {
+    if (e.key === "Delete" && !coor) {
       e.preventDefault();
       const range = getRange(lead, tail);
       if (!range) return;
@@ -215,19 +215,19 @@ export default function Table({ header, data }: TableData) {
       case "Enter":
       case "ArrowDown":
         deSelect();
-        setCoord({ row: i + 1, col: j });
+        setCoor({ row: i + 1, col: j });
         break;
       case "ArrowUp":
         deSelect();
-        setCoord({ row: i - 1, col: j });
+        setCoor({ row: i - 1, col: j });
         break;
       case "ArrowLeft":
         deSelect();
-        setCoord({ row: i, col: j - 1 });
+        setCoor({ row: i, col: j - 1 });
         break;
       case "ArrowRight":
         deSelect();
-        setCoord({ row: i, col: j + 1 });
+        setCoor({ row: i, col: j + 1 });
         break;
     }
   };
@@ -241,7 +241,7 @@ export default function Table({ header, data }: TableData) {
     <table tabIndex={0} onPointerUp={onPointerUp} onKeyDown={onKeyDown}>
       <thead>
         <tr>
-          {head.map((v, j) => (
+          {keys.map((v, j) => (
             <Th
               key={`col${j}`}
               val={v}
@@ -259,9 +259,9 @@ export default function Table({ header, data }: TableData) {
                 row={i}
                 col={j}
                 val={v}
-                bool={coord?.row == i && coord?.col == j}
+                bool={coor?.row == i && coor?.col == j}
                 className={isCellInRange(i, j) ? "selected" : ""}
-                onBlur={() => setCoord(null)}
+                onBlur={() => setCoor(null)}
                 onPointerDown={() => onPointerDown(i, j)}
                 onPointerEnter={() => onPointerEnter(i, j)}
                 onDoubleClick={() => onDoubleClick(i, j)}

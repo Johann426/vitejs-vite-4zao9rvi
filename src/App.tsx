@@ -21,7 +21,6 @@ function App() {
       ["21", "22", "23"],
       ["31", "32", "33"],
     ]);
-    console.log("hello");
   };
 
   return (
