@@ -71,20 +71,18 @@ interface TableData {
 
 export default function Table({ header, data }: TableData) {
   type CellCoords = { row: number; col: number } | null;
-
-  const [coord, setCoord] = useState<CellCoords>(null); // Coordinates of the cell being edited
-
-  const [lead, setLead] = useState<CellCoords>(null); // Coordinates of drag start
-
-  const [tail, setTail] = useState<CellCoords>(null); // Coordinates of drag end
-
-  const [drag, setDrag] = useState<boolean>(false);
-
-  const [head, setHead] = useState<string[]>(header);
-
-  const [rows, setRows] = useState<string[][]>(data);
-
   type CellRange = { imin: number; imax: number; jmin: number; jmax: number };
+  const [head, setHead] = useState<string[]>(header);
+  const [rows, setRows] = useState<string[][]>(data);
+  const [coord, setCoord] = useState<CellCoords>(null); // Coordinates of the cell being edited
+  const [lead, setLead] = useState<CellCoords>(null); // Coordinates of drag start
+  const [tail, setTail] = useState<CellCoords>(null); // Coordinates of drag end
+  const [drag, setDrag] = useState<boolean>(false); // state of pointer being dragging
+
+  useEffect(() => {
+    setHead(header);
+    setRows(data);
+  }, [header, data]);
 
   const getRange = (lead: CellCoords, tail: CellCoords): CellRange | null => {
     if (!lead || !tail) return null;
@@ -99,7 +97,7 @@ export default function Table({ header, data }: TableData) {
   const onPointerDown = (i: number, j: number): void => {
     setDrag(true);
     setLead({ row: i, col: j });
-    setTail({ row: i, col: j });
+    setTail({ row: i, col: j }); //alternative: setTail(null);
   };
 
   const onPointerEnter = (i: number, j: number): void => {
@@ -141,10 +139,7 @@ export default function Table({ header, data }: TableData) {
       copied.push(row.join("\t"));
     }
     const clipboardText = copied.join("\n");
-    navigator.clipboard.writeText(clipboardText).then(() => {
-      console.log("Copied to clipboard:");
-      console.log(clipboardText);
-    });
+    navigator.clipboard.writeText(clipboardText);
   };
 
   const onPaste = async () => {
@@ -240,7 +235,6 @@ export default function Table({ header, data }: TableData) {
   const onPointerDownHeader = (j: number): void => {
     setLead({ row: 0, col: j });
     setTail({ row: data.length, col: j });
-    console.log(j);
   };
 
   return (
