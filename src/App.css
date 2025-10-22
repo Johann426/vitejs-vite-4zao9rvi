@@ -1,3 +1,13 @@
+#viewport {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  right: 300px;
+  bottom: 0;
+  /* z-index: -1; */
+  overflow: hidden;
+}
+
 table {
   color: lightgray;
   border-collapse: collapse;

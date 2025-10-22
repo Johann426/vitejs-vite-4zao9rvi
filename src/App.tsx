@@ -1,47 +1,24 @@
-// import "./App.css";
-// import Table from "./UITable.tsx";
-// import { useState } from "react";
+import {
+  FreeCamera,
+  Vector3,
+  HemisphericLight,
+  MeshBuilder,
+} from "@babylonjs/core";
 
-// const header = ["A", "B", "C"];
+import Viewport from "./Viewport";
 
-// const data = [
-//   ["a1", "b1", "b1"],
-//   ["a2", "b2", "b2"],
-//   ["a3", "b3", "b3"],
-// ];
-
-// function App() {
-//   const [head, setHead] = useState<string[]>(header);
-//   const [rows, setRows] = useState<string[][]>(data);
-
-//   const onPointerDown = () => {
-//     setHead(["AA", "BB", "CC"]);
-//     setRows([
-//       ["11", "12", "13"],
-//       ["21", "22", "23"],
-//       ["31", "32", "33"],
-//     ]);
-//   };
-
-//   return (
-//     <div onPointerDown={onPointerDown}>
-//       <Table header={head} data={rows} />
-//       {/* <Viewport /> */}
-//     </div>
-//   );
-// }
-
-// export default App;
-
-import React from "react";
-import { FreeCamera, Vector3, HemisphericLight, MeshBuilder } from "@babylonjs/core";
-import Viewport from "./Viewport"; // uses above component in same directory
-// import SceneComponent from 'babylonjs-hook'; // if you install 'babylonjs-hook' NPM.
 import "./App.css";
 
-let box;
-
 const onSceneReady = (scene) => {
+  const points = [
+    new Vector3(0, 0, 0),
+    new Vector3(1, 1, 0),
+    new Vector3(2, 0, 1),
+    new Vector3(3, 1, 2),
+  ];
+
+  const line = MeshBuilder.CreateLines("myline", { points }, scene);
+
   // This creates and positions a free camera (non-mesh)
   const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
 
@@ -59,12 +36,6 @@ const onSceneReady = (scene) => {
   // Default intensity is 1. Let's dim the light a small amount
   light.intensity = 0.7;
 
-  // Our built-in 'box' shape.
-  box = MeshBuilder.CreateBox("box", { size: 2 }, scene);
-
-  // Move the box upward 1/2 its height
-  box.position.y = 1;
-
   // Our built-in 'ground' shape.
   MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
 };
@@ -73,16 +44,20 @@ const onSceneReady = (scene) => {
  * Will run on every frame render.  We are spinning the box on y-axis.
  */
 const onRender = (scene) => {
-  if (box !== undefined) {
-    const deltaTimeInMillis = scene.getEngine().getDeltaTime();
-
-    const rpm = 10;
-    box.rotation.y += (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
-  }
+  // if (box !== undefined) {
+  //   const deltaTimeInMillis = scene.getEngine().getDeltaTime();
+  //   const rpm = 10;
+  //   box.rotation.y += (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
+  // }
 };
 
 export default () => (
   <div>
-    <Viewport antialias onSceneReady={onSceneReady} onRender={onRender} id="my-canvas" />
+    <Viewport
+      id="viewport"
+      antialias
+      onSceneReady={onSceneReady}
+      onRender={onRender}
+    />
   </div>
 );
