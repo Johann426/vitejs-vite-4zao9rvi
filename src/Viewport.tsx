@@ -1,44 +1,71 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Engine, Scene } from "@babylonjs/core";
 
-export default function Viewport({ antialias, engineOptions, adaptToDeviceRatio, sceneOptions, onRender, onSceneReady, ...rest }) {
-  const reactCanvas = useRef(null);
+// Define the props of Babylon.js engine and scene options, as well as lifecycle callbacks.
+interface ViewportProps extends React.CanvasHTMLAttributes<HTMLCanvasElement> {
+  antialias?: boolean; // Enables antialiasing for smoother rendering
+  engineOptions?: object; // Optional configuration for Babylon Engine
+  adaptToDevice?: boolean; // Adjusts rendering resolution based on device pixel ratio
+  sceneOptions?: object; // Optional configuration for Babylon Scene
+  onSceneReady: (scene: Scene) => void; // Callback when the scene is fully initialized
+  onRender?: (scene: Scene) => void; // Optional callback for each render frame
+}
 
-  // set up basic engine and scene
+// Main component that sets up Babylon.js rendering inside a React canvas
+export default function Viewport({
+  antialias = true,
+  engineOptions,
+  adaptToDevice,
+  sceneOptions,
+  onSceneReady,
+  onRender,
+  ...rest
+}: ViewportProps) {
+  // Create a ref to access the canvas DOM element
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Set up Babylon.js engine and scene when the component mounts
   useEffect(() => {
-    const { current: canvas } = reactCanvas;
+    const canvas = canvasRef.current;
+    if (!canvas) return; // Exit early if canvas is not available
 
-    if (!canvas) return;
-
-    const engine = new Engine(canvas, antialias, engineOptions, adaptToDeviceRatio);
+    // Create Babylon.js engine and scene using provided options
+    const engine = new Engine(canvas, antialias, engineOptions, adaptToDevice);
     const scene = new Scene(engine, sceneOptions);
-    if (scene.isReady()) {
-      onSceneReady(scene);
-    } else {
-      scene.onReadyObservable.addOnce((scene) => onSceneReady(scene));
-    }
 
+    // If the scene is ready, call the onSceneReady callback, if not ready yet, wait for the scene to finish initializing
+    scene.isReady()
+      ? onSceneReady(scene)
+      : scene.onReadyObservable.addOnce(onSceneReady);
+
+    // Start the render loop
     engine.runRenderLoop(() => {
-      if (typeof onRender === "function") onRender(scene);
-      scene.render();
+      onRender?.(scene); // Call user-defined render logic
+      scene.render(); // Render the scene
     });
 
-    const resize = () => {
-      scene.getEngine().resize();
+    // Handle window resize to adjust canvas and engine dimensions
+    const onResize = () => {
+      engine.resize();
     };
 
-    if (window) {
-      window.addEventListener("resize", resize);
-    }
+    window.addEventListener("resize", onResize);
 
+    // Cleanup when component unmounts
     return () => {
-      scene.getEngine().dispose();
-
-      if (window) {
-        window.removeEventListener("resize", resize);
-      }
+      scene.dispose(); // Dispose of the scene
+      engine.dispose(); // Dispose of the engine
+      window.removeEventListener("resize", onResize);
     };
-  }, [antialias, engineOptions, adaptToDeviceRatio, sceneOptions, onRender, onSceneReady]);
+  }, [
+    antialias,
+    engineOptions,
+    adaptToDevice,
+    sceneOptions,
+    onSceneReady,
+    onRender,
+  ]);
 
-  return <canvas ref={reactCanvas} {...rest} />;
-};
+  // Render the canvas element that Babylon.js will use
+  return <canvas ref={canvasRef} {...rest} />;
+}
