@@ -1,32 +1,36 @@
 import { useState, useEffect } from "react";
 
+// Interface for table header cell props
 interface Header {
   val: string;
   onPointerDown: () => void;
 }
 
+// Header cell component
 function Th({ val, onPointerDown }: Header) {
   return <th onPointerDown={onPointerDown}>{val}</th>;
 }
 
+// Interface for table cell props
 interface Cell {
-  row: number;
-  col: number;
-  val: string;
-  bool: boolean;
-  className: string;
-  onBlur: () => void;
-  onPointerDown: () => void;
-  onPointerEnter: () => void;
-  onDoubleClick: () => void;
-  onChange: (row: number, col: number, val: string) => void;
+  row: number; // Row index
+  col: number; // Column index
+  val: string; // Cell value
+  bool: boolean; // Flag for edit mode
+  className: string; // CSS class name
+  onBlur: () => void; // Handler when cell loses focus
+  onPointerDown: () => void; // Handler for pointer down event
+  onPointerEnter: () => void; // Handler for pointer enter event
+  onDoubleClick: () => void; // Handler for double click event
+  onChange: (row: number, col: number, val: string) => void; // Handler for value change
   onKeyDown: (
     i: number,
     j: number,
     e: React.KeyboardEvent<HTMLInputElement>
-  ) => void;
+  ) => void; // Handler for keyboard events
 }
 
+// Table cell component
 function Td({
   row: i,
   col: j,
@@ -46,30 +50,33 @@ function Td({
       onPointerDown={onPointerDown}
       onPointerEnter={onPointerEnter}
       onDoubleClick={onDoubleClick}
-      // onClick={(e) => e.currentTarget.focus()}
     >
       {bool ? (
-        <input // render input element inside <td>
+        // Render input element when cell is in edit mode
+        <input
           autoFocus
-          onFocus={(e) => e.target.select()}
+          onFocus={(e) => e.target.select()} // Select all text when focused
           value={val}
           onBlur={onBlur}
           onChange={(e) => onChange(i, j, e.target.value)}
           onKeyDown={(e) => onKeyDown(i, j, e)}
         />
       ) : (
+        // Render plain text when not in edit mode
         val
       )}
     </td>
   );
 }
 
+// Interface for table component props
 interface TableData {
-  header: string[];
-  data: string[][];
+  header: string[]; // Array of header titles
+  data: string[][]; // 2D array of table data
 }
 
 export default function Table({ header, data }: TableData) {
+  // Types for cell coordinates and range selection
   type CellCoord = { row: number; col: number } | null;
   type CellRange = { imin: number; imax: number; jmin: number; jmax: number };
   const [keys, setKeys] = useState<string[]>(header);
@@ -84,6 +91,7 @@ export default function Table({ header, data }: TableData) {
     setRows(data);
   }, [header, data]);
 
+  // Calculate the range of selected cells
   const getRange = (lead: CellCoord, tail: CellCoord): CellRange | null => {
     if (!lead || !tail) return null;
     return {
@@ -97,7 +105,7 @@ export default function Table({ header, data }: TableData) {
   const onPointerDown = (i: number, j: number): void => {
     setDrag(true);
     setLead({ row: i, col: j });
-    setTail({ row: i, col: j }); //alternative: setTail(null);
+    setTail({ row: i, col: j });
   };
 
   const onPointerEnter = (i: number, j: number): void => {
@@ -113,12 +121,14 @@ export default function Table({ header, data }: TableData) {
     setCoor({ row: i, col: j });
   };
 
+  // Handle cell value changes
   const onChange = (i: number, j: number, val: string): void => {
     const dat = rows.map((row) => [...row]);
     dat[i][j] = val;
     setRows(dat);
   };
 
+  // Check if a cell is within the selected range
   const isCellInRange = (i: number, j: number): boolean => {
     const range = getRange(lead, tail);
     if (!range) return false;
@@ -126,6 +136,7 @@ export default function Table({ header, data }: TableData) {
     return i >= imin && i <= imax && j >= jmin && j <= jmax;
   };
 
+  // Clipboard operations
   const onCopy = (): void => {
     const range = getRange(lead, tail);
     if (!range) return;
@@ -142,6 +153,7 @@ export default function Table({ header, data }: TableData) {
     navigator.clipboard.writeText(clipboardText);
   };
 
+  // Handle paste operation
   const onPaste = async () => {
     if (!lead) return;
 
@@ -155,6 +167,7 @@ export default function Table({ header, data }: TableData) {
 
       const dat = [...rows];
 
+      // Paste data within selected range
       for (let i = 0; i < arr.length; i++) {
         for (let j = 0; j < arr[i].length; j++) {
           const row = lead.row + i;
@@ -171,6 +184,7 @@ export default function Table({ header, data }: TableData) {
     }
   };
 
+  // Handle keyboard shortcuts
   const onKeyDown = (e: React.KeyboardEvent<HTMLTableElement>) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
       e.preventDefault();
@@ -188,9 +202,9 @@ export default function Table({ header, data }: TableData) {
       const range = getRange(lead, tail);
       if (!range) return;
 
+      // Clear selected range
       const { imin, imax, jmin, jmax } = range;
       const dat = [...rows];
-
       for (let i = imin; i <= imax; i++) {
         for (let j = jmin; j <= jmax; j++) {
           dat[i][j] = "";
@@ -200,6 +214,7 @@ export default function Table({ header, data }: TableData) {
     }
   };
 
+  // Handle keyboard navigation in edit mode
   const onKeyDownCell = (
     i: number,
     j: number,
@@ -211,6 +226,7 @@ export default function Table({ header, data }: TableData) {
       e.preventDefault();
     };
 
+    // Navigate between cells using arrow keys
     switch (e.key) {
       case "Enter":
       case "ArrowDown":
@@ -232,11 +248,13 @@ export default function Table({ header, data }: TableData) {
     }
   };
 
+  // Select entire column when clicking header
   const onPointerDownHeader = (j: number): void => {
     setLead({ row: 0, col: j });
     setTail({ row: data.length, col: j });
   };
 
+  // Render table with header and body
   return (
     <table tabIndex={0} onPointerUp={onPointerUp} onKeyDown={onKeyDown}>
       <thead>
