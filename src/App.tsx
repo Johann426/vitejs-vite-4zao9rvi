@@ -3,10 +3,10 @@ import {
   Vector3,
   HemisphericLight,
   MeshBuilder,
+  Color3,
 } from "@babylonjs/core";
-
+import React from "react";
 import Viewport from "./Viewport";
-
 import "./App.css";
 
 const onSceneReady = (scene) => {
@@ -18,7 +18,8 @@ const onSceneReady = (scene) => {
   ];
 
   const line = MeshBuilder.CreateLines("myline", { points }, scene);
-
+  line.color = new Color3(0, 1, 0);
+  
   // This creates and positions a free camera (non-mesh)
   const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
 
