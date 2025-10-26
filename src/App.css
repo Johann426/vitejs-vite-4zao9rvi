@@ -8,6 +8,10 @@
   overflow: hidden;
 }
 
+.hidden {
+  visibility: hidden;
+}
+
 table {
   color: lightgray;
   border-collapse: collapse;

@@ -1,3 +1,4 @@
+import "./App.css";
 import {
   FreeCamera,
   Vector3,
@@ -5,9 +6,11 @@ import {
   MeshBuilder,
   Color3,
 } from "@babylonjs/core";
-import React from "react";
+import { MantineProvider } from "@mantine/core";
 import Viewport from "./Viewport";
-import "./App.css";
+import ContextMenu from "./ContextMenu";
+import { theme } from "./theme";
+import { Button } from "@mantine/core";
 
 const onSceneReady = (scene) => {
   const points = [
@@ -19,7 +22,7 @@ const onSceneReady = (scene) => {
 
   const line = MeshBuilder.CreateLines("myline", { points }, scene);
   line.color = new Color3(0, 1, 0);
-  
+
   // This creates and positions a free camera (non-mesh)
   const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
 
@@ -52,13 +55,37 @@ const onRender = (scene) => {
   // }
 };
 
-export default () => (
-  <div>
-    <Viewport
-      id="viewport"
-      antialias
-      onSceneReady={onSceneReady}
-      onRender={onRender}
-    />
-  </div>
-);
+export default function App() {
+  return (
+    <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
+      <ContextMenu />
+      <div>
+        <Viewport
+          id="viewport"
+          antialias
+          onSceneReady={onSceneReady}
+          onRender={onRender}
+        />
+      </div>
+    </MantineProvider>
+  );
+}
+
+
+// import { MantineProvider, Button, createTheme } from '@mantine/core';
+
+// const theme = createTheme({
+//   colorScheme: 'light',
+//   colors: {
+//     brand: ['#F0F0F0', '#E0E0E0', '#D0D0D0', '#C0C0C0', '#B0B0B0', '#A0A0A0', '#909090', '#808080', '#707070', '#606060'],
+//   },
+//   primaryColor: 'brand',
+// });
+
+// export default function App() {
+//   return (
+//     <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
+//       <Button color="brand" variant="filled">테마 확인</Button>
+//     </MantineProvider>
+//   );
+// }
