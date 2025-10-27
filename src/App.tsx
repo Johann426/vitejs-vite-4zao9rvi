@@ -13,6 +13,7 @@ import { theme } from "./theme";
 import Viewport from "./Viewport";
 import ContextMenu from "./ContextMenu";
 import Menunar from "./Menubar";
+import TreeView from "./TreeView";
 
 const onSceneReady = (scene) => {
   const points = [
@@ -57,11 +58,16 @@ const onRender = (scene) => {
   // }
 };
 
+const editor = function () {
+  const a = 0;
+};
+
 export default function App() {
   return (
     <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
-      <Menunar />
+      <Menunar editor={editor} id="menubar" />
       {/* <ContextMenu /> */}
+      <TreeView />
       <div>
         <Viewport
           id="viewport"
