@@ -41,6 +41,11 @@ function Edit() {
         <Menu.Item>Trim</Menu.Item>
         <Menu.Item>Surface Knot Insert</Menu.Item>
         <Menu.Divider />
+        <Menu.Item>Delete</Menu.Item>
+        <Menu.Item rightSection={<Text>ctrl+C</Text>}>Copy</Menu.Item>
+        <Menu.Item rightSection={<Text>ctrl+X</Text>}>Cut</Menu.Item>
+        <Menu.Item rightSection={<Text>ctrl+P</Text>}>Paste</Menu.Item>
+        <Menu.Divider />
         <Menu.Item rightSection={<Text>ctrl+Z</Text>}>Undo</Menu.Item>
         <Menu.Item rightSection={<Text>ctrl+Y</Text>}>Redo</Menu.Item>
       </Menu.Dropdown>
