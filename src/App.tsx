@@ -1,4 +1,7 @@
 import "./App.css";
+import "@mantine/core/styles.css";
+import { MantineProvider } from "@mantine/core";
+import { Button } from "@mantine/core";
 import {
   FreeCamera,
   Vector3,
@@ -6,11 +9,10 @@ import {
   MeshBuilder,
   Color3,
 } from "@babylonjs/core";
-import { MantineProvider } from "@mantine/core";
+import { theme } from "./theme";
 import Viewport from "./Viewport";
 import ContextMenu from "./ContextMenu";
-import { theme } from "./theme";
-import { Button } from "@mantine/core";
+import Menunar from "./Menubar";
 
 const onSceneReady = (scene) => {
   const points = [
@@ -58,7 +60,8 @@ const onRender = (scene) => {
 export default function App() {
   return (
     <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
-      <ContextMenu />
+      <Menunar />
+      {/* <ContextMenu /> */}
       <div>
         <Viewport
           id="viewport"
@@ -70,7 +73,6 @@ export default function App() {
     </MantineProvider>
   );
 }
-
 
 // import { MantineProvider, Button, createTheme } from '@mantine/core';
 
