@@ -2,33 +2,36 @@ import { useState, useEffect } from "react";
 
 type ItemData = {
   label: string;
+  obj: object;
 };
 
 type GroupData = {
   label: string;
+  obj: object;
+  bol: boolean; // boolean indicating folded state
   group: GroupData[] | null; // list of sub group
   items: ItemData[] | null; // lisst of items
 };
 
-function Item({ txt }: { txt: string }) {
-  const [label, setlabel] = useState<string>(txt);
-  return <li>{label}</li>;
+function Item({ label, obj }: ItemData) {
+  const [key, setKey] = useState<string>(label);
+  return <li>{key}</li>;
 }
 
-function Group({ txt }: { txt: string }) {
-  const [label, setlabel] = useState<string>(txt);
-  const [group, setGroup] = useState<GroupData[] | null>(null); // subgroup
-  const [items, setItems] = useState<ItemData[] | null>(null);
+function Group({ label, obj, bol, group, items }: GroupData) {
+  const [key, setKey] = useState<string>(label);
+  const [grp, setGrp] = useState<GroupData[] | null>(group); // subgroup
+  const [itm, setItm] = useState<ItemData[] | null>(items);
 
   return (
     <li>
-      <span>{label}</span>
+      <span>{key}</span>
       <ul>
-        {group?.map((v, i) => (
-          <Group key={i} txt={v.label} />
+        {grp?.map((v, i) => (
+          <Group label={`group${i}`} obj = {v.obj} bol = {v.bol} group={v.group} items={v.items}/>
         ))}
-        {items?.map((v, i) => (
-          <Item key={i} txt={v.label} />
+        {itm?.map((v, i) => (
+          <Item label={`item${i}`} obj={v.obj} />
         ))}
       </ul>
     </li>
@@ -38,15 +41,21 @@ function Group({ txt }: { txt: string }) {
 export default function TreeView() {
   const [group, setGroup] = useState<GroupData[] | null>(null); // subgroup
   const [items, setItems] = useState<ItemData[] | null>(null);
+  
   const onPointerDown = (): void => {
-    console.log("hello");
+    const newItems = items?.slice()
+    if(newItems) {
+      newItems.push({label: "new item", obj:Object()})
+      setItems(newItems)
+    } else {
+      setItems([{label: "new item", obj:Object()}])
+    }
   };
 
   return (
     <ul onPointerDown={onPointerDown}>
-      <Group txt="Group1" />
-      <Item txt="item 1" />
-      <Item txt="item 2" />
+      <Group label="Grroup 1" obj = {Object()} bol = {true} group={null} items={null}/>
+      {items?.map( e => <Item label={e.label} obj={Object()}/> )}
     </ul>
   );
 }
