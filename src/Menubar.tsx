@@ -17,7 +17,16 @@ function File() {
   );
 }
 
+import { Temp } from "./temp.js";
+
+function onAddPoint() {
+  const temp = new Temp(10);
+  temp.foo();
+}
+
 function Edit() {
+  onAddPoint();
+
   return (
     <Menu width={300}>
       <Menu.Target>
@@ -40,6 +49,11 @@ function Edit() {
         <Menu.Item>Intersect</Menu.Item>
         <Menu.Item>Trim</Menu.Item>
         <Menu.Item>Surface Knot Insert</Menu.Item>
+        <Menu.Divider />
+        <Menu.Item>Delete</Menu.Item>
+        <Menu.Item rightSection={<Text>ctrl+C</Text>}>Copy</Menu.Item>
+        <Menu.Item rightSection={<Text>ctrl+X</Text>}>Cut</Menu.Item>
+        <Menu.Item rightSection={<Text>ctrl+P</Text>}>Paste</Menu.Item>
         <Menu.Divider />
         <Menu.Item rightSection={<Text>ctrl+Z</Text>}>Undo</Menu.Item>
         <Menu.Item rightSection={<Text>ctrl+Y</Text>}>Redo</Menu.Item>
@@ -64,7 +78,7 @@ function Curve() {
         <Menu.Item>Nurbs</Menu.Item>
         <Menu.Divider />
         <Menu.Item>Interpolated Spline</Menu.Item>
-        <Menu.Item>Offset Curve</Menu.Item>
+        <Menu.Item disabled>Offset Curve</Menu.Item>
       </Menu.Dropdown>
     </Menu>
   );
@@ -89,13 +103,17 @@ function Surface() {
   );
 }
 
-export default function Menubar() {
+interface MenubarProps extends React.HTMLAttributes<HTMLDivElement> {
+  editor: object;
+}
+
+export default function Menubar({ editor, ...rest }: MenubarProps) {
   return (
-    <>
+    <div {...rest}>
       <File />
       <Edit />
       <Curve />
       <Surface />
-    </>
+    </div>
   );
 }

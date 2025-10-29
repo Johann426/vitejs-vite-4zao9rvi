@@ -13,6 +13,7 @@ import { theme } from "./theme";
 import Viewport from "./Viewport";
 import ContextMenu from "./ContextMenu";
 import Menunar from "./Menubar";
+import TreeView from "./TreeView";
 
 const onSceneReady = (scene) => {
   const points = [
@@ -57,11 +58,26 @@ const onRender = (scene) => {
   // }
 };
 
+const editor = function () {
+  const a = 0;
+};
+
+const group = {
+  label: "subgroup",
+  obj: Object(),
+  bool: true,
+  group: null,
+  items: null,
+};
+const item1 = { label: "item1", obj: Object() };
+const item2 = { label: "item2", obj: Object() };
+
 export default function App() {
   return (
     <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
-      <Menunar />
+      <Menunar editor={editor} id="menubar" />
       {/* <ContextMenu /> */}
+      <TreeView groupList={[group]} itemList={[item1, item2]} />
       <div>
         <Viewport
           id="viewport"
@@ -73,21 +89,3 @@ export default function App() {
     </MantineProvider>
   );
 }
-
-// import { MantineProvider, Button, createTheme } from '@mantine/core';
-
-// const theme = createTheme({
-//   colorScheme: 'light',
-//   colors: {
-//     brand: ['#F0F0F0', '#E0E0E0', '#D0D0D0', '#C0C0C0', '#B0B0B0', '#A0A0A0', '#909090', '#808080', '#707070', '#606060'],
-//   },
-//   primaryColor: 'brand',
-// });
-
-// export default function App() {
-//   return (
-//     <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
-//       <Button color="brand" variant="filled">테마 확인</Button>
-//     </MantineProvider>
-//   );
-// }
