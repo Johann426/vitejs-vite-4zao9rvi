@@ -6,8 +6,15 @@ interface ItemData {
 }
 
 function Item({ label, obj }: ItemData) {
-  const [key, setKey] = useState<string>(label);
-  return <li>{key}</li>;
+  return (
+    <li
+      draggable
+      // style={{ cursor: "grab" }}
+      // onDragStart={() => console.log("t")}
+    >
+      {label}
+    </li>
+  );
 }
 
 interface GroupData {
@@ -65,17 +72,18 @@ export default function TreeView({ groupList, itemList }: TreeData) {
   return (
     <div>
       <ul onPointerDown={onPointerDown}>
-        {group?.map((e) => (
+        {group?.map((v, i) => (
           <Group
-            label={e.label}
-            obj={e.obj}
-            bool={e.bool}
-            group={e.group}
-            items={e.items}
+            key={`${v.label}-subgroup${i}`}
+            label={v.label}
+            obj={v.obj}
+            bool={v.bool}
+            group={v.group}
+            items={v.items}
           />
         ))}
-        {items?.map((e) => (
-          <Item label={e.label} obj={Object()} />
+        {items?.map((v, i) => (
+          <Item key={`${v.label}-item${i}`} label={v.label} obj={v.obj} />
         ))}
       </ul>
     </div>
