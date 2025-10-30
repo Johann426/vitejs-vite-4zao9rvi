@@ -25,8 +25,10 @@ function Item({
   onDragEnd,
   onDrop,
 }: ItemData) {
+  const [className, setClassName] = useState("item");
+
   return (
-    <li
+    <li className={className}
       draggable
       // style={{ cursor: "grab" }}
       // onDragStart={() => console.log("t")}
@@ -63,9 +65,12 @@ function Group({
   onDragEnd,
   onDrop,
 }: GroupData) {
+  
+  const [className, setClassName] = useState("folder");
+
   return (
     <li>
-      <span>{label}</span>
+      <span className={className}>{label}</span>
       {bool && ( // if true, render subgroup and items
         <ul>
           {group?.map((v, i) => (
