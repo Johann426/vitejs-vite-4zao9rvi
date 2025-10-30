@@ -11,7 +11,7 @@ import {
 } from "@babylonjs/core";
 import { theme } from "./theme";
 import Viewport from "./Viewport";
-import ContextMenu from "./ContextMenu";
+import { ContextMenuTrigger } from "./ContextMenu";
 import Menunar from "./Menubar";
 import TreeView from "./TreeView";
 
@@ -76,7 +76,6 @@ export default function App() {
   return (
     <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
       <Menunar editor={editor} id="menubar" />
-      {/* <ContextMenu /> */}
       <TreeView groupList={[group]} itemList={[item1, item2]} />
       <div>
         <Viewport
