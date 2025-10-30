@@ -76,7 +76,7 @@ export default function App() {
   return (
     <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
       <Menunar editor={editor} id="menubar" />
-      <TreeView groupList={[group]} itemList={[item1, item2]} />
+      <TreeView id="treeview" groupList={[group]} itemList={[item1, item2]} />
       <div>
         <Viewport
           id="viewport"

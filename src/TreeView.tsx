@@ -3,33 +3,25 @@ import { useState, useEffect } from "react";
 interface ItemData {
   label: string;
   obj: object;
-  onClick: () => void;
-  onPointerOver: () => void;
-  onPointerLeave: () => void;
-  onDragStart: () => void;
-  onDragOver: () => void;
-  onDragLeave: () => void;
-  onDragEnd: () => void;
-  onDrop: () => void;
 }
 
 function Item({
   label,
   obj,
-  onClick,
-  onPointerOver,
-  onPointerLeave,
-  onDragStart,
-  onDragOver,
-  onDragLeave,
-  onDragEnd,
-  onDrop,
+  ...callbacks
 }: ItemData) {
+  
   const [className, setClassName] = useState("item");
+
+  const onClick = () => {
+    setClassName('selected')
+  }
 
   return (
     <li className={className}
       draggable
+      onClick={onClick}
+      {...callbacks}
       // style={{ cursor: "grab" }}
       // onDragStart={() => console.log("t")}
     >
@@ -44,12 +36,6 @@ interface GroupData {
   bool: boolean; // boolean indicating folded state
   group: GroupData[] | null; // list of sub group
   items: ItemData[] | null; // lisst of items
-  onClick: () => void;
-  onDragStart: () => void;
-  onDragOver: () => void;
-  onDragLeave: () => void;
-  onDragEnd: () => void;
-  onDrop: () => void;
 }
 
 function Group({
@@ -58,19 +44,14 @@ function Group({
   bool,
   group,
   items,
-  onClick,
-  onDragStart,
-  onDragOver,
-  onDragLeave,
-  onDragEnd,
-  onDrop,
+  ...callbacks
 }: GroupData) {
   
   const [className, setClassName] = useState("folder");
 
   return (
     <li>
-      <span className={className}>{label}</span>
+      <span className={className} {...callbacks}>{label}</span>
       {bool && ( // if true, render subgroup and items
         <ul>
           {group?.map((v, i) => (
@@ -172,10 +153,9 @@ export default function TreeView({ groupList, itemList }: TreeData) {
     setCoord({ x: e.clientX, y: e.clientY });
   };
 
-  const onClick = (e) => {
-    // editor.select( mesh );
-    e.target.className = "selected";
-  };
+  
+  
+
 
   const onPointerOver = () => {
     // const mesh = scope.map.get( event.target );
