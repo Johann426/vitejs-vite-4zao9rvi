@@ -67,10 +67,12 @@ const group = {
   obj: Object(),
   bool: true,
   group: null,
-  items: null,
+  items: [{ label: "sub item", obj: Object() }],
 };
 const item1 = { label: "item1", obj: Object() };
 const item2 = { label: "item2", obj: Object() };
+
+import { useState } from "react";
 
 export default function App() {
   return (

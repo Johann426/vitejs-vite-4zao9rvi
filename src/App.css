@@ -84,6 +84,10 @@ td input {
   text-align: inherit;
 }
 
+ul, #treeview {
+	list-style-type: none;
+}
+
 #treeview {
 	color: beige;
 	background-color: rgb(48, 48, 48);
@@ -93,27 +97,25 @@ td input {
 	overflow: auto;
 }
 
-	#treeview .group::before {
+	.group::before {
 		content: '\25B7';
 		margin-right: 6px;
 	}
 
-	#treeview .group-opened::before {
+	.group-opened::before {
 		content: '\25BD';
 		margin-right: 6px;
 	}
 
-	#treeview .fold {
-		display: none;
-	}
-	
-	#treeview .unfold {
-		display: block;
+	.surface::before {
+		content: '\25B1';  /* \25B1: surface, 25CB: circle */ 
+		margin-right: 6px;
 	}
 
-	#treeview .item::before {
-		content: '\25B1';
+	.curve::before {
+		content: '\301C';
 		margin-right: 6px;
+		color: skyblue;
 	}
 
 	.model {
@@ -121,8 +123,8 @@ td input {
 	}
 
 	.model:hover {
-		color: bisque;
-		font-weight: bold;
+		color: skyblue;
+		/* font-weight: bold; */
 		/* border: 1px solid rgb(48, 96, 196);
 		border-radius: 10px; */
 		padding: 3px 4px 3px; /* top | right and left | bottom */

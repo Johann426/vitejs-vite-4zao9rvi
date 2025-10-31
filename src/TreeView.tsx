@@ -1,29 +1,46 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 interface ItemData {
   label: string;
   obj: object;
 }
 
-function Item({
-  label,
-  obj,
-  ...callbacks
-}: ItemData) {
-  
-  const [className, setClassName] = useState("item");
+function Item({ label, obj, ...callbacks }: ItemData) {
+  const [className, setClassName] = useState("model");
 
   const onClick = () => {
     setClassName('selected')
   }
 
+  const onDragStart = () => setClassName('dragging')
+
+  const onDragEnd = () => setClassName('model')
+
+  const onDragLeave = () => setClassName('model')
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("dragOver")
+    setClassName('dragOver')
+  }
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    console.log('Dropped!');
+  };
+
   return (
-    <li className={className}
+    <li
+      className={className}
       draggable
       onClick={onClick}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragLeave={onDragLeave}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
       {...callbacks}
-      // style={{ cursor: "grab" }}
-      // onDragStart={() => console.log("t")}
     >
       {label}
     </li>
@@ -46,13 +63,22 @@ function Group({
   items,
   ...callbacks
 }: GroupData) {
-  
-  const [className, setClassName] = useState("folder");
+  const [open, setOpen] = useState(bool); //boolean for state opened & display inside folder
+
+  const onClick = () => {
+    setOpen((prev) => !prev); // toggle boolean
+  }
 
   return (
     <li>
-      <span className={className} {...callbacks}>{label}</span>
-      {bool && ( // if true, render subgroup and items
+      <span
+        className={open ? "group-opened" : "group"}
+        onClick={onClick}
+        {...callbacks}
+      >
+        {label}
+      </span>
+      {open && ( // if true, render subgroup and items
         <ul>
           {group?.map((v, i) => (
             <Group
@@ -73,7 +99,7 @@ function Group({
   );
 }
 
-interface TreeData {
+interface TreeData extends React.HTMLAttributes<HTMLDivElement> {
   groupList: GroupData[];
   itemList: ItemData[];
 }
@@ -85,7 +111,8 @@ export default function TreeView({ groupList, itemList }: TreeData) {
   });
   const [group, setGroup] = useState<GroupData[] | null>(groupList); // subgroup
   const [items, setItems] = useState<ItemData[] | null>(itemList);
-  const [cntxt, setCntxt] = useState(false);
+  const [open, setOpen] = useState(false); // state of context menu opened
+  const [area, setArea] = useState<string | null>(null); // target area of dragOver and possibly drop region
 
   const ContextMenu = ({
     x,
@@ -100,7 +127,7 @@ export default function TreeView({ groupList, itemList }: TreeData) {
     onNewItem: () => void;
     onNewGroup: () => void;
   }) => {
-    const onPointerDown = (e, str: string) => {
+    const onPointerDown = (e: React.PointerEvent<HTMLDivElement>, str: string) => {
       e.stopPropagation();
       console.log(str);
     };
@@ -120,7 +147,7 @@ export default function TreeView({ groupList, itemList }: TreeData) {
               onPointerDown={(e) => {
                 e.stopPropagation(); //prevent from being closed before executing callback
                 onNewGroup();
-                setCntxt(false);
+                setOpen(false);
               }}
             >
               New Group
@@ -129,7 +156,7 @@ export default function TreeView({ groupList, itemList }: TreeData) {
               onPointerDown={(e) => {
                 e.stopPropagation();
                 onNewItem();
-                setCntxt(false);
+                setOpen(false);
               }}
             >
               New Item
@@ -144,18 +171,40 @@ export default function TreeView({ groupList, itemList }: TreeData) {
   };
 
   const onPointerDown = (): void => {
-    setCntxt(false);
+    setOpen(false);
   };
 
   const onContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    setCntxt(true);
+    setOpen(true);
     setCoord({ x: e.clientX, y: e.clientY });
   };
 
-  
-  
+  const onDragOver = (key: string) => (e: React.DragEvent<HTMLElement>) => {
 
+    e.preventDefault(); // prevent default to allow drop event
+    e.stopPropagation(); // prevent event target reaching from child nodes
+
+    const offsetY = (e.nativeEvent as MouseEvent).offsetY;
+    const height = (e.currentTarget as HTMLElement).clientHeight;
+    const area = offsetY / height;
+
+    console.log(key)
+    // setArea(key);
+
+    // if (area <= 0.5) {
+
+    //   area.classList.remove('dragBottom');
+    //   area.classList.add('dragTop');
+
+    // } else if (area > 0.5) {
+
+    //   area.classList.remove('dragTop');
+    //   area.classList.add('dragBottom');
+
+    // }
+
+  }
 
   const onPointerOver = () => {
     // const mesh = scope.map.get( event.target );
@@ -166,35 +215,6 @@ export default function TreeView({ groupList, itemList }: TreeData) {
   const onPointerLeave = () => {
     // const mesh = scope.map.get( event.target );
     // mesh.material.color.set( scope.savedColor );
-  };
-
-  const onDragStart = (event) => {
-    // scope.dragged = event.target;
-    // event.target.classList.add("dragging");
-  };
-
-  const onDragEnd = (event) => {
-    // scope.dragged = 0;
-    // event.target.classList.remove("dragging");
-  };
-
-  const onDragLeave = () => {
-    // if (scope.dragged === event.target) return;
-    // event.target.classList.remove("dragTop", "dragBottom", "dragOver");
-  };
-
-  const onDragOver = () => {
-    // event.preventDefault(); // prevent default to allow drop event
-    // event.stopPropagation(); // Prevent event from reaching child nodes
-    // if (scope.dragged === event.target) return;
-    // const area = event.offsetY / event.target.clientHeight;
-    // if (area <= 0.5) {
-    //   event.target.classList.remove("dragBottom");
-    //   event.target.classList.add("dragTop");
-    // } else if (area > 0.5) {
-    //   event.target.classList.remove("dragTop");
-    //   event.target.classList.add("dragBottom");
-    // }
   };
 
   const onDrop = () => {
@@ -259,12 +279,13 @@ export default function TreeView({ groupList, itemList }: TreeData) {
         ))}
         {items?.map((v, i) => (
           <Item key={`${v.label}-item${i}`} label={v.label} obj={v.obj} />
+          // <Item key={`${v.label}-item${i}`} label={v.label} obj={v.obj} {...{ onDragOver: onDragOver(`${v.label}-item${i}`) }} /> // to do: if key => setClass
         ))}
       </ul>
       <ContextMenu
         x={coord.x}
         y={coord.y}
-        bool={cntxt}
+        bool={open}
         onNewGroup={onNewGroup}
         onNewItem={onNewItem}
       />
