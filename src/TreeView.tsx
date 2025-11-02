@@ -104,7 +104,7 @@ interface TreeData extends React.HTMLAttributes<HTMLDivElement> {
   itemList: ItemData[];
 }
 
-export default function TreeView({ groupList, itemList }: TreeData) {
+export default function TreeView({ groupList, itemList, ...callbacks }: TreeData) {
   const [coord, setCoord] = useState<{ x: number; y: number }>({
     x: 0,
     y: 0,
@@ -265,7 +265,7 @@ export default function TreeView({ groupList, itemList }: TreeData) {
   };
 
   return (
-    <div onPointerDown={onPointerDown} onContextMenu={onContextMenu}>
+    <div onPointerDown={onPointerDown} onContextMenu={onContextMenu} {...callbacks}>
       <ul onPointerDown={onPointerDown}>
         {group?.map((v, i) => (
           <Group
