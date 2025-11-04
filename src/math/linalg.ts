@@ -147,8 +147,8 @@ abstract class Decomposer<T extends { a: number[][] }> {
             }
             r[i] = s;
         }
-
         const e = this.solve(r);
+
         const x = x0.map((xi, i) => xi - e[i]);
         return x
     }
@@ -320,6 +320,8 @@ class QR extends Decomposer<{ a: number[][] }> {
     }
 
 }
+
+export { LU, QR };
 
 
 // // 테스트 행렬과 벡터
