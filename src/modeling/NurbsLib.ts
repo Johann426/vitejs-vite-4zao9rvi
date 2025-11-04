@@ -1783,7 +1783,7 @@ function makeNurbsCircle(o: Vector, x: Vector, y: Vector, r: number, a0: number,
 function intersect3DLines(p0: Vector, d0: Vector, p1: Vector, d1: Vector) {
 
 	const a = [[d0.x, - d1.x], [d0.y, - d1.y]];
-	const b = [[p1.x - p0.x], [p1.y - p0.y]];
+	const b = [p1.x - p0.x, p1.y - p0.y];
 	const lu = new LU(a)
 	const x = lu.solve(b);
 
@@ -2173,18 +2173,11 @@ class Vector {
 
 }
 
-class VectorA extends Float32Array { // cannot overload length()
-
-	constructor(...components) {
-
-		super(components.length);
-		components.map((e, i) => this[i] = e);
-
-	}
-
-}
-
 class Quaternion {
+	x: number;
+	y: number;
+	z: number;
+	w: number;
 
 	constructor(x = 0, y = 0, z = 0, w = 1) {
 
@@ -2195,7 +2188,7 @@ class Quaternion {
 
 	}
 
-	setFromAxisAngle(axis, angle) {
+	setFromAxisAngle(axis: Vector, angle: number) {
 
 		// http://www.euclideanspace.com/maths/geometry/rotations/conversions/angleToQuaternion/index.htm
 
