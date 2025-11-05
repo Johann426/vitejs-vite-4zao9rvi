@@ -5,20 +5,21 @@
 import { LU } from '../math/linalg.ts';
 
 const EPSILON = Number.EPSILON;
-const PI = Math.PI;
-const abs = Math.abs;
-const max = Math.max;
-const min = Math.min;
-const sin = Math.sin;
-const cos = Math.cos;
-const sqrt = Math.sqrt;
-const ceil = Math.ceil;
-const floor = Math.floor;
+// const PI = Math.PI;
+// const abs = Math.abs;
+// const max = Math.max;
+// const min = Math.min;
+// const sin = Math.sin;
+// const cos = Math.cos;
+// const sqrt = Math.sqrt;
+// const ceil = Math.ceil;
+// const floor = Math.floor;
+const { PI, abs, max, min, sin, cos, sqrt, ceil, floor, hypot } = Math
 
 /**
  * Assign parametric value to each point by chordal length (or centripetal) method.
  */
-function parameterize(points: Vector[], curveType: string) {
+function parameterize(points: Vector[], curveType: string = 'chordal') {
 
 	const n = points.length;
 	const prm = [0.0];
@@ -1463,8 +1464,8 @@ function elevateDegree(deg: number, knot: number[], ctrl: Vector[], degInc: numb
 		const oldr = r;
 		r = deg - mul;
 		// Insert knot u(b) r times
-		const lbz = oldr > 0 ? Math.floor((oldr + 2) / 2) : 1;
-		const rbz = r > 0 ? ph - Math.floor((r + 1) / 2) : ph;
+		const lbz = oldr > 0 ? floor((oldr + 2) / 2) : 1;
+		const rbz = r > 0 ? ph - floor((r + 1) / 2) : ph;
 		// console.log( 'lbz, rbz =', lbz, rbz );
 		// console.log( 'i=', i, ' b=', b, ' mul=', mul, ' r=', r );
 		if (r > 0) { // Insert knot to get Bezier segment
@@ -2154,7 +2155,7 @@ class Vector {
 
 	length() {
 
-		return Math.hypot(...this.components);
+		return hypot(...this.components);
 
 	}
 

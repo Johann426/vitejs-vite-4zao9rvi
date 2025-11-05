@@ -14,17 +14,22 @@ import Viewport from "./Viewport";
 import { ContextMenuTrigger } from "./ContextMenu";
 import Menunar from "./Menubar";
 import TreeView from "./TreeView";
+import { Editor } from "./Editor";
+
+const editor = new Editor();
 
 const onSceneReady = (scene) => {
-  const points = [
-    new Vector3(0, 0, 0),
-    new Vector3(1, 1, 0),
-    new Vector3(2, 0, 1),
-    new Vector3(3, 1, 2),
-  ];
+  // const points = [
+  //   new Vector3(0, 0, 0),
+  //   new Vector3(1, 1, 0),
+  //   new Vector3(2, 0, 1),
+  //   new Vector3(3, 1, 2),
+  // ];
 
-  const line = MeshBuilder.CreateLines("myline", { points }, scene);
-  line.color = new Color3(0, 1, 0);
+  // const line = MeshBuilder.CreateLines("myline", { points }, scene);
+  // line.color = new Color3(0, 1, 0);
+
+  editor.addTestCurve(scene);
 
   // This creates and positions a free camera (non-mesh)
   const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
@@ -56,10 +61,6 @@ const onRender = (scene) => {
   //   const rpm = 10;
   //   box.rotation.y += (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
   // }
-};
-
-const editor = function () {
-  const a = 0;
 };
 
 const group = {
