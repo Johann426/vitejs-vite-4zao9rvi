@@ -13,21 +13,13 @@ import { theme } from "./theme";
 import Viewport from "./Viewport";
 import { ContextMenuTrigger } from "./ContextMenu";
 import Menunar from "./Menubar";
+import Sidebar from "./Sidebar";
 import TreeView from "./TreeView";
 import { Editor } from "./Editor";
 
 const editor = new Editor();
 
 const onSceneReady = (scene) => {
-  // const points = [
-  //   new Vector3(0, 0, 0),
-  //   new Vector3(1, 1, 0),
-  //   new Vector3(2, 0, 1),
-  //   new Vector3(3, 1, 2),
-  // ];
-
-  // const line = MeshBuilder.CreateLines("myline", { points }, scene);
-  // line.color = new Color3(0, 1, 0);
 
   editor.addTestCurve(scene);
 
@@ -63,31 +55,21 @@ const onRender = (scene) => {
   // }
 };
 
-const group = {
-  label: "subgroup",
-  obj: Object(),
-  bool: true,
-  group: null,
-  items: [{ label: "sub item", obj: Object() }],
-};
-const item1 = { label: "item1", obj: Object() };
-const item2 = { label: "item2", obj: Object() };
-
 import { useState } from "react";
 
 export default function App() {
   return (
-    <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
+    <MantineProvider theme={theme} withGlobalClasses>
       <Menunar editor={editor} id="menubar" />
-      <TreeView id="treeview" groupList={[group]} itemList={[item1, item2]} />
-      <div>
-        <Viewport
-          id="viewport"
-          antialias
-          onSceneReady={onSceneReady}
-          onRender={onRender}
-        />
-      </div>
+      <Sidebar editor={editor} id="sidebar" />
+      {/* <div id="viewport"> */}
+      <Viewport
+        id="viewport"
+        antialias
+        onSceneReady={onSceneReady}
+        onRender={onRender}
+      />
+      {/* </div> */}
     </MantineProvider>
   );
 }

@@ -1,87 +1,110 @@
-#viewport {
-  position: absolute;
-  top: 32px;
-  left: 0;
-  right: 300px;
-  bottom: 0;
-  /* z-index: -1; */
-  overflow: hidden;
+html {
+	font-size: 15px;
+	font-family: 'Open Sans, sans-serif';
+	background-color: black;
+	color-scheme: dark;
 }
 
-#cntxmenu {
-  position: absolute;
-  width: 250px;
-  border: 1px solid;
-  border-color: rgb(96, 96, 96);
-  background-color: rgb(36, 36, 36);
-  z-index: 1;
-  display: none;
-  overflow: auto;
+body {
+	/* Prevent the user selecting text in body */
+	user-select: none;
 }
 
 #menubar {
-  position: absolute;
-  width: 100%;
-  height: 32px;
-  background-color: rgb(36, 36, 36);
-  padding: 0;
-  margin: 0;
-  top: 0;
-  right: 0;
+	position: absolute;
+	width: 100%;
+	height: 32px;
+	/* background-color: rgb(36, 36, 36); */
+	padding: 0;
+	margin: 0;
+	top: 0;
+	right: 0;
+}
+
+#viewport {
+	position: absolute;
+	/* width: calc(100% - 300px);
+	height: calc(100% - 32px); */
+	top: 32px;
+	left: 0;
+	bottom: 0;
+	/* z-index: -1; */
+	overflow: hidden;
+}
+
+#sidebar {
+	position: absolute;
+	right: 0;
+	top: 32px;
+	bottom: 0;
+	width: 300px;
+	/* background-color: rgb(24, 24, 24); */
+	overflow: auto;
+}
+
+#cntxmenu {
+	position: absolute;
+	width: 250px;
+	border: 1px solid;
+	border-color: rgb(96, 96, 96);
+	background-color: rgb(36, 36, 36);
+	z-index: 1;
+	display: none;
+	overflow: auto;
 }
 
 .hidden {
-  visibility: hidden;
+	visibility: hidden;
 }
 
 table {
-  color: lightgray;
-  border-collapse: collapse;
-  border: 3px solid rgb(96, 96, 96);
-  letter-spacing: 1px;
-  font-size: 12px;
-  /* white-space: nowrap; */ /* Text will never wrap to the next line. */
-  table-layout: fixed; /* table's width of each column to be fixed (or to be determined if not specified) */
+	color: lightgray;
+	border-collapse: collapse;
+	border: 3px solid rgb(96, 96, 96);
+	letter-spacing: 1px;
+	font-size: 12px;
+	/* white-space: nowrap; */ /* Text will never wrap to the next line. */
+	table-layout: fixed; /* table's width of each column to be fixed (or to be determined if not specified) */
 }
 
 tr:nth-child(even) {
-  background-color: rgb(36, 36, 36);
+	background-color: rgb(36, 36, 36);
 }
-
+  
 tr:nth-child(odd) {
-  background-color: rgb(48, 48, 48);
+	background-color: rgb(48, 48, 48);
 }
-
+  
 td,
 th {
-  border: 1px solid rgb(96, 96, 96);
-  height: 20px;
-  padding: 5px 10px; /* top and bottom, right and left */
-  user-select: none;
+	border: 1px solid rgb(96, 96, 96);
+	height: 20px;
+	padding: 5px 10px; /* top and bottom, right and left */
+	user-select: none;
 }
-
+  
 td.selected,
 th.selected {
-  background-color: rgb(35, 60, 96);
+	background-color: rgb(35, 60, 96);
 }
 
 th {
-  background-color: rgb(24, 24, 24);
-  font-weight: bold;
+	background-color: rgb(24, 24, 24);
+	font-weight: bold;
 }
 
 td {
-  text-align: center;
-  /* font-weight: bold; */
-  width: 100px; /* 셀 너비 */
+	text-align: center;
+	/* font-weight: bold; */
+	width: 100px; /* 셀 너비 */
 }
 
 td input {
-  width: 100%;
-  height: 100%;
-  outline: none;
-  font: inherit;
-  text-align: inherit;
+	width: 100%;
+	height: 100%;
+	outline: none;
+	font: inherit;
+	text-align: inherit;
 }
 
 ul, #treeview {
@@ -90,6 +113,7 @@ ul, #treeview {
 
 #treeview {
 	color: beige;
+	font-size: 14px;
 	background-color: rgb(48, 48, 48);
 	border: 1px solid rgb(96, 96, 96);
 	border-radius: 10px;

@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Menu, Button, Text } from "@mantine/core";
+import classes from "./Menubar.module.css";
 
 function File() {
   return (
-    <Menu>
+    <Menu position="bottom-start" offset={-1} width={200} classNames={classes}>
       <Menu.Target>
-        <Button>File</Button>
+        <Button variant="transparent">File</Button>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Item>New</Menu.Item>
@@ -28,9 +29,9 @@ function Edit() {
   onAddPoint();
 
   return (
-    <Menu width={300}>
+    <Menu position="bottom-start" offset={-1} width={300} classNames={classes}>
       <Menu.Target>
-        <Button>Edit</Button>
+        <Button variant="transparent">Edit</Button>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Item>Add Point</Menu.Item>
@@ -64,9 +65,9 @@ function Edit() {
 
 function Curve() {
   return (
-    <Menu>
+    <Menu position="bottom-start" offset={-1} width={300} classNames={classes}>
       <Menu.Target>
-        <Button>Curve</Button>
+        <Button variant="transparent">Curve</Button>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Item>Line</Menu.Item>
@@ -86,9 +87,9 @@ function Curve() {
 
 function Surface() {
   return (
-    <Menu>
+    <Menu position="bottom-start" offset={-1} width={300} classNames={classes}>
       <Menu.Target>
-        <Button>Surface</Button>
+        <Button variant="transparent">Surface</Button>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Item>Bilinear</Menu.Item>

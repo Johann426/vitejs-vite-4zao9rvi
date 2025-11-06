@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from 'react-dom';
 
 interface ItemData {
   label: string;
@@ -282,13 +283,16 @@ export default function TreeView({ groupList, itemList, ...callbacks }: TreeData
           // <Item key={`${v.label}-item${i}`} label={v.label} obj={v.obj} {...{ onDragOver: onDragOver(`${v.label}-item${i}`) }} /> // to do: if key => setClass
         ))}
       </ul>
-      <ContextMenu
-        x={coord.x}
-        y={coord.y}
-        bool={open}
-        onNewGroup={onNewGroup}
-        onNewItem={onNewItem}
-      />
+      {createPortal(// createPortal to avoid layout constraints of parent
+        <ContextMenu
+          x={coord.x}
+          y={coord.y}
+          bool={open}
+          onNewGroup={onNewGroup}
+          onNewItem={onNewItem}
+        />,
+        document.body // render contextMenu directly into <body>
+      )}
     </div>
   );
 }
