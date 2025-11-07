@@ -19,14 +19,14 @@ function Item({ label, obj, ...callbacks }: ItemData) {
 
   const onDragLeave = () => setClassName('model')
 
-  const onDragOver = (e) => {
+  const onDragOver = (e: React.DragEvent<HTMLLIElement>) => {
     e.preventDefault();
     e.stopPropagation();
     console.log("dragOver")
     setClassName('dragOver')
   }
 
-  const onDrop = (e) => {
+  const onDrop = (e: React.DragEvent<HTMLLIElement>) => {
     e.preventDefault();
     console.log('Dropped!');
   };

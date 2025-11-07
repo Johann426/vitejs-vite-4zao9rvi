@@ -23,8 +23,8 @@ body {
 
 #viewport {
 	position: absolute;
-	/* width: calc(100% - 300px);
-	height: calc(100% - 32px); */
+	width: calc(100% - 300px);
+	height: calc(100% - 32px);
 	top: 32px;
 	left: 0;
 	bottom: 0;
@@ -142,16 +142,14 @@ ul, #treeview {
 		color: skyblue;
 	}
 
-	.model {
-		padding: 4px;
+	.model:before {
+		content: '\25B7';
+    	margin-right: 6px;
+    	color: transparent;
 	}
 
 	.model:hover {
 		color: skyblue;
-		/* font-weight: bold; */
-		/* border: 1px solid rgb(48, 96, 196);
-		border-radius: 10px; */
-		padding: 3px 4px 3px; /* top | right and left | bottom */
 	}
 
 	.selected {
