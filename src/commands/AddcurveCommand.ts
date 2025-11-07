@@ -3,6 +3,7 @@ import { MeshBuilder, Color3, } from "@babylonjs/core";
 export class AddCurveCommand {
     editor: any;
     curve: any;
+    mesh: any;
 
     constructor(editor: any, curve: any) {
 
@@ -14,6 +15,7 @@ export class AddCurveCommand {
     execute() {
 
         const { editor, curve } = this;
+        const scene = editor.scene;
 
         const points = curve.getPoints(100)
         const mesh = MeshBuilder.CreateLines("myline", { points }, scene);

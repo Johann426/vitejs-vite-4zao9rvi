@@ -21,7 +21,8 @@ const editor = new Editor();
 
 const onSceneReady = (scene) => {
 
-  editor.addTestCurve(scene);
+  editor.scene = scene;
+  editor.addTestCurve();
 
   // This creates and positions a free camera (non-mesh)
   const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
@@ -55,7 +56,6 @@ const onRender = (scene) => {
   // }
 };
 
-import { useState } from "react";
 
 export default function App() {
   return (
