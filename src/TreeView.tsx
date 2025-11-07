@@ -71,9 +71,8 @@ function Group({
   }
 
   return (
-    <li>
+    <li className={open ? "group-opened" : "group"}>
       <span
-        className={open ? "group-opened" : "group"}
         onClick={onClick}
         {...callbacks}
       >

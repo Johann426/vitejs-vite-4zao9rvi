@@ -121,15 +121,23 @@ ul, #treeview {
 	overflow: auto;
 }
 
-	.group::before {
-		content: '\25B7';
-		margin-right: 6px;
-	}
+#treeview li::before {
+	content: '\25A1';
+	margin-right: 6px;
+	color: transparent;
+}
 
-	.group-opened::before {
-		content: '\25BD';
-		margin-right: 6px;
-	}
+#treeview li.group::before {
+	content: '\25B7';
+	margin-right: 6px;
+	color: white;
+}
+
+#treeview li.group-opened::before {
+	content: '\25BD';
+	margin-right: 6px;
+	color: white;
+}
 
 	.surface::before {
 		content: '\25B1';  /* \25B1: surface, 25CB: circle */ 
@@ -140,12 +148,6 @@ ul, #treeview {
 		content: '\301C';
 		margin-right: 6px;
 		color: skyblue;
-	}
-
-	.model:before {
-		content: '\25B7';
-    	margin-right: 6px;
-    	color: transparent;
 	}
 
 	.model:hover {

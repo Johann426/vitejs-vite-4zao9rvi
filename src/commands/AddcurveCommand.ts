@@ -19,11 +19,15 @@ export class AddCurveCommand {
         const mesh = MeshBuilder.CreateLines("myline", { points }, scene);
         mesh.color = new Color3(0, 1, 0);
 
+        this.mesh = mesh;
+
     }
 
     undo() {
 
-    }
+        const mesh = this.mesh;
+        mesh.dispose();
 
+    }
 
 }
