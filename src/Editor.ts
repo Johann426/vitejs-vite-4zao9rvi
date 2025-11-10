@@ -11,10 +11,12 @@ import { Vector } from "./modeling/NurbsLib";
 export class Editor {
   scene: any;
   history: any;
+  camera: any;
 
   constructor() {
 
     this.history = new History();
+    this.onKeyDown()
 
   }
 
@@ -48,6 +50,31 @@ export class Editor {
     const curve = new BsplineCurveInt(3, poles)
 
     this.execute(new AddCurveCommand(this, curve))
+
+  }
+
+  onKeyDown() {
+
+    document.addEventListener("keydown", (e) => {
+
+      const camera = this.camera;
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+        // e.preventDefault();
+      }
+      if (e.key === "x") {
+        // Positions the camera overwriting alpha, beta, radius
+        camera.setPosition(new Vector3(10, 0, 0));
+        // console.log('hello')
+      }
+      if (e.key === "y") {
+        camera.setPosition(new Vector3(0, 10, 0));
+      }
+      if (e.key === "z") {
+        camera.setPosition(new Vector3(0, 0, 10));
+      }
+
+    })
 
   }
 

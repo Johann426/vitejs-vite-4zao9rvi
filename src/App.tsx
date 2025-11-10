@@ -4,6 +4,8 @@ import { MantineProvider } from "@mantine/core";
 import { Button } from "@mantine/core";
 import {
   FreeCamera,
+  UniversalCamera,
+  ArcRotateCamera,
   Vector3,
   HemisphericLight,
   MeshBuilder,
@@ -24,8 +26,9 @@ const onSceneReady = (scene) => {
   editor.scene = scene;
   editor.addTestCurve();
 
-  // This creates and positions a free camera (non-mesh)
-  const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
+  // Parameters: name, alpha, beta, radius, target position, scene
+  const camera = new ArcRotateCamera("Camera", 0, 0, 10, new Vector3(0, 0, 0), scene);
+  editor.camera = camera;
 
   // This targets the camera to scene origin
   camera.setTarget(Vector3.Zero());
@@ -42,7 +45,13 @@ const onSceneReady = (scene) => {
   light.intensity = 0.7;
 
   // Our built-in 'ground' shape.
-  MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
+  const ground = MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
+
+  // // Enable Collisions
+  // scene.collisionsEnabled = true;
+  // camera.checkCollisions = true;
+  // ground.checkCollisions = true;
+
 };
 
 /**
