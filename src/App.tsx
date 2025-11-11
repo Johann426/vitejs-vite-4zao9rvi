@@ -18,6 +18,7 @@ import Menunar from "./Menubar";
 import Sidebar from "./Sidebar";
 import TreeView from "./TreeView";
 import { Editor } from "./Editor";
+import Splitter from "./layout/Splitter";
 
 const editor = new Editor();
 
@@ -26,17 +27,19 @@ const onSceneReady = (scene) => {
   editor.scene = scene;
   editor.addTestCurve();
 
-  // Parameters: name, alpha, beta, radius, target position, scene
-  const camera = new ArcRotateCamera("Camera", 0, 0, 10, new Vector3(0, 0, 0), scene);
-  editor.camera = camera;
+  scene.clearColor = new Color3(0, 0, 0);
 
-  // This targets the camera to scene origin
-  camera.setTarget(Vector3.Zero());
+  // // Parameters: name, alpha, beta, radius, target position, scene
+  // const camera = new ArcRotateCamera("Camera", 0, 0, 10, new Vector3(0, 0, 0), scene);
+  // editor.camera = camera;
+
+  // // This targets the camera to scene origin
+  // camera.setTarget(Vector3.Zero());
 
   const canvas = scene.getEngine().getRenderingCanvas();
 
-  // This attaches the camera to the canvas
-  camera.attachControl(canvas, true);
+  // // This attaches the camera to the canvas
+  // camera.attachControl(canvas, true);
 
   // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
   const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
@@ -52,6 +55,13 @@ const onSceneReady = (scene) => {
   // camera.checkCollisions = true;
   // ground.checkCollisions = true;
 
+  // MultiViews
+  const cameras = Array(4).fill(0).map(e => new ArcRotateCamera("Camera", 90, 0, 10, new Vector3(0, 0, 0), scene)); // Parameters: name, alpha, beta, radius, target position, scene
+
+  editor.canvas = canvas
+  editor.cameras = cameras
+  editor.setCamera()
+
 };
 
 /**
@@ -65,20 +75,18 @@ const onRender = (scene) => {
   // }
 };
 
-
 export default function App() {
   return (
     <MantineProvider theme={theme} withGlobalClasses>
       <Menunar editor={editor} id="menubar" />
       <Sidebar editor={editor} id="sidebar" />
-      {/* <div id="viewport"> */}
+      <Splitter />
       <Viewport
         id="viewport"
         antialias
         onSceneReady={onSceneReady}
         onRender={onRender}
       />
-      {/* </div> */}
     </MantineProvider>
   );
 }

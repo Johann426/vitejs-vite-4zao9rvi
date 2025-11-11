@@ -18,8 +18,8 @@ const item2 = { label: "item2", obj: Object() };
 export default function Sidebar({ editor, ...rest }: SidebarProps) {
     return (
         <div {...rest}>
-            <Tabs defaultValue="layer">
-                <Tabs.List>
+            <Tabs color="cyan" defaultValue="layer">
+                <Tabs.List justify="space-between">
                     <Tabs.Tab value="layer" leftSection={<IconLayersSubtract size={12} />}>
                         Layer
                     </Tabs.Tab>

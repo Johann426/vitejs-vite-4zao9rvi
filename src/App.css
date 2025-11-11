@@ -8,13 +8,15 @@ html {
 body {
 	/* Prevent the user selecting text in body */
 	user-select: none;
+	--menuH: 32px;
+	--sideW: 310px;
 }
 
 #menubar {
 	position: absolute;
 	width: 100%;
-	height: 32px;
-	/* background-color: rgb(36, 36, 36); */
+	height: var(--menuH);
+	background-color: rgb(36, 36, 36);
 	padding: 0;
 	margin: 0;
 	top: 0;
@@ -23,9 +25,9 @@ body {
 
 #viewport {
 	position: absolute;
-	width: calc(100% - 300px);
-	height: calc(100% - 32px);
-	top: 32px;
+	width: calc(100% - var(--sideW));
+	height: calc(100% - var(--menuH));
+	top: var(--menuH);
 	left: 0;
 	bottom: 0;
 	/* z-index: -1; */
@@ -35,10 +37,10 @@ body {
 #sidebar {
 	position: absolute;
 	right: 0;
-	top: 32px;
+	top: var(--menuH);
 	bottom: 0;
-	width: 300px;
-	/* background-color: rgb(24, 24, 24); */
+	width: var(--sideW);
+	background-color: rgb(24, 24, 24);
 	overflow: auto;
 }
 
@@ -179,3 +181,16 @@ ul, #treeview {
 		border-bottom: 1px solid rgb(48, 96, 196);
 		padding: 4px 4px 3px; /* top | right and left | bottom */
 	}
+
+#splitPanel {
+		position: absolute;
+		border: none;
+		width: calc(100% - var(--sideW));
+		height: calc(100% - var(--menuH));
+		top: var(--menuH);
+		left: 0;
+		display: flex;
+		z-index: 10;
+		pointer-events: none;
+	  }
+	  

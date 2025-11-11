@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Engine, Scene } from "@babylonjs/core";
-import { FreeCamera, Vector3, HemisphericLight, MeshBuilder, Color3, } from "@babylonjs/core";
+import { FreeCamera, Vector3, HemisphericLight, MeshBuilder, Color3, Viewport } from "@babylonjs/core";
 
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddcurveCommand.js";
@@ -12,11 +12,39 @@ export class Editor {
   scene: any;
   history: any;
   camera: any;
+  cameras: any;
+  canvas: any;
 
   constructor() {
 
     this.history = new History();
     this.onKeyDown()
+
+  }
+
+  setCamera() {
+    const { scene, cameras, canvas } = this;
+    cameras.map((e, i) => {
+      e.setTarget(Vector3.Zero())
+      e.attachControl(true);
+      if (i == 0) e.viewport = new Viewport(0.0, 0.0, 0.5, 0.5)
+      if (i == 1) {
+        e.viewport = new Viewport(0.5, 0.0, 0.5, 0.5)
+        e.setPosition(new Vector3(10, 0, 0));
+      }
+      if (i == 2) {
+        e.viewport = new Viewport(0.5, 0.5, 0.5, 0.5)
+        e.setPosition(new Vector3(0, 10, 0));
+      }
+      if (i == 3) {
+        e.viewport = new Viewport(0.0, 0.5, 0.5, 0.5)
+        e.setPosition(new Vector3(0, 0, 10));
+      }
+      scene.activeCameras.push(e);
+      console.log('hello')
+    })
+
+    cameras[0].detachControl();
 
   }
 
