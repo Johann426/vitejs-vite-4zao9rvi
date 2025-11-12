@@ -25,23 +25,22 @@ export class Editor {
   setCamera() {
     const { scene, cameras, canvas } = this;
     cameras.map((e, i) => {
-      e.setTarget(Vector3.Zero())
+      e.setTarget(Vector3.Zero());
       e.attachControl(true);
-      if (i == 0) e.viewport = new Viewport(0.0, 0.0, 0.5, 0.5)
+      if (i == 0) e.viewport = new Viewport(0.0, 0.0, 0.5, 0.5);
       if (i == 1) {
-        e.viewport = new Viewport(0.5, 0.0, 0.5, 0.5)
+        e.viewport = new Viewport(0.5, 0.0, 0.5, 0.5);
         e.setPosition(new Vector3(10, 0, 0));
       }
       if (i == 2) {
-        e.viewport = new Viewport(0.5, 0.5, 0.5, 0.5)
+        e.viewport = new Viewport(0.5, 0.5, 0.5, 0.5);
         e.setPosition(new Vector3(0, 10, 0));
       }
       if (i == 3) {
-        e.viewport = new Viewport(0.0, 0.5, 0.5, 0.5)
+        e.viewport = new Viewport(0.0, 0.5, 0.5, 0.5);
         e.setPosition(new Vector3(0, 0, 10));
       }
       scene.activeCameras.push(e);
-      console.log('hello')
     })
 
     cameras[0].detachControl();

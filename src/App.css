@@ -16,11 +16,19 @@ body {
 	position: absolute;
 	width: 100%;
 	height: var(--menuH);
-	background-color: rgb(36, 36, 36);
-	padding: 0;
-	margin: 0;
 	top: 0;
 	right: 0;
+	background-color: rgb(36, 36, 36);
+}
+
+#sidebar {
+	position: absolute;
+	width: var(--sideW);
+	height: 100%;
+	top: var(--menuH);
+	right: 0;
+	background-color: rgb(24, 24, 24);
+	overflow: auto;
 }
 
 #viewport {
@@ -29,19 +37,19 @@ body {
 	height: calc(100% - var(--menuH));
 	top: var(--menuH);
 	left: 0;
-	bottom: 0;
 	/* z-index: -1; */
 	overflow: hidden;
 }
 
-#sidebar {
+#Divider {
 	position: absolute;
-	right: 0;
+	width: calc(100% - var(--sideW));
+	height: calc(100% - var(--menuH));
 	top: var(--menuH);
-	bottom: 0;
-	width: var(--sideW);
-	background-color: rgb(24, 24, 24);
-	overflow: auto;
+	left: 0;
+	display: flex;
+	z-index: 1;
+	pointer-events: none;
 }
 
 #cntxmenu {
@@ -182,15 +190,5 @@ ul, #treeview {
 		padding: 4px 4px 3px; /* top | right and left | bottom */
 	}
 
-#splitPanel {
-		position: absolute;
-		border: none;
-		width: calc(100% - var(--sideW));
-		height: calc(100% - var(--menuH));
-		top: var(--menuH);
-		left: 0;
-		display: flex;
-		z-index: 10;
-		pointer-events: none;
-	  }
+
 	  

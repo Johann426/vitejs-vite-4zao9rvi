@@ -18,7 +18,7 @@ import Menunar from "./Menubar";
 import Sidebar from "./Sidebar";
 import TreeView from "./TreeView";
 import { Editor } from "./Editor";
-import Splitter from "./layout/Splitter";
+import Divider from "./layout/Divider";
 
 const editor = new Editor();
 
@@ -80,7 +80,7 @@ export default function App() {
     <MantineProvider theme={theme} withGlobalClasses>
       <Menunar editor={editor} id="menubar" />
       <Sidebar editor={editor} id="sidebar" />
-      <Splitter />
+      <Divider editor={editor} id="Divider" />
       <Viewport
         id="viewport"
         antialias
