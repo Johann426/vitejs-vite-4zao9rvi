@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Engine, Scene } from "@babylonjs/core";
-import { FreeCamera, Vector3, HemisphericLight, MeshBuilder, Color3, Viewport } from "@babylonjs/core";
+import { Vector3, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddcurveCommand.js";
@@ -10,10 +10,8 @@ import { Vector } from "./modeling/NurbsLib";
 
 export class Editor {
   scene: any;
-  history: any;
-  camera: any;
   cameras: any;
-  canvas: any;
+  history: History;
 
   constructor() {
 
@@ -22,28 +20,48 @@ export class Editor {
 
   }
 
-  setCamera() {
-    const { scene, cameras, canvas } = this;
-    cameras.map((e, i) => {
-      e.setTarget(Vector3.Zero());
-      e.attachControl(true);
-      if (i == 0) e.viewport = new Viewport(0.0, 0.0, 0.5, 0.5);
+  init(scene: Scene) {
+
+    this.scene = scene;
+    this.cameras = [];
+    const cameras = this.cameras;
+
+    for (let i = 0; i < 4; i++) {
+      cameras.push(new ArcRotateCamera(
+        // name, alpha, beta, radius, target position, scene
+        "Camera", 90, 0, 10, new Vector3(0, 0, 0), scene
+      ));
+    }
+
+    cameras.map((camera: ArcRotateCamera, i: number) => {
+      camera.setTarget(Vector3.Zero());
+      // camera.attachControl(true);
+      if (i == 0) camera.viewport = new Viewport(0.0, 0.0, 0.5, 0.5);
       if (i == 1) {
-        e.viewport = new Viewport(0.5, 0.0, 0.5, 0.5);
-        e.setPosition(new Vector3(10, 0, 0));
+        camera.viewport = new Viewport(0.5, 0.0, 0.5, 0.5);
+        camera.setPosition(new Vector3(10, 0, 0));
       }
       if (i == 2) {
-        e.viewport = new Viewport(0.5, 0.5, 0.5, 0.5);
-        e.setPosition(new Vector3(0, 10, 0));
+        camera.viewport = new Viewport(0.5, 0.5, 0.5, 0.5);
+        camera.setPosition(new Vector3(0, 10, 0));
       }
       if (i == 3) {
-        e.viewport = new Viewport(0.0, 0.5, 0.5, 0.5);
-        e.setPosition(new Vector3(0, 0, 10));
+        camera.viewport = new Viewport(0.0, 0.5, 0.5, 0.5);
+        camera.setPosition(new Vector3(0, 0, 10));
       }
-      scene.activeCameras.push(e);
     })
 
-    cameras[0].detachControl();
+    scene.activeCameras = cameras
+
+    // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+    const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+
+    // Default intensity is 1. Let's dim the light a small amount
+    light.intensity = 0.25;
+
+    // Our built-in 'ground' shape.
+    const ground = MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
+
 
   }
 

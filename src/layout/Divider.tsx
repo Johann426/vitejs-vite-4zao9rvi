@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Vector3, Viewport } from "@babylonjs/core";
+import { Viewport, ArcRotateCamera } from "@babylonjs/core";
+import { Editor } from "../Editor";
 
 interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
-    editor: object;
+    editor: Editor;
 }
 
 export default function Divider({ editor, ...rest }: DividerProps) {
@@ -25,11 +26,14 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         setViewport(x, ratio)
     };
 
-    // camera[3] camera[2]
-    // camera[0] camera[1]
+
     const setViewport = (x: number, y: number) => {
         const { scene, cameras } = editor;
-        cameras.map((e, i) => {
+
+        // camera[3] | camera[2]
+        // ----------|------------
+        // camera[0] | camera[1]
+        cameras.map((e: ArcRotateCamera, i: number) => {
             if (i == 0) e.viewport = new Viewport(0.0, 0.0, x, 1.0 - y);
             if (i == 1) {
                 e.viewport = new Viewport(x, 0.0, 1.0 - x, 1.0 - y);
@@ -41,15 +45,29 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                 e.viewport = new Viewport(0.0, 1.0 - y, x, y);
             }
         })
-        scene.activeCameras = cameras;
+    }
+
+    const onPointerDown = (i: number) => {
+
+        const cameras = editor.cameras;
+        cameras[i].attachControl(true);
+        console.log("hello")
+
+    }
+
+    const onPointerUp = (i: number) => {
+
+        const cameras = editor.cameras;
+        cameras[i].detachControl();
+
     }
 
     return (
         <div ref={ref} {...rest}>
-            <div style={{ flex: 1, backgroundColor: "transparent" }}></div>
-            <div style={{ flex: 1, backgroundColor: "transparent" }}></div>
-            <div style={{ flex: 1, backgroundColor: "transparent" }}></div>
-            <div style={{ flex: 1, backgroundColor: "transparent" }}></div>
+            <div onPointerDown={() => onPointerDown(3)} onPointerUp={() => onPointerUp(3)} style={{ flex: 1, backgroundColor: "transparent" }}></div>
+            <div onPointerDown={() => onPointerDown(2)} style={{ flex: 1, backgroundColor: "transparent" }}></div>
+            <div onPointerDown={() => onPointerDown(0)} style={{ flex: 1, backgroundColor: "transparent" }}></div>
+            <div onPointerDown={() => onPointerDown(1)} style={{ flex: 1, backgroundColor: "transparent" }}></div>
             <div
                 // className="splitter vertical"
                 onPointerDown={() => {
