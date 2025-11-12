@@ -35,7 +35,7 @@ export class Editor {
 
     cameras.map((camera: ArcRotateCamera, i: number) => {
       camera.setTarget(Vector3.Zero());
-      // camera.attachControl(true);
+      camera.attachControl(true);
       if (i == 0) camera.viewport = new Viewport(0.0, 0.0, 0.5, 0.5);
       if (i == 1) {
         camera.viewport = new Viewport(0.5, 0.0, 0.5, 0.5);

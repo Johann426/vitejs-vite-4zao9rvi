@@ -64,7 +64,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
     return (
         <div ref={ref} {...rest}>
-            <div onPointerDown={() => onPointerDown(3)} onPointerUp={() => onPointerUp(3)} style={{ flex: 1, backgroundColor: "transparent" }}></div>
+            <div onPointerDown={() => onPointerDown(3)} onPointerUp={() => onPointerUp(3)} style={{ flex: 1, backgroundColor: "gray" }}></div>
             <div onPointerDown={() => onPointerDown(2)} style={{ flex: 1, backgroundColor: "transparent" }}></div>
             <div onPointerDown={() => onPointerDown(0)} style={{ flex: 1, backgroundColor: "transparent" }}></div>
             <div onPointerDown={() => onPointerDown(1)} style={{ flex: 1, backgroundColor: "transparent" }}></div>
