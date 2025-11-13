@@ -65,6 +65,7 @@ export class Editor {
     // Our built-in 'ground' shape.
     const ground = MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
 
+    this.addTestCurve();
 
   }
 

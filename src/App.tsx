@@ -1,10 +1,8 @@
 import "./App.css";
+import { useEffect, useRef } from "react";
 import "@mantine/core/styles.css";
 import { MantineProvider } from "@mantine/core";
-import {
-  Scene,
-  Color3,
-} from "@babylonjs/core";
+import { Scene, Color3 } from "@babylonjs/core";
 import { theme } from "./theme";
 import Viewport from "./Viewport";
 import Menunar from "./Menubar";
@@ -15,9 +13,6 @@ import Divider from "./layout/Divider";
 const editor = new Editor();
 
 const onSceneReady = (scene: Scene) => {
-
-  editor.scene = scene;
-  editor.addTestCurve();
 
   scene.clearColor = new Color3(0, 0, 0);
 
@@ -34,7 +29,6 @@ const onSceneReady = (scene: Scene) => {
   // camera.checkCollisions = true;
   // ground.checkCollisions = true;
 
-  editor.init(scene)
 
 };
 
@@ -50,12 +44,23 @@ const onRender = (scene: Scene) => {
 };
 
 export default function App() {
+  const viewportRef = useRef<{ scene: Scene | null }>(null);
+
+  useEffect(() => {
+    if (viewportRef.current?.scene) {
+      const scene = viewportRef.current.scene;
+      editor.scene = scene;
+      editor.init(scene);
+    }
+  }, []);
+
   return (
     <MantineProvider theme={theme} withGlobalClasses>
       <Menunar editor={editor} id="menubar" />
       <Sidebar editor={editor} id="sidebar" />
       <Divider editor={editor} id="divider" />
       <Viewport
+        ref={viewportRef}
         id="viewport"
         antialias
         onSceneReady={onSceneReady}
