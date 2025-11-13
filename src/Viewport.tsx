@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Engine, Scene } from "@babylonjs/core";
 
 // Define the props of Babylon.js engine and scene options, as well as lifecycle callbacks.
