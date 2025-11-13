@@ -12,6 +12,7 @@ export class Editor {
   scene: any;
   cameras: any;
   history: History;
+  sceneReadyListeners: Array<(scene: Scene) => void> = [];
 
   constructor() {
 
@@ -23,6 +24,8 @@ export class Editor {
   init(scene: Scene) {
 
     this.scene = scene;
+    // notify listeners that the scene is ready
+    this.sceneReadyListeners.forEach((cb) => cb(scene));
     this.cameras = [];
     const cameras = this.cameras;
 
@@ -67,6 +70,10 @@ export class Editor {
 
     this.addTestCurve();
 
+  }
+
+  addSceneReadyListener(cb: (scene: Scene) => void) {
+    this.sceneReadyListeners.push(cb);
   }
 
   addCurve(curve) {
