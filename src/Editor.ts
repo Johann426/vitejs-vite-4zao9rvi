@@ -80,6 +80,21 @@ export class Editor {
 
   // }
 
+  updatelines(curve, points) {
+    MeshBuilder.CreateLines(null, {
+      points: points,
+      instance: curve
+    });
+
+  }
+
+  updateSurface(mesh, positions) {
+    mesh.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
+    // mesh.updateVerticesData(BABYLON.VertexBuffer.NormalKind, normals);
+    // mesh.updateVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+    // mesh.updateVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
+  }
+
   execute(cmd) {
 
     this.history.excute(cmd);
@@ -105,7 +120,8 @@ export class Editor {
 
     document.addEventListener("keydown", (e) => {
 
-      const camera = this.camera;
+      const camera = this.scene.activeCamera;
+      console.log(camera)
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
         // e.preventDefault();

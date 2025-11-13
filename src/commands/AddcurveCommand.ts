@@ -18,7 +18,10 @@ export class AddCurveCommand {
         const scene = editor.scene;
 
         const points = curve.getPoints(100)
-        const mesh = MeshBuilder.CreateLines("myline", { points }, scene);
+        const mesh = MeshBuilder.CreateLines("lines", {
+            points: points,
+            updatable: true
+        }, scene);
         mesh.color = new Color3(0, 1, 0);
 
         this.mesh = mesh;
