@@ -24,7 +24,7 @@ body {
 #sidebar {
 	position: absolute;
 	width: var(--sideW);
-	height: 100%;
+	height: calc(100% - var(--menuH));
 	top: var(--menuH);
 	right: 0;
 	background-color: rgb(24, 24, 24);
@@ -41,13 +41,12 @@ body {
 	overflow: hidden;
 }
 
-#Divider {
+#divider {
 	position: absolute;
 	width: calc(100% - var(--sideW));
 	height: calc(100% - var(--menuH));
 	top: var(--menuH);
 	left: 0;
-	display: flex;
 	z-index: 1;
 	pointer-events: none;
 }

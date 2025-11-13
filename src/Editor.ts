@@ -29,26 +29,29 @@ export class Editor {
     for (let i = 0; i < 4; i++) {
       cameras.push(new ArcRotateCamera(
         // name, alpha, beta, radius, target position, scene
-        "Camera", 90, 0, 10, new Vector3(0, 0, 0), scene
+        `Camera${i}`, 90, 0, 10, new Vector3(0, 0, 0), scene
       ));
     }
 
+    const viewports = [
+      new Viewport(0.0, 0.5, 0.5, 0.5), // top-left
+      new Viewport(0.5, 0.5, 0.5, 0.5), // top-right
+      new Viewport(0.0, 0.0, 0.5, 0.5), // bottom-left
+      new Viewport(0.5, 0.0, 0.5, 0.5)  // bottom-right
+    ];
+
+    const positions = [
+      new Vector3(10, 0, 0), // x-view
+      new Vector3(10, 10, 10), // perspective
+      new Vector3(0, 10, 0), // y-view
+      new Vector3(0, 0, 10), // z-view
+    ]
+
     cameras.map((camera: ArcRotateCamera, i: number) => {
-      camera.setTarget(Vector3.Zero());
-      camera.attachControl(true);
-      if (i == 0) camera.viewport = new Viewport(0.0, 0.0, 0.5, 0.5);
-      if (i == 1) {
-        camera.viewport = new Viewport(0.5, 0.0, 0.5, 0.5);
-        camera.setPosition(new Vector3(10, 0, 0));
-      }
-      if (i == 2) {
-        camera.viewport = new Viewport(0.5, 0.5, 0.5, 0.5);
-        camera.setPosition(new Vector3(0, 10, 0));
-      }
-      if (i == 3) {
-        camera.viewport = new Viewport(0.0, 0.5, 0.5, 0.5);
-        camera.setPosition(new Vector3(0, 0, 10));
-      }
+      camera.setTarget(Vector3.Zero()); // camera target to scene origin
+      camera.viewport = viewports[i];
+      camera.setPosition(positions[i]);
+      // camera.attachControl(true);
     })
 
     scene.activeCameras = cameras

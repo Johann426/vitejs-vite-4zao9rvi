@@ -2,10 +2,7 @@ import "./App.css";
 import "@mantine/core/styles.css";
 import { MantineProvider } from "@mantine/core";
 import {
-  ArcRotateCamera,
-  Vector3,
-  HemisphericLight,
-  MeshBuilder,
+  Scene,
   Color3,
 } from "@babylonjs/core";
 import { theme } from "./theme";
@@ -17,7 +14,7 @@ import Divider from "./layout/Divider";
 
 const editor = new Editor();
 
-const onSceneReady = (scene) => {
+const onSceneReady = (scene: Scene) => {
 
   editor.scene = scene;
   editor.addTestCurve();
@@ -44,7 +41,7 @@ const onSceneReady = (scene) => {
 /**
  * Will run on every frame render.  We are spinning the box on y-axis.
  */
-const onRender = (scene) => {
+const onRender = (scene: Scene) => {
   // if (box !== undefined) {
   //   const deltaTimeInMillis = scene.getEngine().getDeltaTime();
   //   const rpm = 10;
@@ -57,7 +54,7 @@ export default function App() {
     <MantineProvider theme={theme} withGlobalClasses>
       <Menunar editor={editor} id="menubar" />
       <Sidebar editor={editor} id="sidebar" />
-      <Divider editor={editor} id="Divider" />
+      <Divider editor={editor} id="divider" />
       <Viewport
         id="viewport"
         antialias
