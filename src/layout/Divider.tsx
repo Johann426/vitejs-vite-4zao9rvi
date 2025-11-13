@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Viewport, ArcRotateCamera } from "@babylonjs/core";
+import { Viewport, ArcRotateCamera, PointerInfo, PointerEventTypes } from "@babylonjs/core";
 import { Editor } from "../Editor";
 
 interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -10,6 +10,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
     const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
     const cameraRef = useRef<number>(0); // ref to camera
+    const editorRef = useRef(editor);
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
 
@@ -28,36 +29,84 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
     // Set up event listener when the component mounts
     useEffect(() => {
-        const onPointerMove = (e: PointerEvent) => {
-            const { cameras } = editor;
-            const n = cameraRef.current;
-            const posX = getPosX(e);
-            const posY = getPosY(e);
+        // const onPointerMove = (e: PointerEvent) => {
+        //     const { cameras } = editor;
+        //     const n = cameraRef.current;
+        //     const posX = getPosX(e);
+        //     const posY = getPosY(e);
 
-            if (posX < x) {
-                if (posY < y) {
+        //     if (posX < x) {
+        //         if (posY < y) {
+        //             if (n == 0) return
+        //             cameras[n].detachControl();
+        //             cameras[0].attachControl(true);
+        //             cameraRef.current = 0;
+        //             console.log(n, 'detached');
+        //             console.log('0 attached')
+        //         } else {
+        //             if (n == 2) return
+        //             cameras[n].detachControl();
+        //             cameras[2].attachControl(true);
+        //             cameraRef.current = 2;
+        //             console.log(n, 'detached');
+        //             console.log('2 attached')
+        //         }
+        //     } else {
+        //         if (posY < y) {
+        //             if (n == 1) return
+        //             cameras[n].detachControl();
+        //             cameras[1].attachControl(true);
+        //             cameraRef.current = 1;
+        //             console.log(n, 'detached');
+        //             console.log('1 attached')
+        //         } else {
+        //             if (n == 3) return
+        //             cameras[n].detachControl();
+        //             cameras[3].attachControl(true);
+        //             cameraRef.current = 3;
+        //             console.log(n, 'detached');
+        //             console.log('3 attached')
+        //         }
+        //     }
+        // }
+
+        // document.addEventListener('pointermove', onPointerMove);
+
+        const { scene, cameras } = editorRef.current;
+        if (scene) scene.onPointerObservable.add((pointerInfo: PointerInfo) => {
+            if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+                // Get the coordinates of the click within the canvas
+                const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
+                const x = pointerInfo.event.clientX;
+                const y = pointerInfo.event.clientY - parseFloat(offset);
+                // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
+                const canvas = scene.getEngine().getRenderingCanvas();
+                const normalizedX = x / canvas.clientWidth;
+                const normalizedY = 1 - (y / canvas.clientHeight); // the origin is bottom lefthand corner
+                // Determine which viewport/camera is clicked and switch the active interaction camera
+                let selectedCamera: ArcRotateCamera;
+                const n = cameraRef.current;
+                if (normalizedX < 0.5 && normalizedY >= 0.5) {
                     if (n == 0) return
                     cameras[n].detachControl();
                     cameras[0].attachControl(true);
                     cameraRef.current = 0;
                     console.log(n, 'detached');
                     console.log('0 attached')
-                } else {
-                    if (n == 2) return
-                    cameras[n].detachControl();
-                    cameras[2].attachControl(true);
-                    cameraRef.current = 2;
-                    console.log(n, 'detached');
-                    console.log('2 attached')
-                }
-            } else {
-                if (posY < y) {
+                } else if (normalizedX >= 0.5 && normalizedY >= 0.5) {
                     if (n == 1) return
                     cameras[n].detachControl();
                     cameras[1].attachControl(true);
                     cameraRef.current = 1;
                     console.log(n, 'detached');
                     console.log('1 attached')
+                } else if (normalizedX < 0.5 && normalizedY < 0.5) {
+                    if (n == 2) return
+                    cameras[n].detachControl();
+                    cameras[2].attachControl(true);
+                    cameraRef.current = 2;
+                    console.log(n, 'detached');
+                    console.log('2 attached')
                 } else {
                     if (n == 3) return
                     cameras[n].detachControl();
@@ -66,16 +115,16 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     console.log(n, 'detached');
                     console.log('3 attached')
                 }
+                // Instruct Babylon.js to use this specific camera for all subsequent interaction input
+                scene.cameraToUseForPointers = selectedCamera;
             }
-        }
-
-        document.addEventListener('pointermove', onPointerMove);
+        });
 
         // Cleanup when component unmounts
         return () => {
-            document.removeEventListener('pointermove', onPointerMove);
+            // document.removeEventListener('pointermove', onPointerMove);
         };
-    }, [x, y]);
+    }, [editorRef, x, y]);
 
     const setPositionX = (e: PointerEvent) => {
         const posX = getPosX(e);
