@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Viewport, ArcRotateCamera, PointerInfo, PointerEventTypes } from "@babylonjs/core";
-import { Editor } from "../Editor";
+import Editor from "../Editor";
 
 interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
     editor: Editor;
@@ -10,7 +10,6 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
     const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
     const cameraRef = useRef<number>(0); // ref to camera
-    const editorRef = useRef(editor);
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
 
@@ -72,7 +71,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
         // document.addEventListener('pointermove', onPointerMove);
 
-        const { scene, cameras } = editorRef.current;
+        const { scene, cameras } = editor;
         if (scene) scene.onPointerObservable.add((pointerInfo: PointerInfo) => {
             if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
                 // Get the coordinates of the click within the canvas
@@ -115,8 +114,8 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     console.log(n, 'detached');
                     console.log('3 attached')
                 }
-                // Instruct Babylon.js to use this specific camera for all subsequent interaction input
-                scene.cameraToUseForPointers = selectedCamera;
+                // Instruct scene to use this specific camera for pointer position
+                // scene.cameraToUseForPointers = selectedCamera;
             }
         });
 
@@ -124,7 +123,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         return () => {
             // document.removeEventListener('pointermove', onPointerMove);
         };
-    }, [editorRef, x, y]);
+    }, [editor, x, y]);
 
     const setPositionX = (e: PointerEvent) => {
         const posX = getPosX(e);

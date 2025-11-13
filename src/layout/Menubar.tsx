@@ -18,7 +18,7 @@ function File() {
   );
 }
 
-import { Temp } from "./temp.js";
+import { Temp } from "../temp.js";
 
 function onAddPoint() {
   const temp = new Temp(10);

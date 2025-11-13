@@ -9,7 +9,6 @@ interface ViewportProps extends React.CanvasHTMLAttributes<HTMLCanvasElement> {
   sceneOptions?: object; // Optional configuration for Babylon Scene
   onSceneReady: (scene: Scene) => void; // Callback when the scene is fully initialized
   onRender?: (scene: Scene) => void; // Optional callback for each render frame
-  ref?: React.Ref<{ scene: Scene | null }>;
 }
 
 // Main component that sets up Babylon.js rendering inside a React canvas
@@ -20,12 +19,10 @@ export default function Viewport({
   sceneOptions,
   onSceneReady,
   onRender,
-  ref,
   ...rest
 }: ViewportProps) {
   // Create a ref to access the canvas DOM element
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const sceneRef = useRef<Scene | null>(null);
 
   // Set up Babylon.js engine and scene when the component mounts
   useEffect(() => {
@@ -35,14 +32,6 @@ export default function Viewport({
     // Create Babylon.js engine and scene using provided options
     const engine = new Engine(canvas, antialias, engineOptions, adaptToDevice);
     const scene = new Scene(engine, sceneOptions);
-    sceneRef.current = scene;
-
-    // Expose scene through ref
-    if (typeof ref === "function") {
-      ref({ scene });
-    } else if (ref) {
-      ref.current = { scene };
-    }
 
     // If the scene is ready, call the onSceneReady callback, if not ready yet, wait for the scene to finish initializing
     scene.isReady()
@@ -75,7 +64,6 @@ export default function Viewport({
     sceneOptions,
     onSceneReady,
     onRender,
-    ref,
   ]);
 
   // Render the canvas element that Babylon.js will use

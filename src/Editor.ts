@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Engine, Scene } from "@babylonjs/core";
-import { Vector3, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
+import { Vector3, Color4, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddcurveCommand.js";
@@ -8,7 +8,7 @@ import { AddCurveCommand } from "./commands/AddcurveCommand.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js"
 import { Vector } from "./modeling/NurbsLib";
 
-export class Editor {
+export default class Editor {
   scene: any;
   cameras: any;
   history: History;
@@ -24,6 +24,7 @@ export class Editor {
   init(scene: Scene) {
 
     this.scene = scene;
+    scene.clearColor = new Color4(0, 0, 0, 1);
     // notify listeners that the scene is ready
     this.sceneReadyListeners.forEach((cb) => cb(scene));
     this.cameras = [];
