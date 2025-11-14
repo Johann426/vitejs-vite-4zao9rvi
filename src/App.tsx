@@ -15,7 +15,7 @@ export default function App() {
 
   const onSceneReady = (scene: Scene) => {
 
-    if (!editor.scene) editor.onSceneReady(scene);
+    editor.onSceneReady(scene);
 
   };
 

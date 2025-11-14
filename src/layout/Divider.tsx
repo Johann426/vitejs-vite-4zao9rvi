@@ -29,7 +29,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     // Set up event listener when the component mounts
     useEffect(() => {
 
-        const { scene, cameras } = editor;
+        const { scene } = editor;
         if (scene) scene.onPointerObservable.add((pointerInfo: PointerInfo) => {
             if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
                 // Get the coordinates of the click within the canvas
@@ -41,6 +41,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                 const normalizedX = posX / canvas.clientWidth;
                 const normalizedY = posY / canvas.clientHeight; // the origin is bottom lefthand corner
                 // Determine which viewport/camera is clicked and switch the active interaction camera
+                const cameras = scene.activeCamera;
                 let selectedCamera: ArcRotateCamera;
                 const n = cameraRef.current;
                 if (normalizedX <= x && normalizedY <= y) {

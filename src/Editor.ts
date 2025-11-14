@@ -7,7 +7,6 @@ import { Vector } from "./modeling/NurbsLib";
 export default class Editor {
   scene!: Scene;
   history: History = new History();
-  cameras: Array<ArcRotateCamera> = [];
   callbacks: Array<(scene: Scene) => void> = [];
 
   constructor() {
@@ -21,8 +20,7 @@ export default class Editor {
     this.scene = scene;
     scene.clearColor = new Color4(0, 0, 0, 1);
     this.callbacks.forEach(callback => callback(scene));
-    this.cameras = [];
-    const cameras = this.cameras;
+    const cameras = [];
 
     for (let i = 0; i < 4; i++) {
       cameras.push(new ArcRotateCamera(
@@ -30,7 +28,6 @@ export default class Editor {
         `Camera${i}`, 90, 0, 10, new Vector3(0, 0, 0), scene
       ));
     }
-    console.log(cameras)
 
     const viewports = [
       new Viewport(0.0, 0.5, 0.5, 0.5), // top-left
