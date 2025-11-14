@@ -10,13 +10,10 @@ export default class Editor {
   callbacks: Array<(scene: Scene) => void> = [];
 
   constructor() {
-
     this.onKeyDown()
-
   }
 
   onSceneReady(scene: Scene) {
-
     this.scene = scene;
     scene.clearColor = new Color4(0, 0, 0, 1);
     this.callbacks.forEach(callback => callback(scene));
@@ -67,6 +64,11 @@ export default class Editor {
 
   addCallback(callback: (scene: Scene) => void) {
     this.callbacks.push(callback);
+  }
+
+  removeCallback(callback: (scene: Scene) => void) {
+    const index = this.callbacks.indexOf(callback);
+    if (index > -1) this.callbacks.splice(index, 1);
   }
 
   addCurve(curve) {

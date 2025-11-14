@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Viewport, ArcRotateCamera, PointerInfo, PointerEventTypes } from "@babylonjs/core";
+import { Scene, Viewport, Camera, Observer, PointerInfo, PointerEventTypes } from "@babylonjs/core";
 import Editor from "../Editor";
 
 interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -9,6 +9,7 @@ interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
 export default function Divider({ editor, ...rest }: DividerProps) {
 
     const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
+    const observRef = useRef<Observer<PointerInfo>>();
     const cameraRef = useRef<number>(0); // ref to camera
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
@@ -29,20 +30,20 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     // Set up event listener when the component mounts
     useEffect(() => {
 
-        const { scene } = editor;
-        if (scene) scene.onPointerObservable.add((pointerInfo: PointerInfo) => {
-            if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+        const observable = (scene: Scene) => {
+            const onPointerDown = (pointerInfo: PointerInfo) => {
+                // if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
                 // Get the coordinates of the click within the canvas
                 const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
                 const posX = pointerInfo.event.clientX;
                 const posY = pointerInfo.event.clientY - parseFloat(offset);
                 // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
                 const canvas = scene.getEngine().getRenderingCanvas();
-                const normalizedX = posX / canvas.clientWidth;
+                const normalizedX = posX / canvas?.clientWidth;
                 const normalizedY = posY / canvas.clientHeight; // the origin is bottom lefthand corner
                 // Determine which viewport/camera is clicked and switch the active interaction camera
-                const cameras = scene.activeCamera;
-                let selectedCamera: ArcRotateCamera;
+                const cameras = scene.activeCameras;
+                let selectedCamera: Camera;
                 const n = cameraRef.current;
                 if (normalizedX <= x && normalizedY <= y) {
                     if (n == 0) return
@@ -79,12 +80,28 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                 }
                 // Instruct scene to use this specific camera for pointer position
                 // scene.cameraToUseForPointers = selectedCamera;
+                // }
             }
-        });
+
+            // scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
+            observRef.current = scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
+        }
+
+        const { scene } = editor;
+
+        if (scene) {
+            observable(scene);
+        } else {
+            editor.addCallback(observable);
+        }
 
         // Cleanup when component unmounts
         return () => {
-            // document.removeEventListener('pointermove', onPointerMove);
+            if (scene) {
+                scene.onPointerObservable.remove(observRef.current);
+            } else {
+                // editor.removeCallback(observable);
+            }
         };
     }, [editor, x, y]);
 
@@ -101,7 +118,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     };
 
     const setViewport = (x: number, y: number) => {
-        const { cameras } = editor;
+        const cameras = editor.scene.activeCameras;
         // viewport[0] | viewport[1]
         // ----------|------------
         // viewport[2] | viewport[3]
@@ -112,7 +129,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
             new Viewport(x, 0, 1 - x, 1 - y)
         ];
 
-        cameras.map((camera: ArcRotateCamera, i: number) => {
+        cameras?.map((camera: Camera, i: number) => {
             camera.viewport = viewport[i];
         })
     }
