@@ -28,81 +28,42 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
     // Set up event listener when the component mounts
     useEffect(() => {
-        // const onPointerMove = (e: PointerEvent) => {
-        //     const { cameras } = editor;
-        //     const n = cameraRef.current;
-        //     const posX = getPosX(e);
-        //     const posY = getPosY(e);
-
-        //     if (posX < x) {
-        //         if (posY < y) {
-        //             if (n == 0) return
-        //             cameras[n].detachControl();
-        //             cameras[0].attachControl(true);
-        //             cameraRef.current = 0;
-        //             console.log(n, 'detached');
-        //             console.log('0 attached')
-        //         } else {
-        //             if (n == 2) return
-        //             cameras[n].detachControl();
-        //             cameras[2].attachControl(true);
-        //             cameraRef.current = 2;
-        //             console.log(n, 'detached');
-        //             console.log('2 attached')
-        //         }
-        //     } else {
-        //         if (posY < y) {
-        //             if (n == 1) return
-        //             cameras[n].detachControl();
-        //             cameras[1].attachControl(true);
-        //             cameraRef.current = 1;
-        //             console.log(n, 'detached');
-        //             console.log('1 attached')
-        //         } else {
-        //             if (n == 3) return
-        //             cameras[n].detachControl();
-        //             cameras[3].attachControl(true);
-        //             cameraRef.current = 3;
-        //             console.log(n, 'detached');
-        //             console.log('3 attached')
-        //         }
-        //     }
-        // }
-
-        // document.addEventListener('pointermove', onPointerMove);
 
         const { scene, cameras } = editor;
         if (scene) scene.onPointerObservable.add((pointerInfo: PointerInfo) => {
             if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
                 // Get the coordinates of the click within the canvas
                 const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
-                const x = pointerInfo.event.clientX;
-                const y = pointerInfo.event.clientY - parseFloat(offset);
+                const posX = pointerInfo.event.clientX;
+                const posY = pointerInfo.event.clientY - parseFloat(offset);
                 // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
                 const canvas = scene.getEngine().getRenderingCanvas();
-                const normalizedX = x / canvas.clientWidth;
-                const normalizedY = 1 - (y / canvas.clientHeight); // the origin is bottom lefthand corner
+                const normalizedX = posX / canvas.clientWidth;
+                const normalizedY = posY / canvas.clientHeight; // the origin is bottom lefthand corner
                 // Determine which viewport/camera is clicked and switch the active interaction camera
                 let selectedCamera: ArcRotateCamera;
                 const n = cameraRef.current;
-                if (normalizedX < 0.5 && normalizedY >= 0.5) {
+                if (normalizedX <= x && normalizedY <= y) {
                     if (n == 0) return
                     cameras[n].detachControl();
                     cameras[0].attachControl(true);
+                    // selectedCamera = cameras[0];
                     cameraRef.current = 0;
                     console.log(n, 'detached');
                     console.log('0 attached')
-                } else if (normalizedX >= 0.5 && normalizedY >= 0.5) {
+                } else if (normalizedX > x && normalizedY <= y) {
                     if (n == 1) return
                     cameras[n].detachControl();
                     cameras[1].attachControl(true);
+                    // selectedCamera = cameras[1];
                     cameraRef.current = 1;
                     console.log(n, 'detached');
                     console.log('1 attached')
-                } else if (normalizedX < 0.5 && normalizedY < 0.5) {
+                } else if (normalizedX <= x && normalizedY >= y) {
                     if (n == 2) return
                     cameras[n].detachControl();
                     cameras[2].attachControl(true);
+                    // selectedCamera = cameras[2];
                     cameraRef.current = 2;
                     console.log(n, 'detached');
                     console.log('2 attached')
@@ -110,6 +71,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     if (n == 3) return
                     cameras[n].detachControl();
                     cameras[3].attachControl(true);
+                    // selectedCamera = cameras[3];
                     cameraRef.current = 3;
                     console.log(n, 'detached');
                     console.log('3 attached')

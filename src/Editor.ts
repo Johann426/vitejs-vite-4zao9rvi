@@ -1,32 +1,26 @@
-import { useEffect, useRef } from "react";
-import { Engine, Scene } from "@babylonjs/core";
-import { Vector3, Color4, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
-
+import { Scene, Vector3, Color4, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddcurveCommand.js";
-
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js"
 import { Vector } from "./modeling/NurbsLib";
 
 export default class Editor {
-  scene: any;
-  cameras: any;
-  history: History;
-  sceneReadyListeners: Array<(scene: Scene) => void> = [];
+  scene!: Scene;
+  history: History = new History();
+  cameras: Array<ArcRotateCamera> = [];
+  callbacks: Array<(scene: Scene) => void> = [];
 
   constructor() {
 
-    this.history = new History();
     this.onKeyDown()
 
   }
 
-  init(scene: Scene) {
+  onSceneReady(scene: Scene) {
 
     this.scene = scene;
     scene.clearColor = new Color4(0, 0, 0, 1);
-    // notify listeners that the scene is ready
-    this.sceneReadyListeners.forEach((cb) => cb(scene));
+    this.callbacks.forEach(callback => callback(scene));
     this.cameras = [];
     const cameras = this.cameras;
 
@@ -36,6 +30,7 @@ export default class Editor {
         `Camera${i}`, 90, 0, 10, new Vector3(0, 0, 0), scene
       ));
     }
+    console.log(cameras)
 
     const viewports = [
       new Viewport(0.0, 0.5, 0.5, 0.5), // top-left
@@ -73,8 +68,8 @@ export default class Editor {
 
   }
 
-  addSceneReadyListener(cb: (scene: Scene) => void) {
-    this.sceneReadyListeners.push(cb);
+  addCallback(callback: (scene: Scene) => void) {
+    this.callbacks.push(callback);
   }
 
   addCurve(curve) {
@@ -130,21 +125,20 @@ export default class Editor {
     document.addEventListener("keydown", (e) => {
 
       const camera = this.scene.activeCamera;
-      console.log(camera)
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
         // e.preventDefault();
       }
       if (e.key === "x") {
         // Positions the camera overwriting alpha, beta, radius
-        camera.setPosition(new Vector3(10, 0, 0));
+        camera?.setPosition(new Vector3(10, 0, 0));
         // console.log('hello')
       }
       if (e.key === "y") {
-        camera.setPosition(new Vector3(0, 10, 0));
+        camera?.setPosition(new Vector3(0, 10, 0));
       }
       if (e.key === "z") {
-        camera.setPosition(new Vector3(0, 0, 10));
+        camera?.setPosition(new Vector3(0, 0, 10));
       }
 
     })
