@@ -9,7 +9,7 @@ interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
 export default function Divider({ editor, ...rest }: DividerProps) {
 
     const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
-    const observRef = useRef<Observer<PointerInfo>>();
+    const observRef = useRef<Observer<PointerInfo>>(null);
     const cameraRef = useRef<number>(0); // ref to camera
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
@@ -29,58 +29,41 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
     // Set up event listener when the component mounts
     useEffect(() => {
-
         const observable = (scene: Scene) => {
+            const canvas = scene.getEngine().getRenderingCanvas();
+            const cameras = scene.activeCameras;
+            // let selectedCamera: Camera;
+            const setControl = (i: number) => {
+                const n = cameraRef.current;
+                if (n == i) return
+                cameras[n].detachControl();
+                cameras[i].attachControl(true);
+                // selectedCamera = cameras[i];
+                cameraRef.current = i;
+                console.log(n, 'detached');
+                console.log(`${i} attached`)
+            }
+
             const onPointerDown = (pointerInfo: PointerInfo) => {
-                // if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-                // Get the coordinates of the click within the canvas
+                // Get coordinates of pointer within the canvas
                 const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
                 const posX = pointerInfo.event.clientX;
                 const posY = pointerInfo.event.clientY - parseFloat(offset);
                 // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
-                const canvas = scene.getEngine().getRenderingCanvas();
                 const normalizedX = posX / canvas?.clientWidth;
-                const normalizedY = posY / canvas.clientHeight; // the origin is bottom lefthand corner
+                const normalizedY = posY / canvas?.clientHeight;
                 // Determine which viewport/camera is clicked and switch the active interaction camera
-                const cameras = scene.activeCameras;
-                let selectedCamera: Camera;
-                const n = cameraRef.current;
                 if (normalizedX <= x && normalizedY <= y) {
-                    if (n == 0) return
-                    cameras[n].detachControl();
-                    cameras[0].attachControl(true);
-                    // selectedCamera = cameras[0];
-                    cameraRef.current = 0;
-                    console.log(n, 'detached');
-                    console.log('0 attached')
+                    setControl(0);
                 } else if (normalizedX > x && normalizedY <= y) {
-                    if (n == 1) return
-                    cameras[n].detachControl();
-                    cameras[1].attachControl(true);
-                    // selectedCamera = cameras[1];
-                    cameraRef.current = 1;
-                    console.log(n, 'detached');
-                    console.log('1 attached')
+                    setControl(1);
                 } else if (normalizedX <= x && normalizedY >= y) {
-                    if (n == 2) return
-                    cameras[n].detachControl();
-                    cameras[2].attachControl(true);
-                    // selectedCamera = cameras[2];
-                    cameraRef.current = 2;
-                    console.log(n, 'detached');
-                    console.log('2 attached')
+                    setControl(2);
                 } else {
-                    if (n == 3) return
-                    cameras[n].detachControl();
-                    cameras[3].attachControl(true);
-                    // selectedCamera = cameras[3];
-                    cameraRef.current = 3;
-                    console.log(n, 'detached');
-                    console.log('3 attached')
+                    setControl(3);
                 }
                 // Instruct scene to use this specific camera for pointer position
                 // scene.cameraToUseForPointers = selectedCamera;
-                // }
             }
 
             // scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);

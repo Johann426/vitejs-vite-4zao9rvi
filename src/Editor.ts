@@ -15,8 +15,10 @@ export default class Editor {
 
   onSceneReady(scene: Scene) {
     this.scene = scene;
-    scene.clearColor = new Color4(0, 0, 0, 1);
     this.callbacks.forEach(callback => callback(scene));
+
+    scene.clearColor = new Color4(0, 0, 0, 1);
+
     const cameras = [];
 
     for (let i = 0; i < 4; i++) {
@@ -26,13 +28,16 @@ export default class Editor {
       ));
     }
 
+    // Set up viewport of each camera
     const viewports = [
+      // x, y, width, height
       new Viewport(0.0, 0.5, 0.5, 0.5), // top-left
       new Viewport(0.5, 0.5, 0.5, 0.5), // top-right
       new Viewport(0.0, 0.0, 0.5, 0.5), // bottom-left
       new Viewport(0.5, 0.0, 0.5, 0.5)  // bottom-right
     ];
 
+    // Set up position of each camera
     const positions = [
       new Vector3(10, 0, 0), // x-view
       new Vector3(10, 10, 10), // perspective
@@ -55,7 +60,7 @@ export default class Editor {
     // Default intensity is 1. Let's dim the light a small amount
     light.intensity = 0.25;
 
-    // Our built-in 'ground' shape.
+    // built-in 'ground' shape.
     const ground = MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
 
     this.addTestCurve();
