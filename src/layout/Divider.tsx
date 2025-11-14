@@ -10,7 +10,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
     const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
     const observRef = useRef<Observer<PointerInfo>>(null);
-    const cameraRef = useRef<number>(0); // ref to camera
+    const cameraRef = useRef<number>(null); // ref to camera
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
 
@@ -31,13 +31,13 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     useEffect(() => {
         const observable = (scene: Scene) => {
             const canvas = scene.getEngine().getRenderingCanvas();
-            const cameras = scene.activeCameras;
             // let selectedCamera: Camera;
             const setControl = (i: number) => {
                 const n = cameraRef.current;
                 if (n == i) return
-                cameras[n].detachControl();
-                cameras[i].attachControl(true);
+                const cameras = scene.activeCameras;
+                cameras[n]?.detachControl();
+                cameras[i]?.attachControl(true);
                 // selectedCamera = cameras[i];
                 cameraRef.current = i;
                 console.log(n, 'detached');
