@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Viewport, ArcRotateCamera } from "@babylonjs/core";
-import { Editor } from "../Editor";
+import { Scene, Viewport, Camera, Observer, PointerInfo, PointerEventTypes } from "@babylonjs/core";
+import Editor from "../Editor";
 
 interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
     editor: Editor;
@@ -9,7 +9,8 @@ interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
 export default function Divider({ editor, ...rest }: DividerProps) {
 
     const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
-    const cameraRef = useRef<number>(0); // ref to camera
+    const observRef = useRef<Observer<PointerInfo>>(null);
+    const cameraRef = useRef<number>(null); // ref to camera
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
 
@@ -28,54 +29,64 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
     // Set up event listener when the component mounts
     useEffect(() => {
-        const onPointerMove = (e: PointerEvent) => {
-            const { cameras } = editor;
-            const n = cameraRef.current;
-            const posX = getPosX(e);
-            const posY = getPosY(e);
-
-            if (posX < x) {
-                if (posY < y) {
-                    if (n == 0) return
-                    cameras[n].detachControl();
-                    cameras[0].attachControl(true);
-                    cameraRef.current = 0;
-                    console.log(n, 'detached');
-                    console.log('0 attached')
-                } else {
-                    if (n == 2) return
-                    cameras[n].detachControl();
-                    cameras[2].attachControl(true);
-                    cameraRef.current = 2;
-                    console.log(n, 'detached');
-                    console.log('2 attached')
-                }
-            } else {
-                if (posY < y) {
-                    if (n == 1) return
-                    cameras[n].detachControl();
-                    cameras[1].attachControl(true);
-                    cameraRef.current = 1;
-                    console.log(n, 'detached');
-                    console.log('1 attached')
-                } else {
-                    if (n == 3) return
-                    cameras[n].detachControl();
-                    cameras[3].attachControl(true);
-                    cameraRef.current = 3;
-                    console.log(n, 'detached');
-                    console.log('3 attached')
-                }
+        const observable = (scene: Scene) => {
+            const canvas = scene.getEngine().getRenderingCanvas();
+            // let selectedCamera: Camera;
+            const setControl = (i: number) => {
+                const n = cameraRef.current;
+                if (n == i) return
+                const cameras = scene.activeCameras;
+                cameras[n]?.detachControl();
+                cameras[i]?.attachControl(true);
+                // selectedCamera = cameras[i];
+                cameraRef.current = i;
+                console.log(n, 'detached');
+                console.log(`${i} attached`)
             }
+
+            const onPointerDown = (pointerInfo: PointerInfo) => {
+                // Get coordinates of pointer within the canvas
+                const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
+                const posX = pointerInfo.event.clientX;
+                const posY = pointerInfo.event.clientY - parseFloat(offset);
+                // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
+                const normalizedX = posX / canvas?.clientWidth;
+                const normalizedY = posY / canvas?.clientHeight;
+                // Determine which viewport/camera is clicked and switch the active interaction camera
+                if (normalizedX <= x && normalizedY <= y) {
+                    setControl(0);
+                } else if (normalizedX > x && normalizedY <= y) {
+                    setControl(1);
+                } else if (normalizedX <= x && normalizedY >= y) {
+                    setControl(2);
+                } else {
+                    setControl(3);
+                }
+                // Instruct scene to use this specific camera for pointer position
+                // scene.cameraToUseForPointers = selectedCamera;
+            }
+
+            // scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
+            observRef.current = scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
         }
 
-        document.addEventListener('pointermove', onPointerMove);
+        const { scene } = editor;
+
+        if (scene) {
+            observable(scene);
+        } else {
+            editor.addCallback(observable);
+        }
 
         // Cleanup when component unmounts
         return () => {
-            document.removeEventListener('pointermove', onPointerMove);
+            if (scene) {
+                scene.onPointerObservable.remove(observRef.current);
+            } else {
+                // editor.removeCallback(observable);
+            }
         };
-    }, [x, y]);
+    }, [editor, x, y]);
 
     const setPositionX = (e: PointerEvent) => {
         const posX = getPosX(e);
@@ -90,7 +101,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     };
 
     const setViewport = (x: number, y: number) => {
-        const { cameras } = editor;
+        const cameras = editor.scene.activeCameras;
         // viewport[0] | viewport[1]
         // ----------|------------
         // viewport[2] | viewport[3]
@@ -101,7 +112,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
             new Viewport(x, 0, 1 - x, 1 - y)
         ];
 
-        cameras.map((camera: ArcRotateCamera, i: number) => {
+        cameras?.map((camera: Camera, i: number) => {
             camera.viewport = viewport[i];
         })
     }

@@ -1,30 +1,25 @@
-import { useEffect, useRef } from "react";
-import { Engine, Scene } from "@babylonjs/core";
-import { Vector3, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
-
+import { Scene, Vector3, Color4, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddcurveCommand.js";
-
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js"
 import { Vector } from "./modeling/NurbsLib";
 
-export class Editor {
-  scene: any;
-  cameras: any;
-  history: History;
+export default class Editor {
+  scene!: Scene;
+  history: History = new History();
+  callbacks: Array<(scene: Scene) => void> = [];
 
   constructor() {
-
-    this.history = new History();
     this.onKeyDown()
-
   }
 
-  init(scene: Scene) {
-
+  onSceneReady(scene: Scene) {
     this.scene = scene;
-    this.cameras = [];
-    const cameras = this.cameras;
+    this.callbacks.forEach(callback => callback(scene));
+
+    scene.clearColor = new Color4(0, 0, 0, 1);
+
+    const cameras = [];
 
     for (let i = 0; i < 4; i++) {
       cameras.push(new ArcRotateCamera(
@@ -33,13 +28,16 @@ export class Editor {
       ));
     }
 
+    // Set up viewport of each camera
     const viewports = [
+      // x, y, width, height
       new Viewport(0.0, 0.5, 0.5, 0.5), // top-left
       new Viewport(0.5, 0.5, 0.5, 0.5), // top-right
       new Viewport(0.0, 0.0, 0.5, 0.5), // bottom-left
       new Viewport(0.5, 0.0, 0.5, 0.5)  // bottom-right
     ];
 
+    // Set up position of each camera
     const positions = [
       new Vector3(10, 0, 0), // x-view
       new Vector3(10, 10, 10), // perspective
@@ -62,10 +60,20 @@ export class Editor {
     // Default intensity is 1. Let's dim the light a small amount
     light.intensity = 0.25;
 
-    // Our built-in 'ground' shape.
+    // built-in 'ground' shape.
     const ground = MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
 
+    this.addTestCurve();
 
+  }
+
+  addCallback(callback: (scene: Scene) => void) {
+    this.callbacks.push(callback);
+  }
+
+  removeCallback(callback: (scene: Scene) => void) {
+    const index = this.callbacks.indexOf(callback);
+    if (index > -1) this.callbacks.splice(index, 1);
   }
 
   addCurve(curve) {
@@ -121,21 +129,20 @@ export class Editor {
     document.addEventListener("keydown", (e) => {
 
       const camera = this.scene.activeCamera;
-      console.log(camera)
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
         // e.preventDefault();
       }
       if (e.key === "x") {
         // Positions the camera overwriting alpha, beta, radius
-        camera.setPosition(new Vector3(10, 0, 0));
+        camera?.setPosition(new Vector3(10, 0, 0));
         // console.log('hello')
       }
       if (e.key === "y") {
-        camera.setPosition(new Vector3(0, 10, 0));
+        camera?.setPosition(new Vector3(0, 10, 0));
       }
       if (e.key === "z") {
-        camera.setPosition(new Vector3(0, 0, 10));
+        camera?.setPosition(new Vector3(0, 0, 10));
       }
 
     })
