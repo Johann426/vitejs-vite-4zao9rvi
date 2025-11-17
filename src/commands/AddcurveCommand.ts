@@ -6,14 +6,11 @@ export class AddCurveCommand {
     mesh: any;
 
     constructor(editor: any, curve: any) {
-
         this.editor = editor;
         this.curve = curve;
-
     }
 
     execute() {
-
         const { editor, curve } = this;
         const scene = editor.scene;
 
@@ -25,14 +22,11 @@ export class AddCurveCommand {
         mesh.color = new Color3(0, 1, 0);
 
         this.mesh = mesh;
-
     }
 
     undo() {
-
         const mesh = this.mesh;
         mesh.dispose();
-
     }
 
 }

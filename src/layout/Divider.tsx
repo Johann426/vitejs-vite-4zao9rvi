@@ -10,7 +10,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
     const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
     const observRef = useRef<Observer<PointerInfo>>(null);
-    const cameraRef = useRef<number>(null); // ref to camera
+    const cameraRef = useRef<number>(0); // ref to camera
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
 
@@ -31,27 +31,28 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     useEffect(() => {
         const observable = (scene: Scene) => {
             const canvas = scene.getEngine().getRenderingCanvas();
+            const cameras = scene.activeCameras;
             // let selectedCamera: Camera;
+
             const setControl = (i: number) => {
+                if (!cameras) return
                 const n = cameraRef.current;
                 if (n == i) return
-                const cameras = scene.activeCameras;
+                // const cameras = scene.activeCameras;
                 cameras[n]?.detachControl();
                 cameras[i]?.attachControl(true);
-                // selectedCamera = cameras[i];
                 cameraRef.current = i;
-                console.log(n, 'detached');
-                console.log(`${i} attached`)
             }
 
             const onPointerDown = (pointerInfo: PointerInfo) => {
+                if (!canvas) return
                 // Get coordinates of pointer within the canvas
                 const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
                 const posX = pointerInfo.event.clientX;
                 const posY = pointerInfo.event.clientY - parseFloat(offset);
                 // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
-                const normalizedX = posX / canvas?.clientWidth;
-                const normalizedY = posY / canvas?.clientHeight;
+                const normalizedX = posX / canvas.clientWidth;
+                const normalizedY = posY / canvas.clientHeight;
                 // Determine which viewport/camera is clicked and switch the active interaction camera
                 if (normalizedX <= x && normalizedY <= y) {
                     setControl(0);
@@ -62,11 +63,8 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                 } else {
                     setControl(3);
                 }
-                // Instruct scene to use this specific camera for pointer position
-                // scene.cameraToUseForPointers = selectedCamera;
             }
 
-            // scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
             observRef.current = scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
         }
 
@@ -122,7 +120,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
             ref={parentRef}
             {...rest}
         >
-            {/* <div
+            <div
                 // className="panel"
                 style={{
                     position: "absolute",
@@ -130,7 +128,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     top: 0,
                     width: `${x * 100}%`,
                     height: `${y * 100}%`,
-                    backgroundColor: "transparent", //"rgba(255, 0, 0, 0.2)",
+                    backgroundColor: "rgba(255, 0, 0, 0.1)",
                 }}
             />
             <div
@@ -141,7 +139,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     top: 0,
                     width: `${(1 - x) * 100}%`,
                     height: `${y * 100}%`,
-                    backgroundColor: "transparent", //"rgba(0, 255, 0, 0.2)",
+                    backgroundColor: "rgba(0, 255, 0, 0.1)",
                 }}
             />
             <div
@@ -152,7 +150,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     top: `${y * 100}%`,
                     width: `${x * 100}%`,
                     height: `${(1 - y) * 100}%`,
-                    backgroundColor: "transparent", //"rgba(0, 0, 255, 0.2)",
+                    backgroundColor: "rgba(0, 0, 255, 0.1)",
                 }}
             />
             <div
@@ -163,9 +161,9 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     top: `${y * 100}%`,
                     width: `${(1 - x) * 100}%`,
                     height: `${(1 - y) * 100}%`,
-                    backgroundColor: "transparent", //"rgba(255, 0, 255, 0.2)",
+                    backgroundColor: "rgba(0, 255, 255, 0.1)",
                 }}
-            /> */}
+            />
             <div
                 // className="splitter vertical"
                 onPointerDown={(event) => {

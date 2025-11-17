@@ -3,6 +3,7 @@ import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddcurveCommand.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js"
 import { Vector } from "./modeling/NurbsLib";
+import { Parametric } from "./modeling/Parametric"
 
 export default class Editor {
   scene!: Scene;
@@ -15,8 +16,6 @@ export default class Editor {
 
   onSceneReady(scene: Scene) {
     this.scene = scene;
-    this.callbacks.forEach(callback => callback(scene));
-
     scene.clearColor = new Color4(0, 0, 0, 1);
 
     const cameras = [];
@@ -49,8 +48,8 @@ export default class Editor {
       camera.setTarget(Vector3.Zero()); // camera target to scene origin
       camera.viewport = viewports[i];
       camera.setPosition(positions[i]);
-      // camera.attachControl(true);
     })
+    cameras[0].attachControl(true);
 
     scene.activeCameras = cameras
 
@@ -62,6 +61,8 @@ export default class Editor {
 
     // built-in 'ground' shape.
     const ground = MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
+
+    this.callbacks.forEach(callback => callback(scene));
 
     this.addTestCurve();
 
@@ -76,7 +77,7 @@ export default class Editor {
     if (index > -1) this.callbacks.splice(index, 1);
   }
 
-  addCurve(curve) {
+  addCurve(curve: Parametric) {
 
     this.execute(new AddCurveCommand(this, curve));
 
@@ -88,7 +89,7 @@ export default class Editor {
 
   // }
 
-  updatelines(curve, points) {
+  updatelines(curve: Parametric, points: Vector[]) {
     MeshBuilder.CreateLines(null, {
       points: points,
       instance: curve
