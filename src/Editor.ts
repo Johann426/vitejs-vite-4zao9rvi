@@ -1,6 +1,7 @@
-import { Scene, Vector3, Color4, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
+import { Scene, Vector3, Color4, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder, AbstractMesh, GPUPicker, Color3, PointerEventTypes } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddcurveCommand.js";
+import { PickingCommand } from "./commands/PickingCommand.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js"
 import { Vector } from "./modeling/NurbsLib";
 import { Parametric } from "./modeling/Parametric"
@@ -9,6 +10,7 @@ export default class Editor {
   scene!: Scene;
   history: History = new History();
   callbacks: Array<(scene: Scene) => void> = [];
+  pickables: Array<AbstractMesh> = [];
 
   constructor() {
     this.onKeyDown()
@@ -17,6 +19,8 @@ export default class Editor {
   onSceneReady(scene: Scene) {
     this.scene = scene;
     scene.clearColor = new Color4(0, 0, 0, 1);
+    // Enable the Geometry Buffer Renderer
+    scene.enableGeometryBufferRenderer();
 
     const cameras = [];
 
@@ -64,7 +68,33 @@ export default class Editor {
 
     this.callbacks.forEach(callback => callback(scene));
 
+    this.pickables.push(ground)
     this.addTestCurve();
+
+    // const a = new PickingCommand(this);
+
+    const picker = new GPUPicker();
+    picker.setPickingList(this.pickables);
+
+    const observable = (scene: Scene, picker: GPUPicker) => {
+
+      const onPointerMove = () => {
+        if (picker.pickingInProgress) {
+          return;
+        }
+        picker.pickAsync(scene.pointerX, scene.pointerY).then((pickingInfo) => {
+          if (pickingInfo) {
+            console.log(pickingInfo.mesh.name);
+            pickingInfo.mesh.color = new Color3(1, 1, 0);
+          }
+        });
+      }
+
+      scene.onPointerObservable.add(onPointerMove, PointerEventTypes.POINTERMOVE);
+
+    }
+
+    observable(scene, picker);
 
   }
 

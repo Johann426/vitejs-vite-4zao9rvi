@@ -41,6 +41,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                 // const cameras = scene.activeCameras;
                 cameras[n]?.detachControl();
                 cameras[i]?.attachControl(true);
+                scene.activeCamera = cameras[i]
                 cameraRef.current = i;
             }
 
