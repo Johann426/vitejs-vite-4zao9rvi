@@ -142,30 +142,30 @@ function deBoorKnots2(deg: number, prm: number[]) {
 /**
  * Assign uniformly spaced knot vector.
  */
-function uniformlySpacedknots(deg: number, n: number) {
+// function uniformlySpacedknots(deg: number, n: number) {
 
-	const knot = [];
+// 	const knot = [];
 
-	for (let i = 0; i <= deg; i++) {
+// 	for (let i = 0; i <= deg; i++) {
 
-		knot[i] = 0.0;
-		knot[i + n] = 1.0;
+// 		knot[i] = 0.0;
+// 		knot[i + n] = 1.0;
 
-	}
+// 	}
 
-	for (let i = 1; i < n - deg; i++) {
+// 	for (let i = 1; i < n - deg; i++) {
 
-		for (let j = i; j < i + deg; j++) {
+// 		for (let j = i; j < i + deg; j++) {
 
-			knot[i + deg] = i / (n - deg);
+// 			knot[i + deg] = i / (n - deg);
 
-		}
+// 		}
 
-	}
+// 	}
 
-	return knot;
+// 	return knot;
 
-}
+// }
 
 /**
  * Compute Greville points (Greville abscissae) defined to be the mean location of degree consecutive knots in the knot vector
@@ -1127,7 +1127,7 @@ function surfKnotInsert(deg_u: number, deg_v: number, knot_u: number[], knot_v: 
 
 	function transpose(matrix: Vector[][]) {
 
-		return matrix[0].map((col, i) => matrix.map(row => row[i]));
+		return matrix[0].map((_, i) => matrix.map(row => row[i]));
 
 	}
 
@@ -1271,24 +1271,24 @@ function knotsRemoval(deg: number, knot: number[], ctrl: Vector[], u: number, nu
 }
 
 
-function binarySearch(arr: number[], target: number) {
+// function binarySearch(arr: number[], target: number) {
 
-	let low = 0;
-	let high = arr.length - 1;
+// 	let low = 0;
+// 	let high = arr.length - 1;
 
-	while (low != high) {
+// 	while (low != high) {
 
-		const m = ceil((low + high) / 2);
+// 		const m = ceil((low + high) / 2);
 
-		arr[m] > target ? high = m - 1 : low = m;
+// 		arr[m] > target ? high = m - 1 : low = m;
 
-	}
+// 	}
 
-	if (arr[low] !== target) console.warn(`target between ${low} and ${low + 1}`);
+// 	if (arr[low] !== target) console.warn(`target between ${low} and ${low + 1}`);
 
-	return low;
+// 	return low;
 
-}
+// }
 /*
 function knotsRemoval( deg, knot, ctrl, t ) {
 

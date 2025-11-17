@@ -30,7 +30,6 @@ function fwdsub(a: number[][], b: number[], unitDiagonal = false): number[] {
     return b;
 }
 
-
 // Back substitution O(n2)
 function backsub(a: number[][], b: number[]): number[] {
     const n = a.length;
@@ -107,7 +106,6 @@ function tdma(a: number[], b: number[], c: number[], r: number[]): number[] {
     return r;
 }
 
-
 //Abstract class to solve a set of linear algebraic equations
 abstract class Decomposer<T extends { a: number[][] }> {
     a: number[][];
@@ -155,7 +153,6 @@ abstract class Decomposer<T extends { a: number[][] }> {
 
 }
 
-// Abstract class to solve a set of linear algebraic equations
 class LU extends Decomposer<{ a: number[][]; p: number[]; }> {
     p: number[];
 
@@ -307,7 +304,6 @@ class QR extends Decomposer<{ a: number[][] }> {
 
     det() {
         const a = this.a
-        const m = a.length;
         const n = a[0].length;
 
         let d = (n % 2 == 0) ? 1 : -1
@@ -318,11 +314,9 @@ class QR extends Decomposer<{ a: number[][] }> {
 
         return d
     }
-
 }
 
 export { LU, QR };
-
 
 // // 테스트 행렬과 벡터
 // const a: number[][] = [
@@ -363,11 +357,6 @@ export { LU, QR };
 //     }
 // }
 
-
-// const a = [0, -1, -1, -1]
-// const b = [2, 2, 2, 2]
-// const c = [-1, -1, -1, 0]
 // const r = [1, 0, 0, 1]
-
-// const x = tdma(a, b, c, r)
+// const x = tdma([0, -1, -1, -1], [2, 2, 2, 2], [-1, -1, -1, 0], r)
 // console.log('tdma: ', x)

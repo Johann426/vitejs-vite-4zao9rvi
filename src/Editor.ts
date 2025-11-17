@@ -1,23 +1,33 @@
-import { Scene, Vector3, Color4, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder } from "@babylonjs/core";
+import { Scene, Vector3, Color4, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder, AbstractMesh, GPUPicker, Color3, PointerEventTypes } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddcurveCommand.js";
+import { PickingCommand } from "./commands/PickingCommand.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js"
 import { Vector } from "./modeling/NurbsLib";
+import { Parametric } from "./modeling/Parametric"
 
 export default class Editor {
-  scene!: Scene;
+  scene: undefined | Scene;
   history: History = new History();
   callbacks: Array<(scene: Scene) => void> = [];
+  pickables: Array<AbstractMesh> = [];
 
   constructor() {
     this.onKeyDown()
   }
 
+  clear() {
+    this.scene = undefined;
+    this.history = new History();
+    this.callbacks = [];
+    this.pickables = [];
+  }
+
   onSceneReady(scene: Scene) {
     this.scene = scene;
-    this.callbacks.forEach(callback => callback(scene));
-
     scene.clearColor = new Color4(0, 0, 0, 1);
+    // Enable the Geometry Buffer Renderer
+    scene.enableGeometryBufferRenderer();
 
     const cameras = [];
 
@@ -49,8 +59,8 @@ export default class Editor {
       camera.setTarget(Vector3.Zero()); // camera target to scene origin
       camera.viewport = viewports[i];
       camera.setPosition(positions[i]);
-      // camera.attachControl(true);
     })
+    cameras[0].attachControl(true);
 
     scene.activeCameras = cameras
 
@@ -63,7 +73,34 @@ export default class Editor {
     // built-in 'ground' shape.
     const ground = MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
 
+    this.callbacks.forEach(callback => callback(scene));
+
     this.addTestCurve();
+
+    // set up gpu picker
+    const picker = new GPUPicker();
+    picker.setPickingList(this.pickables);
+
+    const onPointerMove = () => {
+      if (picker.pickingInProgress) {
+        return;
+      }
+      const offset = 2;
+      const x1 = scene.pointerX - offset;
+      const y1 = scene.pointerY - offset;
+      const x2 = scene.pointerX + offset;
+      const y2 = scene.pointerY + offset;
+      picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
+        if (pickingInfo) {
+          if (pickingInfo.meshes[0]) {
+            console.log(pickingInfo.meshes[0].name);
+            pickingInfo.meshes[0].color = new Color3(1, 1, 0);
+          }
+        }
+      });
+    }
+
+    scene.onPointerObservable.add(onPointerMove, PointerEventTypes.POINTERMOVE);
 
   }
 
@@ -76,7 +113,7 @@ export default class Editor {
     if (index > -1) this.callbacks.splice(index, 1);
   }
 
-  addCurve(curve) {
+  addCurve(curve: Parametric) {
 
     this.execute(new AddCurveCommand(this, curve));
 
@@ -88,7 +125,7 @@ export default class Editor {
 
   // }
 
-  updatelines(curve, points) {
+  updatelines(curve: Parametric, points: Vector[]) {
     MeshBuilder.CreateLines(null, {
       points: points,
       instance: curve
