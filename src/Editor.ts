@@ -7,13 +7,20 @@ import { Vector } from "./modeling/NurbsLib";
 import { Parametric } from "./modeling/Parametric"
 
 export default class Editor {
-  scene!: Scene;
+  scene: undefined | Scene;
   history: History = new History();
   callbacks: Array<(scene: Scene) => void> = [];
   pickables: Array<AbstractMesh> = [];
 
   constructor() {
     this.onKeyDown()
+  }
+
+  clear() {
+    this.scene = undefined;
+    this.history = new History();
+    this.callbacks = [];
+    this.pickables = [];
   }
 
   onSceneReady(scene: Scene) {
@@ -68,33 +75,32 @@ export default class Editor {
 
     this.callbacks.forEach(callback => callback(scene));
 
-    this.pickables.push(ground)
     this.addTestCurve();
 
-    // const a = new PickingCommand(this);
-
+    // set up gpu picker
     const picker = new GPUPicker();
     picker.setPickingList(this.pickables);
 
-    const observable = (scene: Scene, picker: GPUPicker) => {
-
-      const onPointerMove = () => {
-        if (picker.pickingInProgress) {
-          return;
-        }
-        picker.pickAsync(scene.pointerX, scene.pointerY).then((pickingInfo) => {
-          if (pickingInfo) {
-            console.log(pickingInfo.mesh.name);
-            pickingInfo.mesh.color = new Color3(1, 1, 0);
-          }
-        });
+    const onPointerMove = () => {
+      if (picker.pickingInProgress) {
+        return;
       }
-
-      scene.onPointerObservable.add(onPointerMove, PointerEventTypes.POINTERMOVE);
-
+      const offset = 2;
+      const x1 = scene.pointerX - offset;
+      const y1 = scene.pointerY - offset;
+      const x2 = scene.pointerX + offset;
+      const y2 = scene.pointerY + offset;
+      picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
+        if (pickingInfo) {
+          if (pickingInfo.meshes[0]) {
+            console.log(pickingInfo.meshes[0].name);
+            pickingInfo.meshes[0].color = new Color3(1, 1, 0);
+          }
+        }
+      });
     }
 
-    observable(scene, picker);
+    scene.onPointerObservable.add(onPointerMove, PointerEventTypes.POINTERMOVE);
 
   }
 

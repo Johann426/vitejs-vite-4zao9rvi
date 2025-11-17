@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Scene, Viewport, Camera, Observer, PointerInfo, PointerEventTypes } from "@babylonjs/core";
+import { Scene, Viewport, Camera, Observer, PointerInfo, PointerEventTypes, GPUPicker, Color3 } from "@babylonjs/core";
 import Editor from "../Editor";
 
 interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -67,6 +67,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
             }
 
             observRef.current = scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
+
         }
 
         const { scene } = editor;
@@ -79,11 +80,9 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
         // Cleanup when component unmounts
         return () => {
-            if (scene) {
-                scene.onPointerObservable.remove(observRef.current);
-            } else {
-                // editor.removeCallback(observable);
-            }
+            editor.scene?.onPointerObservable.remove(observRef.current);
+            editor.clear();
+
         };
     }, [editor, x, y]);
 
