@@ -13,7 +13,7 @@ export default class Editor {
   pickables: Array<AbstractMesh> = [];
 
   constructor() {
-    this.onKeyDown()
+    this.callbacks.push(this.onKeyDown);
   }
 
   clear() {
@@ -161,25 +161,26 @@ export default class Editor {
 
   }
 
-  onKeyDown() {
+  onKeyDown(scene: Scene) {
 
     document.addEventListener("keydown", (e) => {
 
-      const camera = this.scene.activeCamera;
+      const camera = scene.activeCamera;
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
         // e.preventDefault();
       }
-      if (e.key === "x") {
-        // Positions the camera overwriting alpha, beta, radius
-        camera?.setPosition(new Vector3(10, 0, 0));
-        // console.log('hello')
-      }
-      if (e.key === "y") {
-        camera?.setPosition(new Vector3(0, 10, 0));
-      }
-      if (e.key === "z") {
-        camera?.setPosition(new Vector3(0, 0, 10));
+      if (camera) {
+        if (e.key === "x") {
+          // Positions the camera overwriting alpha, beta, radius
+          camera.position = new Vector3(10, 0, 0);
+        }
+        if (e.key === "y") {
+          camera.position = new Vector3(0, 10, 0);
+        }
+        if (e.key === "z") {
+          camera.position = new Vector3(0, 0, 10);
+        }
       }
 
     })
