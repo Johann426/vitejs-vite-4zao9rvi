@@ -18,8 +18,47 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     useEffect(() => {
         const { scene } = editor;
 
+        const observable = (scene: Scene, msg: string) => {
+            console.log(msg)
+            const setControl = (i: number) => {
+                const cameras = scene.activeCameras;
+                if (!cameras) return
+                const n = cameraRef.current;
+                if (n == i) return
+                // const cameras = scene.activeCameras;
+                cameras[n]?.detachControl();
+                cameras[i]?.attachControl(true);
+                scene.activeCamera = cameras[i]
+                cameraRef.current = i;
+            }
+
+            const onPointerDown = (pointerInfo: PointerInfo) => {
+                const canvas = scene.getEngine().getRenderingCanvas();
+                if (!canvas) return
+                // Get coordinates of pointer within the canvas
+                const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
+                const posX = pointerInfo.event.clientX;
+                const posY = pointerInfo.event.clientY - parseFloat(offset);
+                // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
+                const normalizedX = posX / canvas.clientWidth;
+                const normalizedY = posY / canvas.clientHeight;
+                // Determine which viewport/camera is clicked and switch the active interaction camera
+                if (normalizedX <= x && normalizedY <= y) {
+                    setControl(0);
+                } else if (normalizedX > x && normalizedY <= y) {
+                    setControl(1);
+                } else if (normalizedX <= x && normalizedY >= y) {
+                    setControl(2);
+                } else {
+                    setControl(3);
+                }
+            }
+
+            observRef.current = scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
+
+        }
         if (scene && !scene.isDisposed) {
-            observable(scene, "observable added by func");
+            observable(scene, "observable added in divider");
         } else {
             // add observable by callback when scene is not ready or disposed
             editor.addCallback(observable);
@@ -29,6 +68,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         return () => {
             if (scene && !scene.isDisposed) {
                 scene.onPointerObservable.remove(observRef.current);
+                console.log("observable removed in divider");
             }
         };
     }, [editor, x, y]); // re-render with changed dependencies
@@ -45,50 +85,6 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         const coory = (e.clientY - parseFloat(offset)) / height;
         return Math.max(0, Math.min(1, coory));
     }
-
-    const observable = (scene: Scene, msg: string) => {
-        console.log(msg)
-        const canvas = scene.getEngine().getRenderingCanvas();
-        const cameras = scene.activeCameras;
-        // let selectedCamera: Camera;
-
-        const setControl = (i: number) => {
-            if (!cameras) return
-            const n = cameraRef.current;
-            if (n == i) return
-            // const cameras = scene.activeCameras;
-            cameras[n]?.detachControl();
-            cameras[i]?.attachControl(true);
-            scene.activeCamera = cameras[i]
-            cameraRef.current = i;
-        }
-
-        const onPointerDown = (pointerInfo: PointerInfo) => {
-            if (!canvas) return
-            // Get coordinates of pointer within the canvas
-            const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
-            const posX = pointerInfo.event.clientX;
-            const posY = pointerInfo.event.clientY - parseFloat(offset);
-            // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
-            const normalizedX = posX / canvas.clientWidth;
-            const normalizedY = posY / canvas.clientHeight;
-            // Determine which viewport/camera is clicked and switch the active interaction camera
-            if (normalizedX <= x && normalizedY <= y) {
-                setControl(0);
-            } else if (normalizedX > x && normalizedY <= y) {
-                setControl(1);
-            } else if (normalizedX <= x && normalizedY >= y) {
-                setControl(2);
-            } else {
-                setControl(3);
-            }
-        }
-
-        observRef.current = scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
-
-    }
-
-
 
     const setPositionX = (e: PointerEvent) => {
         const posX = getPosX(e);
