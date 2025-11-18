@@ -27,9 +27,10 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         return Math.max(0, Math.min(1, coory));
     }
 
-    // Set up event listener when the component mounts
+    // Set up event listener(s) to run when the component mounts
     useEffect(() => {
         const observable = (scene: Scene) => {
+            console.log("observable added")
             const canvas = scene.getEngine().getRenderingCanvas();
             const cameras = scene.activeCameras;
             // let selectedCamera: Camera;
@@ -73,18 +74,19 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         const { scene } = editor;
 
         if (scene) {
+            console.log("by func")
             observable(scene);
         } else {
+            console.log("by callback")
             editor.addCallback(observable);
         }
 
         // Cleanup when component unmounts
         return () => {
-            editor.scene?.onPointerObservable.remove(observRef.current);
-            editor.clear();
-
+            const removed = editor.scene?.onPointerObservable.remove(observRef.current);
+            if (removed) console.log("observable removed")
         };
-    }, [editor, x, y]);
+    }, [editor, x, y]); // re-render with changed dependencies
 
     const setPositionX = (e: PointerEvent) => {
         const posX = getPosX(e);
@@ -99,15 +101,14 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     };
 
     const setViewport = (x: number, y: number) => {
-        const cameras = editor.scene.activeCameras;
-        // viewport[0] | viewport[1]
-        // ----------|------------
-        // viewport[2] | viewport[3]
+        const { scene } = editor;
+        const cameras = scene.activeCameras;
+
         const viewport = [
-            new Viewport(0, 1 - y, x, y),
-            new Viewport(x, 1 - y, 1 - x, y),
-            new Viewport(0, 0, x, 1 - y),
-            new Viewport(x, 0, 1 - x, 1 - y)
+            new Viewport(0, 1 - y, x, y), // top-left
+            new Viewport(x, 1 - y, 1 - x, y), // top-right
+            new Viewport(0, 0, x, 1 - y), // bottom-left
+            new Viewport(x, 0, 1 - x, 1 - y) // bottom-right
         ];
 
         cameras?.map((camera: Camera, i: number) => {
@@ -120,8 +121,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
             ref={parentRef}
             {...rest}
         >
-            <div
-                // className="panel"
+            <div //top-left overlay
                 style={{
                     position: "absolute",
                     left: 0,
@@ -131,8 +131,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     backgroundColor: "rgba(255, 0, 0, 0.1)",
                 }}
             />
-            <div
-                // className="panel"
+            <div // top-right overlay
                 style={{
                     position: "absolute",
                     left: `${x * 100}%`,
@@ -142,8 +141,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     backgroundColor: "rgba(0, 255, 0, 0.1)",
                 }}
             />
-            <div
-                // className="panel"
+            <div // bottome-left overlay
                 style={{
                     position: "absolute",
                     left: 0,
@@ -153,8 +151,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     backgroundColor: "rgba(0, 0, 255, 0.1)",
                 }}
             />
-            <div
-                // className="panel"
+            <div // bottom-right overlay
                 style={{
                     position: "absolute",
                     left: `${x * 100}%`,
@@ -164,8 +161,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     backgroundColor: "rgba(0, 255, 255, 0.1)",
                 }}
             />
-            <div
-                // className="splitter vertical"
+            <div // divider vertical
                 onPointerDown={(event) => {
                     event.stopPropagation();
                     const onPointerMove = (e: PointerEvent) => setPositionX(e);
@@ -187,8 +183,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     pointerEvents: "auto",
                 }}
             />
-            <div
-                // className="splitter horizontal"
+            <div // divider horizontal
                 onPointerDown={(event) => {
                     event.stopPropagation();
                     const onPointerMove = (e: PointerEvent) => setPositionY(e);
