@@ -14,6 +14,25 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
 
+    // Set event listener(s) when the component mounts
+    useEffect(() => {
+        const { scene } = editor;
+
+        if (scene && !scene.isDisposed) {
+            observable(scene, "observable added by func");
+        } else {
+            // add observable by callback when scene is not ready or disposed
+            editor.addCallback(observable);
+        }
+
+        // Cleanup when component unmounts
+        return () => {
+            if (scene && !scene.isDisposed) {
+                scene.onPointerObservable.remove(observRef.current);
+            }
+        };
+    }, [editor, x, y]); // re-render with changed dependencies
+
     const getPosX = (e: PointerEvent) => { // left position (normalized from 0 to 1)
         const width = parentRef.current?.clientWidth ?? 100;
         const coorx = e.clientX / width;
@@ -27,65 +46,49 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         return Math.max(0, Math.min(1, coory));
     }
 
-    // Set up event listener(s) to run when the component mounts
-    useEffect(() => {
-        const observable = (scene: Scene, msg: string) => {
-            console.log(msg)
-            const canvas = scene.getEngine().getRenderingCanvas();
-            const cameras = scene.activeCameras;
-            // let selectedCamera: Camera;
+    const observable = (scene: Scene, msg: string) => {
+        console.log(msg)
+        const canvas = scene.getEngine().getRenderingCanvas();
+        const cameras = scene.activeCameras;
+        // let selectedCamera: Camera;
 
-            const setControl = (i: number) => {
-                if (!cameras) return
-                const n = cameraRef.current;
-                if (n == i) return
-                // const cameras = scene.activeCameras;
-                cameras[n]?.detachControl();
-                cameras[i]?.attachControl(true);
-                scene.activeCamera = cameras[i]
-                cameraRef.current = i;
-            }
-
-            const onPointerDown = (pointerInfo: PointerInfo) => {
-                if (!canvas) return
-                // Get coordinates of pointer within the canvas
-                const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
-                const posX = pointerInfo.event.clientX;
-                const posY = pointerInfo.event.clientY - parseFloat(offset);
-                // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
-                const normalizedX = posX / canvas.clientWidth;
-                const normalizedY = posY / canvas.clientHeight;
-                // Determine which viewport/camera is clicked and switch the active interaction camera
-                if (normalizedX <= x && normalizedY <= y) {
-                    setControl(0);
-                } else if (normalizedX > x && normalizedY <= y) {
-                    setControl(1);
-                } else if (normalizedX <= x && normalizedY >= y) {
-                    setControl(2);
-                } else {
-                    setControl(3);
-                }
-            }
-
-            observRef.current = scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
-
+        const setControl = (i: number) => {
+            if (!cameras) return
+            const n = cameraRef.current;
+            if (n == i) return
+            // const cameras = scene.activeCameras;
+            cameras[n]?.detachControl();
+            cameras[i]?.attachControl(true);
+            scene.activeCamera = cameras[i]
+            cameraRef.current = i;
         }
 
-        const { scene } = editor;
-
-        if (scene && !scene.isDisposed) {
-            observable(scene, "observable added by func");
-        } else {
-            editor.addCallback(observable);
+        const onPointerDown = (pointerInfo: PointerInfo) => {
+            if (!canvas) return
+            // Get coordinates of pointer within the canvas
+            const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
+            const posX = pointerInfo.event.clientX;
+            const posY = pointerInfo.event.clientY - parseFloat(offset);
+            // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
+            const normalizedX = posX / canvas.clientWidth;
+            const normalizedY = posY / canvas.clientHeight;
+            // Determine which viewport/camera is clicked and switch the active interaction camera
+            if (normalizedX <= x && normalizedY <= y) {
+                setControl(0);
+            } else if (normalizedX > x && normalizedY <= y) {
+                setControl(1);
+            } else if (normalizedX <= x && normalizedY >= y) {
+                setControl(2);
+            } else {
+                setControl(3);
+            }
         }
 
-        // Cleanup when component unmounts
-        return () => {
-            if (scene && !scene.isDisposed) {
-                scene.onPointerObservable.remove(observRef.current);
-            }
-        };
-    }, [editor, x, y]); // re-render with changed dependencies
+        observRef.current = scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
+
+    }
+
+
 
     const setPositionX = (e: PointerEvent) => {
         const posX = getPosX(e);
