@@ -29,8 +29,8 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
     // Set up event listener(s) to run when the component mounts
     useEffect(() => {
-        const observable = (scene: Scene) => {
-            console.log("observable added")
+        const observable = (scene: Scene, msg: string) => {
+            console.log(msg)
             const canvas = scene.getEngine().getRenderingCanvas();
             const cameras = scene.activeCameras;
             // let selectedCamera: Camera;
@@ -73,18 +73,17 @@ export default function Divider({ editor, ...rest }: DividerProps) {
 
         const { scene } = editor;
 
-        if (scene) {
-            console.log("by func")
-            observable(scene);
+        if (scene && !scene.isDisposed) {
+            observable(scene, "observable added by func");
         } else {
-            console.log("by callback")
             editor.addCallback(observable);
         }
 
         // Cleanup when component unmounts
         return () => {
-            const removed = editor.scene?.onPointerObservable.remove(observRef.current);
-            if (removed) console.log("observable removed")
+            if (scene && !scene.isDisposed) {
+                scene.onPointerObservable.remove(observRef.current);
+            }
         };
     }, [editor, x, y]); // re-render with changed dependencies
 

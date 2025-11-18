@@ -1,16 +1,26 @@
 import "./App.css";
 import "@mantine/core/styles.css";
 import { MantineProvider } from "@mantine/core";
-import { Scene } from "@babylonjs/core";
 import { theme } from "./theme";
+import { useEffect } from "react"
+import { Scene } from "@babylonjs/core";
 import Editor from "./Editor";
 import Menunar from "./layout/Menubar";
 import Sidebar from "./layout/Sidebar";
 import Divider from "./layout/Divider";
 import Viewport from "./layout/Viewport";
 
+const editor = new Editor();
+
 export default function App() {
-  const editor = new Editor();
+
+  useEffect(() => {
+
+    return () => {
+      editor.dispose();
+    }
+
+  }, []);
 
   const onSceneReady = (scene: Scene) => {
     editor.onSceneReady(scene);

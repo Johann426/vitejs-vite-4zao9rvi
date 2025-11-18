@@ -7,18 +7,18 @@ import { Vector } from "./modeling/NurbsLib";
 import { Parametric } from "./modeling/Parametric"
 
 export default class Editor {
-  scene: undefined | Scene;
+  scene!: Scene;
   history: History = new History();
-  callbacks: Array<(scene: Scene) => void> = [];
+  callbacks: Array<(scene: Scene, msg: string) => void> = [];
   pickables: Array<AbstractMesh> = [];
 
   constructor() {
     this.callbacks.push(this.onKeyDown);
   }
 
-  clear() {
-    this.scene = undefined;
-    this.history = new History();
+  dispose() {
+    this.scene.dispose();
+    this.history.clear();
     this.callbacks = [];
     this.pickables = [];
   }
@@ -73,7 +73,7 @@ export default class Editor {
     // built-in 'ground' shape.
     const ground = MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
 
-    this.callbacks.forEach(callback => callback(scene));
+    this.callbacks.forEach(callback => callback(scene, "observable added by callback"));
 
     this.addTestCurve();
 
@@ -104,7 +104,7 @@ export default class Editor {
 
   }
 
-  addCallback(callback: (scene: Scene) => void) {
+  addCallback(callback: (scene: Scene, msg: string) => void) {
     this.callbacks.push(callback);
   }
 
