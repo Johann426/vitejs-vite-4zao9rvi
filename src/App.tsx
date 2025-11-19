@@ -31,7 +31,7 @@ export default function App() {
   };
 
   return (
-    <MantineProvider theme={theme} withGlobalClasses>
+    <MantineProvider defaultColorScheme="auto" theme={theme} withGlobalClasses >
       <Menunar editor={editor} id="menubar" />
       <Sidebar editor={editor} id="sidebar" />
       <Divider editor={editor} id="divider" />

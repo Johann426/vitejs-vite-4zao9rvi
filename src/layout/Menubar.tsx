@@ -4,7 +4,7 @@ import classes from "./Menubar.module.css";
 
 function File() {
   return (
-    <Menu position="bottom-start" offset={-1} width={200} classNames={classes}>
+    <Menu trigger="hover" position="bottom-start" offset={-1} width={200} classNames={classes}>
       <Menu.Target>
         <Button variant="transparent">File</Button>
       </Menu.Target>
@@ -29,7 +29,7 @@ function Edit() {
   onAddPoint();
 
   return (
-    <Menu position="bottom-start" offset={-1} width={300} classNames={classes}>
+    <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
       <Menu.Target>
         <Button variant="transparent">Edit</Button>
       </Menu.Target>
@@ -65,7 +65,7 @@ function Edit() {
 
 function Curve() {
   return (
-    <Menu position="bottom-start" offset={-1} width={300} classNames={classes}>
+    <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
       <Menu.Target>
         <Button variant="transparent">Curve</Button>
       </Menu.Target>
@@ -87,7 +87,7 @@ function Curve() {
 
 function Surface() {
   return (
-    <Menu position="bottom-start" offset={-1} width={300} classNames={classes}>
+    <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
       <Menu.Target>
         <Button variant="transparent">Surface</Button>
       </Menu.Target>
