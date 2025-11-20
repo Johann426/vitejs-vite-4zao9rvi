@@ -1,19 +1,54 @@
-import { useState } from "react";
-import { Menu, Button, Text } from "@mantine/core";
 import classes from "./Menubar.module.css";
+import { Menu, Button, Text, Modal, Group } from "@mantine/core";
+import { useDisclosure } from '@mantine/hooks';
+import { IconUpload, IconFile, IconDownload } from '@tabler/icons-react';
 
 function File() {
+
+  const [opened, { open, close }] = useDisclosure(false);
+
+  const onChangeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+    console.log(e.target);
+    const file = e.target.files?.[0];
+    if (file) {
+      console.log('Selected file:', file.name);
+      // You can process the file here
+    }
+
+
+  }
+
+  const onClickSave = () => {
+
+  }
+
   return (
     <Menu trigger="hover" position="bottom-start" offset={-1} width={200} classNames={classes}>
       <Menu.Target>
         <Button variant="transparent">File</Button>
       </Menu.Target>
       <Menu.Dropdown>
-        <Menu.Item>New</Menu.Item>
+        <Menu.Item onClick={open}>New</Menu.Item>
         <Menu.Divider />
-        <Menu.Item>Save</Menu.Item>
-        <Menu.Item>Open</Menu.Item>
+        <Menu.Item leftSection={<IconDownload size={14} />} onClick={onClickSave}>Save</Menu.Item>
+        <Menu.Item leftSection={<IconFile size={14} />} component="label">Open
+          <input
+            type="file"
+            hidden
+            onChange={onChangeFile}
+          />
+        </Menu.Item>
+        <Menu.Divider />
+        <Menu.Item>Import</Menu.Item>
       </Menu.Dropdown>
+      <Modal opened={opened} onClose={close} withCloseButton={false}>
+        <Text>New project will discard any unsaved data. Do you want to continue?</Text>
+        <Group justify="center">
+          <Button onClick={() => location.reload()}>yes</Button>
+          <Button color="gray" onClick={close}>no</Button>
+        </Group>
+      </Modal>
     </Menu>
   );
 }
