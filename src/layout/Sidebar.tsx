@@ -1,7 +1,7 @@
-import { Tabs } from '@mantine/core';
-import { IconLayersSubtract, IconChartBarPopular, IconSettings } from '@tabler/icons-react';
-import TreeView from './TreeView';
-import Setting from './Setting';
+import { Tabs } from "@mantine/core";
+import { IconLayersSubtract, IconChartBarPopular, IconSettings } from "@tabler/icons-react";
+import TreeView from "./TreeView";
+import Setting from "./Setting";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     editor: object;

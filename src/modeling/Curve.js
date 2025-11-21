@@ -1,47 +1,31 @@
-class/*Interface*/ Curve {
+class /*Interface*/ Curve {
+    add() {
+        console.warn("add() not implemented.");
+    }
 
-	add() {
+    remove() {
+        console.warn("remove() not implemented.");
+    }
 
-		console.warn( 'add() not implemented.' );
+    mod() {
+        console.warn("mod() not implemented.");
+    }
 
-	}
+    split() {
+        console.warn("split() not implemented.");
+    }
 
-	remove() {
+    getPointAt() {
+        console.warn("getPointAt() not implemented.");
+    }
 
-		console.warn( 'remove() not implemented.' );
+    getDerivatives() {
+        console.warn("getDerivatives() not implemented.");
+    }
 
-	}
-
-	mod() {
-
-		console.warn( 'mod() not implemented.' );
-
-	}
-
-	split() {
-
-		console.warn( 'split() not implemented.' );
-
-	}
-
-	getPointAt() {
-
-		console.warn( 'getPointAt() not implemented.' );
-
-	}
-
-	getDerivatives() {
-
-		console.warn( 'getDerivatives() not implemented.' );
-
-	}
-
-	clone() {
-
-		console.warn( 'clone() not implemented.' );
-
-	}
-
+    clone() {
+        console.warn("clone() not implemented.");
+    }
 }
 
 export { Curve };

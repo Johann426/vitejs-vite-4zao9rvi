@@ -39,7 +39,6 @@ export class History {
             cmd.execute();
             this.undos.push(cmd);
         }
-
     }
 
     clear() {

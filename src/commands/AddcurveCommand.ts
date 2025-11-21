@@ -1,4 +1,4 @@
-import { MeshBuilder, StandardMaterial, Color3, } from "@babylonjs/core";
+import { MeshBuilder, StandardMaterial, Color3 } from "@babylonjs/core";
 
 export class AddCurveCommand {
     editor: any;
@@ -14,11 +14,15 @@ export class AddCurveCommand {
         const { editor, curve } = this;
         const scene = editor.scene;
 
-        const points = curve.getPoints(100)
-        const line = MeshBuilder.CreateLines("lines", {
-            points: points,
-            updatable: true
-        }, scene);
+        const points = curve.getPoints(100);
+        const line = MeshBuilder.CreateLines(
+            "lines",
+            {
+                points: points,
+                updatable: true,
+            },
+            scene
+        );
 
         // line.material = new StandardMaterial("linesMaterial", scene);
         line.color = new Color3(0, 1, 0);
@@ -31,5 +35,4 @@ export class AddCurveCommand {
         const mesh = this.mesh;
         mesh.dispose();
     }
-
 }

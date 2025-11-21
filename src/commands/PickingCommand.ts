@@ -11,7 +11,7 @@ export class PickingCommand {
 
         const scene = editor.scene;
 
-        console.log(scene)
+        console.log(scene);
 
         scene.onPointerObservable.add(() => {
             if (picker.pickingInProgress) {
@@ -24,14 +24,9 @@ export class PickingCommand {
                 }
             });
         });
-
     }
 
-    execute() {
-    }
+    execute() {}
 
-    undo() {
-
-    }
-
+    undo() {}
 }

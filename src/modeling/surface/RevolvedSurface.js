@@ -1,57 +1,49 @@
-import { NurbsSurface } from './NurbsSurface.js';
-import { Arc } from '../Arc.js';
-import { Quaternion } from '../NurbsLib.js';
+import { NurbsSurface } from "./NurbsSurface.js";
+import { Arc } from "../Arc.js";
+import { Quaternion } from "../NurbsLib.js";
 
 class RevolvedSurface extends NurbsSurface {
+    constructor(crv, axis, angle) {
+        const pts = crv.ctrlPoints;
+        let deg, knot;
 
-	constructor( crv, axis, angle ) {
+        const ctrlp = [];
 
-		const pts = crv.ctrlPoints;
-		let deg, knot;
+        const weights = [];
 
-		const ctrlp = [];
+        for (let i = 0; i < pts.length; i++) {
+            const a = axis.clone().normalize();
+            const start = pts[i];
+            const q = new Quaternion();
+            const end = pts[i].clone().applyQuaternion(q.setFromAxisAngle(a, angle));
+            const center = a.multiplyScalar(pts[i].dot(a));
+            const arc = new Arc(undefined, axis);
+            arc.add(center);
+            arc.add(start);
+            arc.add(end);
+            //pre-calculate arc
+            arc.getPointAt(0);
+            console.log(arc);
 
-		const weights = [];
+            if (i === 0) {
+                deg = arc.deg;
+                knot = arc.knots;
+            }
 
-		for ( let i = 0; i < pts.length; i ++ ) {
+            ctrlp.push(arc.ctrlPoints);
+            weights.push(arc.weights);
+        }
 
-			const a = axis.clone().normalize();
-			const start = pts[ i ];
-			const q = new Quaternion();
-			const end = pts[ i ].clone().applyQuaternion( q.setFromAxisAngle( a, angle ) );
-			const center = a.multiplyScalar( pts[ i ].dot( a ) );
-			const arc = new Arc( undefined, axis );
-			arc.add( center );
-			arc.add( start );
-			arc.add( end );
-			//pre-calculate arc
-			arc.getPointAt( 0 );
-			console.log( arc );
+        const deg_u = deg;
 
-			if ( i === 0 ) {
+        const deg_v = crv.deg;
 
-				deg = arc.deg;
-				knot = arc.knots;
+        const knot_u = knot;
 
-			}
+        const knot_v = crv.knots;
 
-			ctrlp.push( arc.ctrlPoints );
-			weights.push( arc.weights );
-
-		}
-
-		const deg_u = deg;
-
-		const deg_v = crv.deg;
-
-		const knot_u = knot;
-
-		const knot_v = crv.knots;
-
-		super( deg_u, deg_v, knot_u, knot_v, ctrlp, weights );
-
-	}
-
+        super(deg_u, deg_v, knot_u, knot_v, ctrlp, weights);
+    }
 }
 
 export { RevolvedSurface };

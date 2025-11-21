@@ -1,8 +1,6 @@
 // Identity matrix
 function identity(n: number): number[][] {
-    return Array.from({ length: n }, (_, i) =>
-        Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))
-    );
+    return Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)));
 }
 
 // Transpose of matrix
@@ -10,9 +8,7 @@ function transpose(m: number[][]): number[][] {
     const rows = m.length;
     const cols = m[0].length;
 
-    return Array.from({ length: cols }, (_, i) =>
-        Array.from({ length: rows }, (_, j) => m[j][i])
-    );
+    return Array.from({ length: cols }, (_, i) => Array.from({ length: rows }, (_, j) => m[j][i]));
 }
 
 // Forward substitution O(n2)
@@ -116,15 +112,15 @@ abstract class Decomposer<T extends { a: number[][] }> {
         this.a = this.decomposed.a;
     }
 
-    protected abstract dcmp(a: number[][]): T
-    abstract solve(b: number[]): number[]
-    abstract det(): number
+    protected abstract dcmp(a: number[][]): T;
+    abstract solve(b: number[]): number[];
+    abstract det(): number;
 
     solveMatrix(b: number[][]): number[][] {
         const bt = transpose(b);
-        const xt = bt.map(bi => this.solve(bi));
+        const xt = bt.map((bi) => this.solve(bi));
         const x = transpose(xt);
-        return x
+        return x;
     }
 
     inverse(): number[][] {
@@ -148,12 +144,11 @@ abstract class Decomposer<T extends { a: number[][] }> {
         const e = this.solve(r);
 
         const x = x0.map((xi, i) => xi - e[i]);
-        return x
+        return x;
     }
-
 }
 
-class LU extends Decomposer<{ a: number[][]; p: number[]; }> {
+class LU extends Decomposer<{ a: number[][]; p: number[] }> {
     p: number[];
 
     constructor(a: number[][]) {
@@ -161,7 +156,8 @@ class LU extends Decomposer<{ a: number[][]; p: number[]; }> {
         this.p = this.decomposed.p;
     }
 
-    protected dcmp(a: number[][]): { a: number[][]; p: number[] } { // O(n3)
+    protected dcmp(a: number[][]): { a: number[][]; p: number[] } {
+        // O(n3)
         const n = a.length;
         const p = Array.from({ length: n }, (_, i) => i);
 
@@ -194,47 +190,45 @@ class LU extends Decomposer<{ a: number[][]; p: number[]; }> {
     }
 
     solve(b: number[]): number[] {
-        const { a, p } = this
-        const pb = p.map(i => b[i]);
+        const { a, p } = this;
+        const pb = p.map((i) => b[i]);
         const y = fwdsub(a, pb, true);
         const x = backsub(a, y);
 
-        return x
-
+        return x;
     }
 
     det(): number {
-        const { a, p } = this
+        const { a, p } = this;
         const n = p.length;
         let d = 1;
         for (let i = 0; i < n; i++) {
             for (let j = i + 1; j < n; j++) {
-                if (p[i] > p[j]) d = -d  // flip sigh when an inversion occurs
+                if (p[i] > p[j]) d = -d; // flip sigh when an inversion occurs
             }
         }
 
         for (let i = 0; i < n; i++) {
-            d *= a[i][i]
+            d *= a[i][i];
         }
 
-        return d
+        return d;
     }
-
 }
 
 class QR extends Decomposer<{ a: number[][] }> {
-
     protected dcmp(a: number[][]): { a: number[][] } {
         const m = a.length; // no. row
         const n = a[0].length; //no. column
 
-        for (let k = 0; k < Math.min(m, n); k++) { //A to be transformed successively into partial upper triangular form,
+        for (let k = 0; k < Math.min(m, n); k++) {
+            //A to be transformed successively into partial upper triangular form,
             // vector composed of the first column
-            const x = a.slice(k).map(row => row[k]);
+            const x = a.slice(k).map((row) => row[k]);
             const normx = Math.sqrt(x.reduce((sum, xi) => sum + xi * xi, 0));
             if (normx === 0) continue;
 
-            const sign = (x[0] < 0) ? -1 : 1;
+            const sign = x[0] < 0 ? -1 : 1;
             let vtx = normx * normx + sign * normx * x[0];
             let vtv = 2 * vtx;
 
@@ -252,7 +246,7 @@ class QR extends Decomposer<{ a: number[][] }> {
 
             // Apply Householder transformation to A: ( I - 2 v v^T / v^T v ) A
             for (let i = k; i < n; i++) {
-                let sum = (i === k) ? vtx : v.reduce((sum, vj, j) => sum + vj * a[k + j][i], 0); // sum += v^T A
+                let sum = i === k ? vtx : v.reduce((sum, vj, j) => sum + vj * a[k + j][i], 0); // sum += v^T A
                 sum /= vtv;
 
                 for (let j = 0; j < d; j++) {
@@ -295,24 +289,24 @@ class QR extends Decomposer<{ a: number[][] }> {
             }
         }
         // Extract upper triangular matrix R from A
-        const r = a.slice(0, n).map(row => [...row]);
+        const r = a.slice(0, n).map((row) => [...row]);
         // Back substitution to solve R x = Q^T b
         const x = backsub(r, b);
 
-        return x
+        return x;
     }
 
     det() {
-        const a = this.a
+        const a = this.a;
         const n = a[0].length;
 
-        let d = (n % 2 == 0) ? 1 : -1
+        let d = n % 2 == 0 ? 1 : -1;
 
         for (let i = 0; i < n; i++) {
-            d *= a[i][i]
+            d *= a[i][i];
         }
 
-        return d
+        return d;
     }
 }
 

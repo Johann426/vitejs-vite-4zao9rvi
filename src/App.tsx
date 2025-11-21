@@ -2,7 +2,7 @@ import "./App.css";
 import "@mantine/core/styles.css";
 import { MantineProvider } from "@mantine/core";
 import { theme } from "./theme";
-import { useEffect } from "react"
+import { useEffect } from "react";
 import { Scene } from "@babylonjs/core";
 import Editor from "./Editor";
 import Menunar from "./layout/Menubar";
@@ -13,29 +13,26 @@ import Viewport from "./layout/Viewport";
 const editor = new Editor();
 
 export default function App() {
+    useEffect(() => {
+        return () => {
+            editor.dispose();
+        };
+    }, []);
 
-  useEffect(() => {
+    const onSceneReady = (scene: Scene) => {
+        editor.onSceneReady(scene);
+    };
 
-    return () => {
-      editor.dispose();
-    }
+    const onRender = (scene: Scene) => {
+        //editor.doSomething
+    };
 
-  }, []);
-
-  const onSceneReady = (scene: Scene) => {
-    editor.onSceneReady(scene);
-  };
-
-  const onRender = (scene: Scene) => {
-    //editor.doSomething
-  };
-
-  return (
-    <MantineProvider defaultColorScheme="auto" theme={theme} withGlobalClasses >
-      <Menunar editor={editor} id="menubar" />
-      <Sidebar editor={editor} id="sidebar" />
-      <Divider editor={editor} id="divider" />
-      <Viewport antialias onSceneReady={onSceneReady} onRender={onRender} id="viewport" />
-    </MantineProvider>
-  );
+    return (
+        <MantineProvider defaultColorScheme="auto" theme={theme} withGlobalClasses>
+            <Menunar editor={editor} id="menubar" />
+            <Sidebar editor={editor} id="sidebar" />
+            <Divider editor={editor} id="divider" />
+            <Viewport antialias onSceneReady={onSceneReady} onRender={onRender} id="viewport" />
+        </MantineProvider>
+    );
 }

@@ -8,15 +8,15 @@
  * 4. Fetching initial necessary application data or managing global state.
  */
 
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import AuthProvider from './context/AuthContext'; // Global state for user authentication
-import { ThemeProvider } from './context/ThemeContext'; // Global state for UI theme
-import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
-import HomePage from './pages/HomePage';
-import DashboardPage from './pages/DashboardPage';
-import LoginPage from './pages/LoginPage';
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import AuthProvider from "./context/AuthContext"; // Global state for user authentication
+import { ThemeProvider } from "./context/ThemeContext"; // Global state for UI theme
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
+import HomePage from "./pages/HomePage";
+import DashboardPage from "./pages/DashboardPage";
+import LoginPage from "./pages/LoginPage";
 
 // Define a custom hook or function if needed, but App is usually clean.
 
@@ -42,7 +42,7 @@ function StandardApp() {
     // Render a loading state while initialization is in progress
     if (!appInitialized) {
         return (
-            <div className="app-loading-screen" >
+            <div className="app-loading-screen">
                 <p>Loading application resources...</p>
             </div>
         );
@@ -61,17 +61,17 @@ function StandardApp() {
                     {/* Global Header component, present on all pages */}
                     <Header />
 
-                    < main className="app-main-content" >
+                    <main className="app-main-content">
                         {/* Define the application's routes */}
                         <Routes>
                             {/* Route for the public landing page */}
-                            <Route path="/" element={< HomePage />} />
+                            <Route path="/" element={<HomePage />} />
 
                             {/* Route that might require authentication */}
-                            <Route path="/dashboard" element={< DashboardPage />} />
+                            <Route path="/dashboard" element={<DashboardPage />} />
 
                             {/* Route for handling user login */}
-                            <Route path="/login" element={< LoginPage />} />
+                            <Route path="/login" element={<LoginPage />} />
 
                             {/* Add more routes or a 404 handler here */}
                         </Routes>

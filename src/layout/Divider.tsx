@@ -7,7 +7,6 @@ interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export default function Divider({ editor, ...rest }: DividerProps) {
-
     const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
     const observRef = useRef<Observer<PointerInfo>>(null);
     const cameraRef = useRef<number>(0); // ref to camera
@@ -19,22 +18,22 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         const { scene } = editor;
 
         const observable = (scene: Scene, msg: string) => {
-            console.log(msg)
+            console.log(msg);
             const setControl = (i: number) => {
                 const cameras = scene.activeCameras;
-                if (!cameras) return
+                if (!cameras) return;
                 const n = cameraRef.current;
-                if (n == i) return
+                if (n == i) return;
                 // const cameras = scene.activeCameras;
                 cameras[n]?.detachControl();
                 cameras[i]?.attachControl(true);
-                scene.activeCamera = cameras[i]
+                scene.activeCamera = cameras[i];
                 cameraRef.current = i;
-            }
+            };
 
             const onPointerDown = (pointerInfo: PointerInfo) => {
                 const canvas = scene.getEngine().getRenderingCanvas();
-                if (!canvas) return
+                if (!canvas) return;
                 // Get coordinates of pointer within the canvas
                 const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
                 const posX = pointerInfo.event.clientX;
@@ -52,11 +51,10 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                 } else {
                     setControl(3);
                 }
-            }
+            };
 
             observRef.current = scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
-
-        }
+        };
         if (scene && !scene.isDisposed) {
             observable(scene, "observable added in divider");
         } else {
@@ -73,18 +71,20 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         };
     }, [editor, x, y]); // re-render with changed dependencies
 
-    const getPosX = (e: PointerEvent) => { // left position (normalized from 0 to 1)
+    const getPosX = (e: PointerEvent) => {
+        // left position (normalized from 0 to 1)
         const width = parentRef.current?.clientWidth ?? 100;
         const coorx = e.clientX / width;
         return Math.max(0, Math.min(1, coorx));
-    }
+    };
 
-    const getPosY = (e: PointerEvent) => { // top position (normalized from 0 to 1)
+    const getPosY = (e: PointerEvent) => {
+        // top position (normalized from 0 to 1)
         const height = parentRef.current?.clientHeight ?? 100;
         const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
         const coory = (e.clientY - parseFloat(offset)) / height;
         return Math.max(0, Math.min(1, coory));
-    }
+    };
 
     const setPositionX = (e: PointerEvent) => {
         const posX = getPosX(e);
@@ -106,19 +106,16 @@ export default function Divider({ editor, ...rest }: DividerProps) {
             new Viewport(0, 1 - y, x, y), // top-left
             new Viewport(x, 1 - y, 1 - x, y), // top-right
             new Viewport(0, 0, x, 1 - y), // bottom-left
-            new Viewport(x, 0, 1 - x, 1 - y) // bottom-right
+            new Viewport(x, 0, 1 - x, 1 - y), // bottom-right
         ];
 
         cameras?.map((camera: Camera, i: number) => {
             camera.viewport = viewport[i];
-        })
-    }
+        });
+    };
 
     return (
-        <div
-            ref={parentRef}
-            {...rest}
-        >
+        <div ref={parentRef} {...rest}>
             <div //top-left overlay
                 style={{
                     position: "absolute",
@@ -204,5 +201,5 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                 }}
             />
         </div>
-    )
+    );
 }
