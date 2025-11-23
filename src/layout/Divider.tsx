@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Scene, Viewport, Camera, Observer, PointerInfo, PointerEventTypes, GPUPicker, Color3 } from "@babylonjs/core";
+import { Scene, Viewport, Camera, Observer, PointerInfo, PointerEventTypes } from "@babylonjs/core";
 import Editor from "../Editor";
 
 interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -7,9 +7,9 @@ interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export default function Divider({ editor, ...rest }: DividerProps) {
-    const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
-    const observRef = useRef<Observer<PointerInfo>>(null);
     const cameraRef = useRef<number>(0); // ref to camera
+    const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
+    const observRef = useRef<Observer<PointerInfo>>(null); // ref to observer for cleanup
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
 
