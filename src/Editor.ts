@@ -7,6 +7,12 @@ import {
     HemisphericLight,
     MeshBuilder,
     Mesh,
+    PointerEventTypes,
+    Plane,
+    Ray,
+    RayHelper,
+    PhysicsRaycastResult,
+    HavokPlugin,
 } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddcurveCommand.js";
@@ -104,6 +110,49 @@ export default class Editor {
         const pointerMove = new PointerMove(this);
         pointerMove.addObservable();
         pointerMove.setPickables(this.pickables);
+
+
+        // 1. 포인터 위치에서 Ray 생성
+        const pickRay = scene.createPickingRay(
+            scene.pointerX,
+            scene.pointerY,
+            null,
+            scene.activeCamera
+        );
+
+        // 2. 평면 정의 (예: y=0 평면)
+        const plane = new Plane(0, 1, 0, 0); // normal=(0,1,0), d=0
+
+        // initialize plugin
+        var hk = new HavokPlugin();
+        // enable physics in the scene with a gravity
+        scene.enablePhysics(new Vector3(0, -9.81, 0), hk);
+        var physEngine = scene.getPhysicsEngine();
+
+        var pickingRay = new Ray(
+            new Vector3(0, 0, 0),
+            new Vector3(0, 1, 0)
+        );
+        var rayHelper = new RayHelper(pickingRay);
+        rayHelper.show(scene);
+        var raycastResult = new PhysicsRaycastResult();
+
+        scene.onPointerMove = (evt, pickInfo) => {
+            var hit = false;
+            var hitPos = null;
+
+            scene.createPickingRayToRef(
+                scene.pointerX,
+                scene.pointerY,
+                null,
+                pickingRay,
+                scene.activeCamera
+            );
+            physEngine.raycastToRef(pickingRay.origin, pickingRay.origin.add(pickingRay.direction.scale(10000)), raycastResult);
+            hit = raycastResult.hasHit;
+            hitPos = raycastResult.hitPointWorld;
+        }
+
 
     }
 
