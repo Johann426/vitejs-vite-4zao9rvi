@@ -6,23 +6,22 @@ import {
     ArcRotateCamera,
     HemisphericLight,
     MeshBuilder,
-    AbstractMesh,
-    GPUPicker,
-    Color3,
-    PointerEventTypes,
+    Mesh,
 } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddcurveCommand.js";
-import { PickingCommand } from "./commands/PickingCommand.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js";
 import { Vector } from "./modeling/NurbsLib";
 import { Parametric } from "./modeling/Parametric";
+import { PointerMove } from "./PointerMove.js";
 
 export default class Editor {
     scene!: Scene;
     history: History = new History();
     callbacks: Array<(scene: Scene, msg: string) => void> = [];
-    pickables: Array<AbstractMesh> = [];
+    pickables: Array<Mesh> = [];
+    pickedObject: Mesh | undefined;
+    savedColor = 0;
 
     constructor() {
         this.callbacks.push(this.onKeyDown);
@@ -80,6 +79,12 @@ export default class Editor {
             camera.setPosition(positions[i]);
         });
         cameras[0].attachControl(true);
+        cameras[0].angularSensibilityX = Infinity
+        cameras[0].angularSensibilityY = Infinity
+        cameras[2].angularSensibilityX = Infinity
+        cameras[2].angularSensibilityY = Infinity
+        cameras[3].angularSensibilityX = Infinity
+        cameras[3].angularSensibilityY = Infinity
 
         scene.activeCameras = cameras;
 
@@ -96,30 +101,10 @@ export default class Editor {
 
         this.addTestCurve();
 
-        // set up gpu picker
-        const picker = new GPUPicker();
-        picker.setPickingList(this.pickables);
+        const pointerMove = new PointerMove(this);
+        pointerMove.addObservable();
+        pointerMove.setPickables(this.pickables);
 
-        const onPointerMove = () => {
-            if (picker.pickingInProgress) {
-                return;
-            }
-            const offset = 2;
-            const x1 = scene.pointerX - offset;
-            const y1 = scene.pointerY - offset;
-            const x2 = scene.pointerX + offset;
-            const y2 = scene.pointerY + offset;
-            picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
-                if (pickingInfo) {
-                    if (pickingInfo.meshes[0]) {
-                        console.log(pickingInfo.meshes[0].name);
-                        pickingInfo.meshes[0].color = new Color3(1, 1, 0);
-                    }
-                }
-            });
-        };
-
-        scene.onPointerObservable.add(onPointerMove, PointerEventTypes.POINTERMOVE);
     }
 
     addCallback(callback: (scene: Scene, msg: string) => void) {
