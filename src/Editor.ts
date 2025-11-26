@@ -7,15 +7,16 @@ import {
     HemisphericLight,
     MeshBuilder,
     Mesh,
-    PointerEventTypes,
+    StandardMaterial,
     Plane,
+    PointerEventTypes,
     Ray,
     RayHelper,
     PhysicsRaycastResult,
     HavokPlugin,
 } from "@babylonjs/core";
 import { History } from "./commands/History.js";
-import { AddCurveCommand } from "./commands/AddcurveCommand.js";
+import { AddCurveCommand } from "./commands/AddCurveCommand.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js";
 import { Vector } from "./modeling/NurbsLib";
 import { Parametric } from "./modeling/Parametric";
@@ -101,57 +102,87 @@ export default class Editor {
         light.intensity = 0.25;
 
         // built-in 'ground' shape.
-        const ground = MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
+        // const ground = MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
+        // const ground = MeshBuilder.CreatePlane("plane", { width: 6, height: 6, sideOrientation: Mesh.DOUBLESIDE }, scene);
 
         this.callbacks.forEach((callback) => callback(scene, "observable added by callback"));
 
-        this.addTestCurve();
+        // Create Test curve
+        const poles = [
+            { point: new Vector(0, 0, 0) },
+            { point: new Vector(1, 1, 1) },
+            { point: new Vector(2, 0, 0) },
+            { point: new Vector(3, 1, 1) },
+        ];
+        const curve = new BsplineCurveInt(3, poles);
+        this.addTestCurve(curve);
 
+        // GPU pick test
         const pointerMove = new PointerMove(this);
         pointerMove.addObservable();
         pointerMove.setPickables(this.pickables);
 
+        // Ray test
+        function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
+            const camera = scene.activeCamera;
+            if (!camera) return null;
 
-        // 1. 포인터 위치에서 Ray 생성
-        const pickRay = scene.createPickingRay(
-            scene.pointerX,
-            scene.pointerY,
-            null,
-            scene.activeCamera
-        );
-
-        // 2. 평면 정의 (예: y=0 평면)
-        const plane = new Plane(0, 1, 0, 0); // normal=(0,1,0), d=0
-
-        // initialize plugin
-        var hk = new HavokPlugin();
-        // enable physics in the scene with a gravity
-        scene.enablePhysics(new Vector3(0, -9.81, 0), hk);
-        var physEngine = scene.getPhysicsEngine();
-
-        var pickingRay = new Ray(
-            new Vector3(0, 0, 0),
-            new Vector3(0, 1, 0)
-        );
-        var rayHelper = new RayHelper(pickingRay);
-        rayHelper.show(scene);
-        var raycastResult = new PhysicsRaycastResult();
-
-        scene.onPointerMove = (evt, pickInfo) => {
-            var hit = false;
-            var hitPos = null;
-
-            scene.createPickingRayToRef(
-                scene.pointerX,
-                scene.pointerY,
+            // 1) from cam to pointer ray
+            const ray = scene.createPickingRay(
+                evt.clientX,
+                evt.clientY,
                 null,
-                pickingRay,
-                scene.activeCamera
+                camera,
+                false
             );
-            physEngine.raycastToRef(pickingRay.origin, pickingRay.origin.add(pickingRay.direction.scale(10000)), raycastResult);
-            hit = raycastResult.hasHit;
-            hitPos = raycastResult.hitPointWorld;
+
+            const plane = MeshBuilder.CreatePlane("p", { size: 10 }, scene);
+            plane.rotation.x = Math.PI / 2; // xy plane -> x-z plane
+            plane.position.y = 0;
+            plane.isPickable = true;
+            plane.material = new StandardMaterial("mat", scene);
+            plane.material.backFaceCulling = false;
+
+            const pickInfo = ray.intersectsMesh(plane);
+
+            return pickInfo.hit ? pickInfo.pickedPoint! : null;
+
         }
+
+        scene.onPointerObservable.add((pointerInfo) => {
+            if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+                const evt = pointerInfo.event as PointerEvent;
+                const point = getPointerGroundIntersection(scene, evt);
+
+                if (point) {
+                    point.y = 0;
+                    console.log("Intersection:", point.toString());
+                } else {
+                    console.log("No intersection with ground plane");
+                }
+            }
+        });
+
+
+        //create design points, control points, control polygon, curvature
+        const designPoints = curve.designPoints;
+        const ctrlPoints = curve.ctrlPoints;
+
+        const sphere = MeshBuilder.CreateSphere("point", { diameter: 0.2, segments: 6 }, scene);
+        for (let i = 0; i < ctrlPoints.length; i++) {
+            const dot = sphere.createInstance("");
+            const p = ctrlPoints[i];
+            dot.position = new Vector3(p.x, p.y, p.z);
+        }
+
+        const line = MeshBuilder.CreateLines(
+            "lines",
+            {
+                points: ctrlPoints,
+                updatable: true,
+            },
+            scene
+        );
 
 
     }
@@ -193,17 +224,10 @@ export default class Editor {
         this.history.excute(cmd);
     }
 
-    addTestCurve() {
-        const poles = [
-            { point: new Vector(0, 0, 0) },
-            { point: new Vector(1, 1, 1) },
-            { point: new Vector(2, 0, 0) },
-            { point: new Vector(3, 1, 1) },
-        ];
-
-        const curve = new BsplineCurveInt(3, poles);
+    addTestCurve(curve) {
 
         this.execute(new AddCurveCommand(this, curve));
+
     }
 
     onKeyDown(scene: Scene) {
