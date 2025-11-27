@@ -14,6 +14,8 @@ import {
     RayHelper,
     PhysicsRaycastResult,
     HavokPlugin,
+    Color3,
+    PointsCloudSystem,
 } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddCurveCommand.js";
@@ -163,19 +165,32 @@ export default class Editor {
             }
         });
 
+        const MAX_LINES_SEG = 400;
+
 
         //create design points, control points, control polygon, curvature
         const designPoints = curve.designPoints;
         const ctrlPoints = curve.ctrlPoints;
 
-        const sphere = MeshBuilder.CreateSphere("point", { diameter: 0.2, segments: 6 }, scene);
-        for (let i = 0; i < ctrlPoints.length; i++) {
-            const dot = sphere.createInstance("");
-            const p = ctrlPoints[i];
-            dot.position = new Vector3(p.x, p.y, p.z);
-        }
+        const points = new PointsCloudSystem("designPoints", 5, scene); // point size: 5
+        const createDesignPoints = function (particle: { position: Vector3; color: Color3; }, i: number) {
+            particle.position = new Vector3(designPoints[i].x, designPoints[i].y, designPoints[i].z);
+            particle.color = new Color3(1, 1, 0);
+        };
+        points.addPoints(designPoints.length, createDesignPoints); // createPoint 함수를 1번 실행하여 단일 점 생성
+        points.buildMeshAsync();
 
-        const line = MeshBuilder.CreateLines(
+        const ctrl = new PointsCloudSystem("ctrlPoints", 5, scene); // point size: 5
+        const createCtrlPoints = function (particle: { position: Vector3; color: Color3; }, i: number) {
+            particle.position = new Vector3(ctrlPoints[i].x, ctrlPoints[i].y, ctrlPoints[i].z);
+            particle.color = new Color3(0.5, 0.5, 0.5);
+        };
+        ctrl.addPoints(ctrlPoints.length, createCtrlPoints); // createPoint 함수를 1번 실행하여 단일 점 생성
+        ctrl.buildMeshAsync();
+
+
+
+        const ctrlPolygon = MeshBuilder.CreateLines(
             "lines",
             {
                 points: ctrlPoints,
@@ -183,6 +198,31 @@ export default class Editor {
             },
             scene
         );
+
+        const arr = [];
+
+        for (let i = 0; i < MAX_LINES_SEG; i++) {
+
+            const knots = curve.knots;
+            const t_min = knots ? knots[0] : 0.0;
+            const t_max = knots ? knots[knots.length - 1] : 1.0;
+            let t = t_min + i / (MAX_LINES_SEG - 1) * (t_max - t_min);
+
+            const pts = curve.interrogationAt(t);
+            const alpha = 1.0;
+            const crvt = pts.normal.negate().mul(pts.curvature * alpha);
+            const tuft = pts.point.add(crvt);
+
+            arr.push([new Vector3(pts.point.x, pts.point.y, pts.point.z), new Vector3(tuft.x, tuft.y, tuft.z)],)
+
+        }
+
+        // creates an instance of a line system
+        const curvature = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr }, scene);
+        curvature.color = new Color3(0.5, 0, 0);
+
+        // // updates the existing instance of lineSystem : no need for the parameter scene here
+        // lineSystem = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr, instance: lineSystem });
 
 
     }
