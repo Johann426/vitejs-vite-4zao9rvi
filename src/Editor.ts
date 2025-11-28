@@ -16,6 +16,8 @@ import {
     HavokPlugin,
     Color3,
     PointsCloudSystem,
+    ShaderMaterial,
+    Effect,
 } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddCurveCommand.js";
@@ -173,21 +175,94 @@ export default class Editor {
         const ctrlPoints = curve.ctrlPoints;
 
         const points = new PointsCloudSystem("designPoints", 5, scene); // point size: 5
-        const createDesignPoints = function (particle: { position: Vector3; color: Color3; }, i: number) {
-            particle.position = new Vector3(designPoints[i].x, designPoints[i].y, designPoints[i].z);
-            particle.color = new Color3(1, 1, 0);
+        const createDesignPoints = function (p: { position: Vector3; color: Color3; }, i: number) {
+            p.position = new Vector3(designPoints[i].x, designPoints[i].y, designPoints[i].z);
+            p.color = new Color3(1, 1, 0);
         };
         points.addPoints(designPoints.length, createDesignPoints); // createPoint 함수를 1번 실행하여 단일 점 생성
         points.buildMeshAsync();
 
         const ctrl = new PointsCloudSystem("ctrlPoints", 5, scene); // point size: 5
-        const createCtrlPoints = function (particle: { position: Vector3; color: Color3; }, i: number) {
-            particle.position = new Vector3(ctrlPoints[i].x, ctrlPoints[i].y, ctrlPoints[i].z);
-            particle.color = new Color3(0.5, 0.5, 0.5);
+        const createCtrlPoints = function (p: { position: Vector3; color: Color3; }, i: number) {
+            p.position = new Vector3(ctrlPoints[i].x, ctrlPoints[i].y, ctrlPoints[i].z);
+            p.color = new Color3(0.5, 0.5, 0.5);
         };
         ctrl.addPoints(ctrlPoints.length, createCtrlPoints); // createPoint 함수를 1번 실행하여 단일 점 생성
-        ctrl.buildMeshAsync();
+        // ctrl.buildMeshAsync();
 
+        const vertexShaderCode = `
+            precision highp float;
+
+            // Attributes
+            attribute vec3 position;
+            attribute vec4 color;
+
+            // Uniforms
+            uniform mat4 worldViewProjection;
+            uniform float pointSize;
+
+            // Varyings
+            varying vec4 vColor;
+
+            void main(void) {
+                gl_Position = worldViewProjection * vec4(position, 1.0);
+                gl_PointSize = pointSize;
+                vColor = color;
+            }
+        `;
+
+        const fragmentShaderCode = `
+            precision highp float;
+
+            // Varyings
+            varying vec4 vColor;
+
+            void main(void) {
+                // 점의 중심 (0.5, 0.5)으로부터의 상대 위치 벡터 계산
+                vec2 diff = gl_PointCoord - vec2(0.5, 0.5);
+
+                // 중심으로부터의 거리 계산
+                float dist = length(diff); 
+
+                // 둥근 마스크 적용: 거리가 0.5를 초과하면 픽셀을 버림
+                if (dist > 0.5) {
+                    discard;
+                }
+
+                // Anti-aliasing을 위한 부드러운 가장자리 처리 (선택 사항)
+                float alpha = 1.0 - smoothstep(0.48, 0.5, dist);
+                
+                // 최종 색상 설정
+                gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
+            }
+        `;
+
+        Effect.ShadersStore["customVertexShader"] = vertexShaderCode;
+        Effect.ShadersStore["customFragmentShader"] = fragmentShaderCode;
+
+        const shaderMaterial = new ShaderMaterial(
+            "roundPointShader",
+            scene,
+            {
+                vertex: "custom",
+                fragment: "custom",
+            },
+            {
+                // 셰이더에서 사용하는 속성과 유니폼 정의
+                attributes: ["position", "color"], // PCS에서 제공하는 속성
+                uniforms: ["worldViewProjection", "pointSize"] // 셰이더에서 사용할 유니폼 변수
+            }
+        );
+
+        shaderMaterial.setFloat("pointSize", 10.0);
+
+        ctrl.buildMeshAsync().then(() => {
+            if (ctrl.mesh) {
+                ctrl.mesh.material = shaderMaterial;
+            } else {
+                console.log('no mesh')
+            }
+        })
 
 
         const ctrlPolygon = MeshBuilder.CreateLines(
