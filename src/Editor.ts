@@ -180,12 +180,11 @@ export default class Editor {
             p.color = new Color3(1, 1, 0);
         };
         points.addPoints(designPoints.length, createDesignPoints); // createPoint 함수를 1번 실행하여 단일 점 생성
-        points.buildMeshAsync();
+        // points.buildMeshAsync();
 
         const ctrl = new PointsCloudSystem("ctrlPoints", 5, scene); // point size: 5
         const createCtrlPoints = function (p: { position: Vector3; color: Color3; }, i: number) {
             p.position = new Vector3(ctrlPoints[i].x, ctrlPoints[i].y, ctrlPoints[i].z);
-            p.color = new Color3(0.5, 0.5, 0.5);
         };
         ctrl.addPoints(ctrlPoints.length, createCtrlPoints); // createPoint 함수를 1번 실행하여 단일 점 생성
         // ctrl.buildMeshAsync();
@@ -226,14 +225,14 @@ export default class Editor {
                 }
 
                 // Smooth edge handling for anti-aliasing (optional)
-                float alpha = 1.0 - smoothstep(0.48, 0.5, dist);
+                float alpha = 1.0 - smoothstep(0.45, 0.5, dist);
 
                 // Set the final color
                 gl_FragColor = vec4(color, alpha);
             }
         `;
 
-        const shaderMaterial = new ShaderMaterial(
+        const ctrlMaterial = new ShaderMaterial(
             "roundPointShader",
             scene,
             {
@@ -241,24 +240,55 @@ export default class Editor {
                 fragment: "custom",
             },
             {
-                // 셰이더에서 사용하는 속성과 유니폼 정의
-                attributes: ["position", "color"], // PCS에서 제공하는 속성
-                uniforms: ["worldViewProjection", "pointSize"] // 셰이더에서 사용할 유니폼 변수
+                attributes: ["position"],
+                uniforms: ["pointSize", "worldViewProjection", "color"]
             }
         );
 
-        shaderMaterial.setFloat("pointSize", 8.0);
-        shaderMaterial.setColor3("color", new Color3(0.5, 0.5, 0.5));
+        const ctrlSize = 8.0;
+        const ctrlColor = new Color3(0.5, 0.5, 0.5);
+
+        ctrlMaterial.setFloat("pointSize", ctrlSize);
+        ctrlMaterial.setColor3("color", ctrlColor);
+        ctrlMaterial.needAlphaBlending = () => true;
 
         ctrl.buildMeshAsync().then(() => {
             if (ctrl.mesh) {
-                ctrl.mesh.material = shaderMaterial;
+                ctrl.mesh.material = ctrlMaterial;
                 ctrl.mesh.material.pointsCloud = true;
             } else {
                 console.log('no mesh')
             }
         })
 
+        const ptsMaterial = new ShaderMaterial(
+            "ptsPointShader",
+            scene,
+            {
+                vertex: "custom",
+                fragment: "custom",
+            },
+            {
+                attributes: ["position"],
+                uniforms: ["pointSize", "worldViewProjection", "color"]
+            }
+        );
+
+        const ptsSize = 8.0;
+        const ptsColor = new Color3(1.0, 1.0, 0.0);
+
+        ptsMaterial.setFloat("pointSize", ptsSize);
+        ptsMaterial.setColor3("color", ptsColor);
+        ptsMaterial.needAlphaBlending = () => true;
+
+        points.buildMeshAsync().then(() => {
+            if (points.mesh) {
+                points.mesh.material = ptsMaterial;
+                points.mesh.material.pointsCloud = true;
+            } else {
+                console.log('no mesh')
+            }
+        })
 
         const ctrlPolygon = MeshBuilder.CreateLines(
             "lines",
@@ -292,7 +322,7 @@ export default class Editor {
         curvature.color = new Color3(0.5, 0, 0);
 
         // // updates the existing instance of lineSystem : no need for the parameter scene here
-        // lineSystem = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr, instance: lineSystem });
+        // lineSystem = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr, instance: lineSystem }
 
 
     }
