@@ -8,16 +8,8 @@ import {
     MeshBuilder,
     Mesh,
     StandardMaterial,
-    Plane,
     PointerEventTypes,
-    Ray,
-    RayHelper,
-    PhysicsRaycastResult,
-    HavokPlugin,
     Color3,
-    PointsCloudSystem,
-    ShaderMaterial,
-    Effect,
 } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddCurveCommand.js";
@@ -25,6 +17,7 @@ import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js";
 import { Vector } from "./modeling/NurbsLib";
 import { Parametric } from "./modeling/Parametric";
 import { PointerMove } from "./PointerMove.js";
+import { PointHelper } from "./DesignHelper.js";
 
 export default class Editor {
     scene!: Scene;
@@ -171,129 +164,17 @@ export default class Editor {
 
 
         //create design points, control points, control polygon, curvature
-        const designPoints = curve.designPoints;
-        const ctrlPoints = curve.ctrlPoints;
+        const designPoints = new PointHelper(8.0, new Color3(1.0, 1.0, 0.5));
+        designPoints.initialize(curve.designPoints, scene);
 
-        const points = new PointsCloudSystem("designPoints", 5, scene); // point size: 5
-        const createDesignPoints = function (p: { position: Vector3; color: Color3; }, i: number) {
-            p.position = new Vector3(designPoints[i].x, designPoints[i].y, designPoints[i].z);
-            p.color = new Color3(1, 1, 0);
-        };
-        points.addPoints(designPoints.length, createDesignPoints); // createPoint 함수를 1번 실행하여 단일 점 생성
-        // points.buildMeshAsync();
+        const ctrlPoints = new PointHelper(8.0, new Color3(0.5, 0.5, 0.5));
+        ctrlPoints.initialize(curve.ctrlPoints, scene);
 
-        const ctrl = new PointsCloudSystem("ctrlPoints", 5, scene); // point size: 5
-        const createCtrlPoints = function (p: { position: Vector3; color: Color3; }, i: number) {
-            p.position = new Vector3(ctrlPoints[i].x, ctrlPoints[i].y, ctrlPoints[i].z);
-        };
-        ctrl.addPoints(ctrlPoints.length, createCtrlPoints); // createPoint 함수를 1번 실행하여 단일 점 생성
-        // ctrl.buildMeshAsync();
-
-
-        Effect.ShadersStore["customVertexShader"] = `
-            precision highp float;
-
-            // Attributes
-            attribute vec3 position;
-
-            // Uniforms
-            uniform float pointSize;
-            uniform mat4 worldViewProjection;
-
-            void main(void) {
-                gl_PointSize = pointSize;
-                gl_Position = worldViewProjection * vec4(position, 1.0);
-            }
-        `;
-
-        Effect.ShadersStore["customFragmentShader"] = `
-            precision highp float;
-
-            // Uniforms
-            uniform vec3 color;
-            
-            void main(void) {
-                // Calculate the relative position vector from the point center (0.5, 0.5)
-                vec2 diff = gl_PointCoord - vec2(0.5, 0.5);
-
-                // Compute the distance from the center
-                float dist = length(diff); 
-
-                // Apply circular mask: discard pixel if distance exceeds 0.5
-                if (dist > 0.5) {
-                    discard;
-                }
-
-                // Smooth edge handling for anti-aliasing (optional)
-                float alpha = 1.0 - smoothstep(0.45, 0.5, dist);
-
-                // Set the final color
-                gl_FragColor = vec4(color, alpha);
-            }
-        `;
-
-        const ctrlMaterial = new ShaderMaterial(
-            "roundPointShader",
-            scene,
-            {
-                vertex: "custom",
-                fragment: "custom",
-            },
-            {
-                attributes: ["position"],
-                uniforms: ["pointSize", "worldViewProjection", "color"]
-            }
-        );
-
-        const ctrlSize = 8.0;
-        const ctrlColor = new Color3(0.5, 0.5, 0.5);
-
-        ctrlMaterial.setFloat("pointSize", ctrlSize);
-        ctrlMaterial.setColor3("color", ctrlColor);
-        ctrlMaterial.needAlphaBlending = () => true;
-
-        ctrl.buildMeshAsync().then(() => {
-            if (ctrl.mesh) {
-                ctrl.mesh.material = ctrlMaterial;
-                ctrl.mesh.material.pointsCloud = true;
-            } else {
-                console.log('no mesh')
-            }
-        })
-
-        const ptsMaterial = new ShaderMaterial(
-            "ptsPointShader",
-            scene,
-            {
-                vertex: "custom",
-                fragment: "custom",
-            },
-            {
-                attributes: ["position"],
-                uniforms: ["pointSize", "worldViewProjection", "color"]
-            }
-        );
-
-        const ptsSize = 8.0;
-        const ptsColor = new Color3(1.0, 1.0, 0.0);
-
-        ptsMaterial.setFloat("pointSize", ptsSize);
-        ptsMaterial.setColor3("color", ptsColor);
-        ptsMaterial.needAlphaBlending = () => true;
-
-        points.buildMeshAsync().then(() => {
-            if (points.mesh) {
-                points.mesh.material = ptsMaterial;
-                points.mesh.material.pointsCloud = true;
-            } else {
-                console.log('no mesh')
-            }
-        })
 
         const ctrlPolygon = MeshBuilder.CreateLines(
             "lines",
             {
-                points: ctrlPoints,
+                points: curve.ctrlPoints,
                 updatable: true,
             },
             scene
