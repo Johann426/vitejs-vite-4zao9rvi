@@ -190,55 +190,48 @@ export default class Editor {
         ctrl.addPoints(ctrlPoints.length, createCtrlPoints); // createPoint 함수를 1번 실행하여 단일 점 생성
         // ctrl.buildMeshAsync();
 
-        const vertexShaderCode = `
+
+        Effect.ShadersStore["customVertexShader"] = `
             precision highp float;
 
             // Attributes
             attribute vec3 position;
-            attribute vec4 color;
 
             // Uniforms
-            uniform mat4 worldViewProjection;
             uniform float pointSize;
-
-            // Varyings
-            varying vec4 vColor;
+            uniform mat4 worldViewProjection;
 
             void main(void) {
-                gl_Position = worldViewProjection * vec4(position, 1.0);
                 gl_PointSize = pointSize;
-                vColor = color;
+                gl_Position = worldViewProjection * vec4(position, 1.0);
             }
         `;
 
-        const fragmentShaderCode = `
+        Effect.ShadersStore["customFragmentShader"] = `
             precision highp float;
 
-            // Varyings
-            varying vec4 vColor;
-
+            // Uniforms
+            uniform vec3 color;
+            
             void main(void) {
-                // 점의 중심 (0.5, 0.5)으로부터의 상대 위치 벡터 계산
+                // Calculate the relative position vector from the point center (0.5, 0.5)
                 vec2 diff = gl_PointCoord - vec2(0.5, 0.5);
 
-                // 중심으로부터의 거리 계산
+                // Compute the distance from the center
                 float dist = length(diff); 
 
-                // 둥근 마스크 적용: 거리가 0.5를 초과하면 픽셀을 버림
+                // Apply circular mask: discard pixel if distance exceeds 0.5
                 if (dist > 0.5) {
                     discard;
                 }
 
-                // Anti-aliasing을 위한 부드러운 가장자리 처리 (선택 사항)
+                // Smooth edge handling for anti-aliasing (optional)
                 float alpha = 1.0 - smoothstep(0.48, 0.5, dist);
-                
-                // 최종 색상 설정
-                gl_FragColor = vec4(vColor.rgb, vColor.a * alpha);
+
+                // Set the final color
+                gl_FragColor = vec4(color, alpha);
             }
         `;
-
-        Effect.ShadersStore["customVertexShader"] = vertexShaderCode;
-        Effect.ShadersStore["customFragmentShader"] = fragmentShaderCode;
 
         const shaderMaterial = new ShaderMaterial(
             "roundPointShader",
@@ -254,11 +247,13 @@ export default class Editor {
             }
         );
 
-        shaderMaterial.setFloat("pointSize", 10.0);
+        shaderMaterial.setFloat("pointSize", 8.0);
+        shaderMaterial.setColor3("color", new Color3(0.5, 0.5, 0.5));
 
         ctrl.buildMeshAsync().then(() => {
             if (ctrl.mesh) {
                 ctrl.mesh.material = shaderMaterial;
+                ctrl.mesh.material.pointsCloud = true;
             } else {
                 console.log('no mesh')
             }
