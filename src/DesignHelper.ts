@@ -3,8 +3,10 @@ import {
     Vector3,
     MeshBuilder,
     Color3,
+    Color4,
     PointsCloudSystem,
     ShaderMaterial,
+    CloudPoint,
 } from "@babylonjs/core";
 
 import { Vector } from "./modeling/NurbsLib.ts"
@@ -32,7 +34,7 @@ const fragmentShaderCode = `
     uniform vec3 color;
     
     void main(void) {
-        // Calculate the relative position vector from the point center (0.5, 0.5)
+        // Calculate the relative position vector from the point center(0.5, 0.5)
         vec2 diff = gl_PointCoord - vec2(0.5, 0.5);
 
         // Compute the distance from the center
@@ -99,7 +101,10 @@ class PointHelper {
         shaderMaterial.setFloat("pointSize", pointSize);
         shaderMaterial.setColor3("color", pointColor);
 
-        const pcs = createPointsCloudSystemd(points, scene);
+        // const pcs = createPointsCloudSystemd(points, scene);
+
+        const pcs = new PointsCloudSystem("pointsCloud", 1, scene);
+        pcs.addPoints(1000);
 
         pcs.buildMeshAsync().then(() => {
             if (pcs.mesh) {
@@ -112,9 +117,22 @@ class PointHelper {
 
     }
 
-    // setEnabled(value: boolean) {
-    //     this.pcs.mesh.isVisible = value;
-    // }
+    update(points: Vector[], scene: Scene) {
+        const pcs = this.pcs;
+        const particles = pcs.particles;
+
+        for (let i = 0; i < particles.length; i++) {
+            if (i < points.length) {
+                particles[i].position = new Vector3(points[i].x, points[i].y, points[i].z);
+            } else {
+                particles[i].position.y = 1000000
+            }
+        }
+
+        // pcs.setParticles(0, points.length, true);
+        pcs.setParticles();
+
+    }
 }
 
 // const CurvatureHelper{

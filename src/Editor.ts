@@ -26,6 +26,8 @@ export default class Editor {
     pickables: Array<Mesh> = [];
     pickedObject: Mesh | undefined;
     savedColor = 0;
+    ctrlPoints = new PointHelper(8.0, new Color3(0.5, 0.5, 0.5));
+    designPoints = new PointHelper(8.0, new Color3(1.0, 1.0, 0.0));
 
     constructor() {
         this.callbacks.push(this.onKeyDown);
@@ -36,6 +38,15 @@ export default class Editor {
         this.history.clear();
         this.callbacks = [];
         this.pickables = [];
+    }
+
+    onRender(scene: Scene) {
+
+        const curve = this.curve;
+        const { designPoints, ctrlPoints } = this;
+        designPoints.update(curve.designPoints, scene);
+        ctrlPoints.update(curve.ctrlPoints, scene);
+
     }
 
     onSceneReady(scene: Scene) {
@@ -113,6 +124,7 @@ export default class Editor {
         ];
         const curve = new BsplineCurveInt(3, poles);
         this.addTestCurve(curve);
+        this.curve = curve;
 
         // GPU pick test
         const pointerMove = new PointerMove(this);
@@ -164,12 +176,11 @@ export default class Editor {
 
 
         //create design points, control points, control polygon, curvature
-        const designPoints = new PointHelper(8.0, new Color3(1.0, 1.0, 0.5));
+        const { designPoints, ctrlPoints } = this;
         designPoints.initialize(curve.designPoints, scene);
-
-        const ctrlPoints = new PointHelper(8.0, new Color3(0.5, 0.5, 0.5));
         ctrlPoints.initialize(curve.ctrlPoints, scene);
-
+        // designPoints.update(curve.designPoints, scene);
+        // ctrlPoints.update(curve.ctrlPoints, scene);
 
         const ctrlPolygon = MeshBuilder.CreateLines(
             "lines",
