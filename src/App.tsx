@@ -24,7 +24,7 @@ export default function App() {
     };
 
     const onRender = (scene: Scene) => {
-        editor.onRender(scene);
+        // editor.onRender(scene);
     };
 
     return (

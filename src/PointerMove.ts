@@ -1,6 +1,9 @@
 import { GPUPicker, Mesh, LinesMesh, Color3, PointerEventTypes } from "@babylonjs/core";
 import Editor from "./Editor";
 
+// Tolerance in pixels for object picking
+const PICK_TOLERANCE = 4;
+
 export class PointerMove {
     editor: Editor;
     picker = new GPUPicker(); // set up gpu picker
@@ -27,11 +30,10 @@ export class PointerMove {
             return;
         }
         if (this.pickedObject) this.restoreColor();
-        const offset = 2;
-        const x1 = scene.pointerX - offset;
-        const y1 = scene.pointerY - offset;
-        const x2 = scene.pointerX + offset;
-        const y2 = scene.pointerY + offset;
+        const x1 = scene.pointerX - PICK_TOLERANCE;
+        const y1 = scene.pointerY - PICK_TOLERANCE;
+        const x2 = scene.pointerX + PICK_TOLERANCE;
+        const y2 = scene.pointerY + PICK_TOLERANCE;
         picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
             if (pickingInfo) {
                 if (pickingInfo.meshes[0] instanceof LinesMesh) {
@@ -42,6 +44,10 @@ export class PointerMove {
             }
         });
     };
+
+    onPointerDownSelect = () => {
+
+    }
 
     setPickables(pickables: Mesh[]) {
         if (pickables) {

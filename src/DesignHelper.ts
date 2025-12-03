@@ -1,15 +1,15 @@
 import {
     Scene,
-    Vector3,
-    MeshBuilder,
     Color3,
-    Color4,
-    PointsCloudSystem,
+    Vector3,
     ShaderMaterial,
-    CloudPoint,
+    PointsCloudSystem,
 } from "@babylonjs/core";
 
 import { Vector } from "./modeling/NurbsLib.ts"
+
+const MAX_POINTS = 1000;
+const MAX_LINES_SEG = 1000;
 
 const vertexShaderCode = `
     precision highp float;
@@ -20,10 +20,15 @@ const vertexShaderCode = `
     // Uniforms
     uniform float pointSize;
     uniform mat4 worldViewProjection;
+    uniform int drawRange;
+
+    // Send gl_VertexID to the fragment shader as a flat integer(to avoid interpolation)
+    flat out int i;
 
     void main(void) {
         gl_PointSize = pointSize;
         gl_Position = worldViewProjection * vec4(position, 1.0);
+        i = gl_VertexID;
     }
 `;
 
@@ -31,9 +36,18 @@ const fragmentShaderCode = `
     precision highp float;
 
     // Uniforms
+    uniform int drawRange;
     uniform vec3 color;
+
+    // Vertex index
+    flat in int i;
     
     void main(void) {
+        // Discard pixels when the index is over the range
+        if (i >= drawRange) {
+            discard;
+        }
+
         // Calculate the relative position vector from the point center(0.5, 0.5)
         vec2 diff = gl_PointCoord - vec2(0.5, 0.5);
 
@@ -71,6 +85,7 @@ function createPointsCloudSystemd(points: Array<Vector>, scene: Scene) {
 class PointHelper {
     pointSize: number;
     pointColor: Color3;
+    shader!: ShaderMaterial;
     pcs!: PointsCloudSystem;
 
     constructor(pointSize: number, pointColor: Color3) {
@@ -80,7 +95,7 @@ class PointHelper {
 
     }
 
-    initialize(points: Vector[], scene: Scene) {
+    initialize(scene: Scene) {
 
         const { pointSize, pointColor } = this;
 
@@ -93,7 +108,7 @@ class PointHelper {
             },
             {
                 attributes: ["position"],
-                uniforms: ["pointSize", "worldViewProjection", "color"],
+                uniforms: ["pointSize", "worldViewProjection", "color", "drawRange"],
                 needAlphaBlending: true,
             }
         );
@@ -102,9 +117,8 @@ class PointHelper {
         shaderMaterial.setColor3("color", pointColor);
 
         // const pcs = createPointsCloudSystemd(points, scene);
-
         const pcs = new PointsCloudSystem("pointsCloud", 1, scene);
-        pcs.addPoints(1000);
+        pcs.addPoints(MAX_POINTS);
 
         pcs.buildMeshAsync().then(() => {
             if (pcs.mesh) {
@@ -113,24 +127,27 @@ class PointHelper {
             }
         })
 
+        this.shader = shaderMaterial;
         this.pcs = pcs;
 
     }
 
-    update(points: Vector[], scene: Scene) {
-        const pcs = this.pcs;
+    update(points: Vector[]) {
+        const { pcs, shader } = this;
         const particles = pcs.particles;
 
-        for (let i = 0; i < particles.length; i++) {
-            if (i < points.length) {
-                particles[i].position = new Vector3(points[i].x, points[i].y, points[i].z);
-            } else {
-                particles[i].position.y = 1000000
-            }
+        if (points.length > particles.length) {
+            throw new Error("the number of points exceed MAX_POINTS")
         }
 
-        // pcs.setParticles(0, points.length, true);
-        pcs.setParticles();
+        for (let i = 0; i < points.length; i++) {
+            particles[i].position = new Vector3(points[i].x, points[i].y, points[i].z);
+        }
+
+        shader.setInt("drawRange", points.length);
+
+        // pcs.setParticles();
+        pcs.setParticles(0, points.length, true);
 
     }
 }

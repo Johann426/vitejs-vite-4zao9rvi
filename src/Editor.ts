@@ -50,7 +50,8 @@ export default class Editor {
     }
 
     onSceneReady(scene: Scene) {
-        this.scene = scene;
+        const scope = this;
+        scope.scene = scene;
         scene.clearColor = new Color4(0, 0, 0, 1);
         // Enable the Geometry Buffer Renderer
         scene.enableGeometryBufferRenderer();
@@ -172,15 +173,18 @@ export default class Editor {
             }
         });
 
-        const MAX_LINES_SEG = 400;
+        scene.onPointerObservable.add((pointerInfo) => {
+            if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+                scope.onRender(scene);
+            }
+        });
 
+        const MAX_LINES_SEG = 400;
 
         //create design points, control points, control polygon, curvature
         const { designPoints, ctrlPoints } = this;
-        designPoints.initialize(curve.designPoints, scene);
-        ctrlPoints.initialize(curve.ctrlPoints, scene);
-        // designPoints.update(curve.designPoints, scene);
-        // ctrlPoints.update(curve.ctrlPoints, scene);
+        designPoints.initialize(scene);
+        ctrlPoints.initialize(scene);
 
         const ctrlPolygon = MeshBuilder.CreateLines(
             "lines",
