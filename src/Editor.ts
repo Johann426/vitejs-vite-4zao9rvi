@@ -50,11 +50,11 @@ export default class Editor {
     }
 
     onSceneReady(scene: Scene) {
+        scene.clearColor = new Color4(0, 0, 0, 1);
+
         const scope = this;
         scope.scene = scene;
-        scene.clearColor = new Color4(0, 0, 0, 1);
-        // Enable the Geometry Buffer Renderer
-        scene.enableGeometryBufferRenderer();
+        scope.callbacks.forEach((callback) => callback(scene, "observable added by callback"));
 
         const cameras = [];
 
@@ -110,11 +110,7 @@ export default class Editor {
         // Default intensity is 1. Let's dim the light a small amount
         light.intensity = 0.25;
 
-        // built-in 'ground' shape.
-        // const ground = MeshBuilder.CreateGround("ground", { width: 6, height: 6 }, scene);
-        // const ground = MeshBuilder.CreatePlane("plane", { width: 6, height: 6, sideOrientation: Mesh.DOUBLESIDE }, scene);
 
-        this.callbacks.forEach((callback) => callback(scene, "observable added by callback"));
 
         // Create Test curve
         const poles = [

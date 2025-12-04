@@ -9,7 +9,6 @@ interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
 export default function Divider({ editor, ...rest }: DividerProps) {
     const cameraRef = useRef<number>(0); // ref to camera
     const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
-    const observRef = useRef<Observer<PointerInfo>>(null); // ref to observer for cleanup
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
 
@@ -53,8 +52,9 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                 }
             };
 
-            observRef.current = scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
+            scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
         };
+
         if (scene && !scene.isDisposed) {
             observable(scene, "observable added in divider");
         } else {
@@ -65,7 +65,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         // Cleanup when component unmounts
         return () => {
             if (scene && !scene.isDisposed) {
-                scene.onPointerObservable.remove(observRef.current);
+                scene.onPointerObservable.clear();
                 console.log("observable removed in divider");
             }
         };
