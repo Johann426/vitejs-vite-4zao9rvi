@@ -4,9 +4,12 @@ import {
     Vector3,
     ShaderMaterial,
     PointsCloudSystem,
+    MeshBuilder,
+    VertexBuffer,
 } from "@babylonjs/core";
 
 import { Vector } from "./modeling/NurbsLib.ts"
+import type { initializeWebWorker } from "@babylonjs/core/Misc/khronosTextureContainer2Worker";
 
 const MAX_POINTS = 1000;
 const MAX_LINES_SEG = 1000;
@@ -150,36 +153,111 @@ class PointHelper {
         pcs.setParticles(0, points.length, true);
 
     }
+
+    setVisible(value: boolean) {
+        this.pcs.mesh?.setEnabled(value);
+    }
 }
 
-// const CurvatureHelper{
+class PolygonHelper {
+    color: Color3;
+    mesh!
 
-//     constturctor() {
+    constructor(color: Color3) {
+        this.color = color;
+    }
 
-//     }
-// }
+    initialize(scene: Scene) {
+
+        const polygon = MeshBuilder.CreateLines(
+            "lines",
+            {
+                points: new Array(MAX_LINES_SEG).fill(new Vector3(0, 0, 0)),
+                updatable: true,
+            },
+            scene
+        );
+
+        this.mesh = polygon
+    }
+
+    update(points: Vector[]) {
+        const { mesh } = this;
+        const positions = mesh.getVerticesData(VertexBuffer.PositionKind); // 2 points per line segment x 3 (Vector3)
+        let index = 0;
+
+        for (let i = 0; i < points.length; i++) {
+            positions[index++] = points[i].x;
+            positions[index++] = points[i].y;
+            positions[index++] = points[i].z;
+        }
+
+        mesh.setVerticesData(VertexBuffer.PositionKind, positions);
+
+    }
+
+    setVisible(value: boolean) {
+        this.mesh.setEnabled(value);
+    }
+}
+
+class CurvatureHelper {
+    color: Color3;
+    mesh!
+
+    constructor(color: Color3) {
+        this.color = color;
+    }
+
+    initialize(scene: Scene) {
+        const { color } = this;
+        const arr = [];
+        for (let i = 0; i < MAX_LINES_SEG; i++) {
+            arr.push([new Vector3(0, 0, 0), new Vector3(1, 1, 1)],)
+        }
+        // creates an instance of a line system
+        const curvature = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr }, scene);
+        curvature.color = color;
+        this.mesh = curvature;
+    }
+
+    update(curve) {
+        const { mesh } = this;
+        const positions = mesh.getVerticesData(VertexBuffer.PositionKind); // 2 points per line segment x 3 (Vector3)
+
+        let index = 0;
+        for (let i = 0; i < MAX_LINES_SEG; i++) {
+
+            const knots = curve.knots;
+            const t_min = knots ? knots[0] : 0.0;
+            const t_max = knots ? knots[knots.length - 1] : 1.0;
+            let t = t_min + i / (MAX_LINES_SEG - 1) * (t_max - t_min);
+
+            const pts = curve.interrogationAt(t);
+            const alpha = 1.0;
+            const crvt = pts.normal.negate().mul(pts.curvature * alpha);
+            const tuft = pts.point.add(crvt);
+
+            positions[index++] = pts.point.x
+            positions[index++] = pts.point.y
+            positions[index++] = pts.point.z
+            positions[index++] = tuft.x;
+            positions[index++] = tuft.y;
+            positions[index++] = tuft.z;
+
+        }
+
+        mesh.setVerticesData(VertexBuffer.PositionKind, positions);
+
+    }
+
+    setVisible(value: boolean) {
+        this.mesh.setEnabled(value);
+    }
+
+}
 
 
-// const arr = [];
 
-// for (let i = 0; i < MAX_LINES_SEG; i++) {
 
-//     const knots = curve.knots;
-//     const t_min = knots ? knots[0] : 0.0;
-//     const t_max = knots ? knots[knots.length - 1] : 1.0;
-//     let t = t_min + i / (MAX_LINES_SEG - 1) * (t_max - t_min);
-
-//     const pts = curve.interrogationAt(t);
-//     const alpha = 1.0;
-//     const crvt = pts.normal.negate().mul(pts.curvature * alpha);
-//     const tuft = pts.point.add(crvt);
-
-//     arr.push([new Vector3(pts.point.x, pts.point.y, pts.point.z), new Vector3(tuft.x, tuft.y, tuft.z)],)
-
-// }
-
-// // creates an instance of a line system
-// const curvature = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr }, scene);
-// curvature.color = new Color3(0.5, 0, 0);
-
-export { PointHelper };
+export { PointHelper, PolygonHelper, CurvatureHelper };

@@ -4,6 +4,7 @@ import {
     Color4,
     Viewport,
     ArcRotateCamera,
+    GPUPicker,
     HemisphericLight,
     MeshBuilder,
     Mesh,
@@ -16,18 +17,21 @@ import { AddCurveCommand } from "./commands/AddCurveCommand.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js";
 import { Vector } from "./modeling/NurbsLib";
 import { Parametric } from "./modeling/Parametric";
-import { PointerMove } from "./PointerMove.js";
-import { PointHelper } from "./DesignHelper.js";
+import { PointHelper, CurvatureHelper, PolygonHelper } from "./DesignHelper.js";
+import { SelectMesh } from "./listeners/SelectMesh.js";
 
 export default class Editor {
     scene!: Scene;
     history: History = new History();
     callbacks: Array<(scene: Scene, msg: string) => void> = [];
+    picker = new GPUPicker(); // set up gpu picker
     pickables: Array<Mesh> = [];
     pickedObject: Mesh | undefined;
     savedColor = 0;
     ctrlPoints = new PointHelper(8.0, new Color3(0.5, 0.5, 0.5));
     designPoints = new PointHelper(8.0, new Color3(1.0, 1.0, 0.0));
+    curvature = new CurvatureHelper(new Color3(0.5, 0.0, 0.0));
+    ctrlPolygon = new PolygonHelper(new Color3(0.5, 0.5, 0.5))
 
     constructor() {
         this.callbacks.push(this.onKeyDown);
@@ -41,11 +45,6 @@ export default class Editor {
     }
 
     onRender(scene: Scene) {
-
-        const curve = this.curve;
-        const { designPoints, ctrlPoints } = this;
-        designPoints.update(curve.designPoints, scene);
-        ctrlPoints.update(curve.ctrlPoints, scene);
 
     }
 
@@ -121,12 +120,11 @@ export default class Editor {
         ];
         const curve = new BsplineCurveInt(3, poles);
         this.addTestCurve(curve);
-        this.curve = curve;
 
-        // GPU pick test
-        const pointerMove = new PointerMove(this);
-        pointerMove.addObservable();
-        pointerMove.setPickables(this.pickables);
+        // Select mesh by using GPU pick
+        const selectMesh = new SelectMesh(scope);
+        selectMesh.addObservable();
+        selectMesh.setPickables(this.pickables);
 
         // Ray test
         function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
@@ -169,52 +167,49 @@ export default class Editor {
             }
         });
 
-        scene.onPointerObservable.add((pointerInfo) => {
-            if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-                scope.onRender(scene);
-            }
-        });
+
+
 
         const MAX_LINES_SEG = 400;
 
         //create design points, control points, control polygon, curvature
-        const { designPoints, ctrlPoints } = this;
+        const { designPoints, ctrlPoints, curvature, ctrlPolygon } = this;
         designPoints.initialize(scene);
         ctrlPoints.initialize(scene);
+        curvature.initialize(scene)
+        ctrlPolygon.initialize(scene)
 
-        const ctrlPolygon = MeshBuilder.CreateLines(
-            "lines",
-            {
-                points: curve.ctrlPoints,
-                updatable: true,
-            },
-            scene
-        );
+        // const ctrlPolygon = MeshBuilder.CreateLines(
+        //     "lines",
+        //     {
+        //         points: curve.ctrlPoints,
+        //         updatable: true,
+        //     },
+        //     scene
+        // );
 
-        const arr = [];
+        // const arr = [];
 
-        for (let i = 0; i < MAX_LINES_SEG; i++) {
+        // for (let i = 0; i < MAX_LINES_SEG; i++) {
 
-            const knots = curve.knots;
-            const t_min = knots ? knots[0] : 0.0;
-            const t_max = knots ? knots[knots.length - 1] : 1.0;
-            let t = t_min + i / (MAX_LINES_SEG - 1) * (t_max - t_min);
+        //     const knots = curve.knots;
+        //     const t_min = knots ? knots[0] : 0.0;
+        //     const t_max = knots ? knots[knots.length - 1] : 1.0;
+        //     let t = t_min + i / (MAX_LINES_SEG - 1) * (t_max - t_min);
 
-            const pts = curve.interrogationAt(t);
-            const alpha = 1.0;
-            const crvt = pts.normal.negate().mul(pts.curvature * alpha);
-            const tuft = pts.point.add(crvt);
+        //     const pts = curve.interrogationAt(t);
+        //     const alpha = 1.0;
+        //     const crvt = pts.normal.negate().mul(pts.curvature * alpha);
+        //     const tuft = pts.point.add(crvt);
 
-            arr.push([new Vector3(pts.point.x, pts.point.y, pts.point.z), new Vector3(tuft.x, tuft.y, tuft.z)],)
+        //     arr.push([new Vector3(pts.point.x, pts.point.y, pts.point.z), new Vector3(tuft.x, tuft.y, tuft.z)],)
 
-        }
+        // }
 
-        // creates an instance of a line system
-        const curvature = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr }, scene);
-        curvature.color = new Color3(0.5, 0, 0);
+        // // creates an instance of a line system
+        // const curvature = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr }, scene);
+        // curvature.color = new Color3(0.5, 0, 0);
 
-        // // updates the existing instance of lineSystem : no need for the parameter scene here
-        // lineSystem = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr, instance: lineSystem }
 
 
     }

@@ -24,7 +24,7 @@ export class AddCurveCommand {
             scene
         );
 
-        // line.material = new StandardMaterial("linesMaterial", scene);
+        line.metadata = { model: curve }
         line.color = new Color3(0, 1, 0);
 
         editor.pickables.push(line);
