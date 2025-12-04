@@ -182,17 +182,31 @@ class PolygonHelper {
     }
 
     update(points: Vector[]) {
-        const { mesh } = this;
+        const { mesh, color } = this;
         const positions = mesh.getVerticesData(VertexBuffer.PositionKind); // 2 points per line segment x 3 (Vector3)
+        const colors = mesh.getVerticesData(VertexBuffer.ColorKind);
         let index = 0;
 
-        for (let i = 0; i < points.length; i++) {
-            positions[index++] = points[i].x;
-            positions[index++] = points[i].y;
-            positions[index++] = points[i].z;
+        for (let i = 0; i < MAX_LINES_SEG; i++) {
+            if (i < points.length) {
+                positions[index++] = points[i].x;
+                positions[index++] = points[i].y;
+                positions[index++] = points[i].z;
+                colors[4 * i + 0] = color.r;
+                colors[4 * i + 1] = color.g;
+                colors[4 * i + 2] = color.b;
+                colors[4 * i + 3] = 1.0;
+            } else {
+                colors[4 * i + 0] = 0.0;
+                colors[4 * i + 1] = 0.0;
+                colors[4 * i + 2] = 0.0;
+                colors[4 * i + 3] = 0.0;
+            }
         }
 
         mesh.setVerticesData(VertexBuffer.PositionKind, positions);
+        mesh.setVerticesData(VertexBuffer.ColorKind, colors);
+        mesh.geometry.setDrawRange(0, points.length)
 
     }
 
