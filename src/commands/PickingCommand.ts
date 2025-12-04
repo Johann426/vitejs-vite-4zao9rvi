@@ -17,9 +17,9 @@ export class PickingCommand {
         const restoreColor = () => {
             if (this.pickedObject instanceof LinesMesh) {
                 this.pickedObject.color = this.savedColor;
-                this.pickedObject = undefined
+                this.pickedObject = undefined;
             }
-        }
+        };
 
         const onPointerMove = () => {
             if (picker.pickingInProgress) {
@@ -43,7 +43,7 @@ export class PickingCommand {
         };
     }
 
-    execute() { }
+    execute() {}
 
-    undo() { }
+    undo() {}
 }

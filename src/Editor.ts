@@ -1,16 +1,16 @@
 import {
-    Scene,
-    Vector3,
-    Color4,
-    Viewport,
-    ArcRotateCamera,
-    GPUPicker,
-    HemisphericLight,
-    MeshBuilder,
-    Mesh,
-    StandardMaterial,
-    PointerEventTypes,
-    Color3,
+  Scene,
+  Vector3,
+  Color4,
+  Viewport,
+  ArcRotateCamera,
+  GPUPicker,
+  HemisphericLight,
+  MeshBuilder,
+  Mesh,
+  StandardMaterial,
+  PointerEventTypes,
+  Color3,
 } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddCurveCommand.js";
@@ -21,261 +21,209 @@ import { PointHelper, CurvatureHelper, PolygonHelper } from "./DesignHelper.js";
 import { SelectMesh } from "./listeners/SelectMesh.js";
 
 export default class Editor {
-    scene!: Scene;
-    history: History = new History();
-    callbacks: Array<(scene: Scene, msg: string) => void> = [];
-    picker = new GPUPicker(); // set up gpu picker
-    pickables: Array<Mesh> = [];
-    pickedObject: Mesh | undefined;
-    savedColor = 0;
-    ctrlPoints = new PointHelper(8.0, new Color3(0.5, 0.5, 0.5));
-    designPoints = new PointHelper(8.0, new Color3(1.0, 1.0, 0.0));
-    curvature = new CurvatureHelper(new Color3(0.5, 0.0, 0.0));
-    ctrlPolygon = new PolygonHelper(new Color3(0.5, 0.5, 0.5))
+  scene!: Scene;
+  history: History = new History();
+  callbacks: Array<(scene: Scene, msg: string) => void> = [];
+  picker = new GPUPicker(); // set up gpu picker
+  pickables: Array<Mesh> = [];
+  pickedObject: Mesh | undefined;
+  savedColor = 0;
+  ctrlPoints = new PointHelper(8.0, new Color3(0.5, 0.5, 0.5));
+  designPoints = new PointHelper(8.0, new Color3(1.0, 1.0, 0.0));
+  curvature = new CurvatureHelper(new Color3(0.5, 0.0, 0.0));
+  ctrlPolygon = new PolygonHelper(new Color3(0.5, 0.5, 0.5));
 
-    constructor() {
-        this.callbacks.push(this.onKeyDown);
+  constructor() {
+    this.callbacks.push(this.onKeyDown);
+  }
+
+  dispose() {
+    this.scene.dispose();
+    this.history.clear();
+    this.callbacks = [];
+    this.pickables = [];
+  }
+
+  onRender(scene: Scene) { }
+
+  onSceneReady(scene: Scene) {
+    scene.clearColor = new Color4(0, 0, 0, 1);
+
+    const scope = this;
+    scope.scene = scene;
+    scope.callbacks.forEach((callback) => callback(scene, "observable added by callback"));
+
+    const cameras = [];
+
+    for (let i = 0; i < 4; i++) {
+      cameras.push(
+        new ArcRotateCamera(
+          // name, alpha, beta, radius, target position, scene
+          `Camera${i}`,
+          90,
+          0,
+          10,
+          new Vector3(0, 0, 0),
+          scene
+        )
+      );
     }
 
-    dispose() {
-        this.scene.dispose();
-        this.history.clear();
-        this.callbacks = [];
-        this.pickables = [];
+    // Set up viewport of each camera
+    const viewports = [
+      // x, y, width, height
+      new Viewport(0.0, 0.5, 0.5, 0.5), // top-left
+      new Viewport(0.5, 0.5, 0.5, 0.5), // top-right
+      new Viewport(0.0, 0.0, 0.5, 0.5), // bottom-left
+      new Viewport(0.5, 0.0, 0.5, 0.5), // bottom-right
+    ];
+
+    // Set up position of each camera
+    const positions = [
+      new Vector3(10, 0, 0), // x-view
+      new Vector3(10, 10, 10), // perspective
+      new Vector3(0, 10, 0), // y-view
+      new Vector3(0, 0, 10), // z-view
+    ];
+
+    cameras.map((camera: ArcRotateCamera, i: number) => {
+      camera.setTarget(Vector3.Zero()); // camera target to scene origin
+      camera.viewport = viewports[i];
+      camera.setPosition(positions[i]);
+    });
+    cameras[0].attachControl(true);
+    cameras[0].angularSensibilityX = Infinity;
+    cameras[0].angularSensibilityY = Infinity;
+    cameras[2].angularSensibilityX = Infinity;
+    cameras[2].angularSensibilityY = Infinity;
+    cameras[3].angularSensibilityX = Infinity;
+    cameras[3].angularSensibilityY = Infinity;
+
+    scene.activeCameras = cameras;
+
+    // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+    const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+
+    // Default intensity is 1. Let's dim the light a small amount
+    light.intensity = 0.25;
+
+    // Create Test curve
+    const poles = [
+      { point: new Vector(0, 0, 0) },
+      { point: new Vector(1, 1, 1) },
+      { point: new Vector(2, 0, 0) },
+      { point: new Vector(3, 1, 1) },
+    ];
+    const curve = new BsplineCurveInt(3, poles);
+    this.addTestCurve(curve);
+
+    // Select mesh by using GPU pick
+    const selectMesh = new SelectMesh(scope);
+    selectMesh.setPickables(this.pickables);
+
+    // Ray test
+    function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
+      const camera = scene.activeCamera;
+      if (!camera) return null;
+
+      // 1) from cam to pointer ray
+      const ray = scene.createPickingRay(evt.clientX, evt.clientY, null, camera, false);
+
+      const plane = MeshBuilder.CreatePlane("p", { size: 10 }, scene);
+      plane.rotation.x = Math.PI / 2; // xy plane -> x-z plane
+      plane.position.y = 0;
+      plane.isPickable = true;
+      plane.material = new StandardMaterial("mat", scene);
+      plane.material.backFaceCulling = false;
+
+      const pickInfo = ray.intersectsMesh(plane);
+
+      return pickInfo.hit ? pickInfo.pickedPoint! : null;
     }
 
-    onRender(scene: Scene) {
+    scene.onPointerObservable.add((pointerInfo) => {
+      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+        const evt = pointerInfo.event as PointerEvent;
+        const point = getPointerGroundIntersection(scene, evt);
 
-    }
-
-    onSceneReady(scene: Scene) {
-        scene.clearColor = new Color4(0, 0, 0, 1);
-
-        const scope = this;
-        scope.scene = scene;
-        scope.callbacks.forEach((callback) => callback(scene, "observable added by callback"));
-
-        const cameras = [];
-
-        for (let i = 0; i < 4; i++) {
-            cameras.push(
-                new ArcRotateCamera(
-                    // name, alpha, beta, radius, target position, scene
-                    `Camera${i}`,
-                    90,
-                    0,
-                    10,
-                    new Vector3(0, 0, 0),
-                    scene
-                )
-            );
+        if (point) {
+          point.y = 0;
+          console.log("Intersection:", point.toString());
+        } else {
+          console.log("No intersection with ground plane");
         }
+      }
+    });
 
-        // Set up viewport of each camera
-        const viewports = [
-            // x, y, width, height
-            new Viewport(0.0, 0.5, 0.5, 0.5), // top-left
-            new Viewport(0.5, 0.5, 0.5, 0.5), // top-right
-            new Viewport(0.0, 0.0, 0.5, 0.5), // bottom-left
-            new Viewport(0.5, 0.0, 0.5, 0.5), // bottom-right
-        ];
+    //create design points, control points, control polygon, curvature
+    const { designPoints, ctrlPoints, curvature, ctrlPolygon } = this;
+    designPoints.initialize(scene);
+    ctrlPoints.initialize(scene);
+    curvature.initialize(scene);
+    ctrlPolygon.initialize(scene);
 
-        // Set up position of each camera
-        const positions = [
-            new Vector3(10, 0, 0), // x-view
-            new Vector3(10, 10, 10), // perspective
-            new Vector3(0, 10, 0), // y-view
-            new Vector3(0, 0, 10), // z-view
-        ];
+  }
 
-        cameras.map((camera: ArcRotateCamera, i: number) => {
-            camera.setTarget(Vector3.Zero()); // camera target to scene origin
-            camera.viewport = viewports[i];
-            camera.setPosition(positions[i]);
-        });
-        cameras[0].attachControl(true);
-        cameras[0].angularSensibilityX = Infinity
-        cameras[0].angularSensibilityY = Infinity
-        cameras[2].angularSensibilityX = Infinity
-        cameras[2].angularSensibilityY = Infinity
-        cameras[3].angularSensibilityX = Infinity
-        cameras[3].angularSensibilityY = Infinity
+  addCallback(callback: (scene: Scene, msg: string) => void) {
+    this.callbacks.push(callback);
+  }
 
-        scene.activeCameras = cameras;
+  removeCallback(callback: (scene: Scene) => void) {
+    const index = this.callbacks.indexOf(callback);
+    if (index > -1) this.callbacks.splice(index, 1);
+  }
 
-        // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-        const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+  addCurve(curve: Parametric) {
+    this.execute(new AddCurveCommand(this, curve));
+  }
 
-        // Default intensity is 1. Let's dim the light a small amount
-        light.intensity = 0.25;
+  // addInterpolatedCurve( pole ) {
 
+  // 	this.execute( new AddInterpolatedCurveCommand( this, pole ) );
 
+  // }
 
-        // Create Test curve
-        const poles = [
-            { point: new Vector(0, 0, 0) },
-            { point: new Vector(1, 1, 1) },
-            { point: new Vector(2, 0, 0) },
-            { point: new Vector(3, 1, 1) },
-        ];
-        const curve = new BsplineCurveInt(3, poles);
-        this.addTestCurve(curve);
+  updatelines(curve: Parametric, points: Vector[]) {
+    MeshBuilder.CreateLines(null, {
+      points: points,
+      instance: curve,
+    });
+  }
 
-        // Select mesh by using GPU pick
-        const selectMesh = new SelectMesh(scope);
-        selectMesh.addObservable();
-        selectMesh.setPickables(this.pickables);
+  updateSurface(mesh, positions) {
+    mesh.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
+    // mesh.updateVerticesData(BABYLON.VertexBuffer.NormalKind, normals);
+    // mesh.updateVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+    // mesh.updateVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
+  }
 
-        // Ray test
-        function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
-            const camera = scene.activeCamera;
-            if (!camera) return null;
+  execute(cmd) {
+    this.history.excute(cmd);
+  }
 
-            // 1) from cam to pointer ray
-            const ray = scene.createPickingRay(
-                evt.clientX,
-                evt.clientY,
-                null,
-                camera,
-                false
-            );
+  addTestCurve(curve) {
+    this.execute(new AddCurveCommand(this, curve));
+  }
 
-            const plane = MeshBuilder.CreatePlane("p", { size: 10 }, scene);
-            plane.rotation.x = Math.PI / 2; // xy plane -> x-z plane
-            plane.position.y = 0;
-            plane.isPickable = true;
-            plane.material = new StandardMaterial("mat", scene);
-            plane.material.backFaceCulling = false;
+  onKeyDown(scene: Scene) {
+    document.addEventListener("keydown", (e) => {
+      const camera = scene.activeCamera;
 
-            const pickInfo = ray.intersectsMesh(plane);
-
-            return pickInfo.hit ? pickInfo.pickedPoint! : null;
-
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+        // e.preventDefault();
+      }
+      if (camera) {
+        if (e.key === "x") {
+          // Positions the camera overwriting alpha, beta, radius
+          camera.position = new Vector3(10, 0, 0);
         }
-
-        scene.onPointerObservable.add((pointerInfo) => {
-            if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-                const evt = pointerInfo.event as PointerEvent;
-                const point = getPointerGroundIntersection(scene, evt);
-
-                if (point) {
-                    point.y = 0;
-                    console.log("Intersection:", point.toString());
-                } else {
-                    console.log("No intersection with ground plane");
-                }
-            }
-        });
-
-
-
-
-        const MAX_LINES_SEG = 400;
-
-        //create design points, control points, control polygon, curvature
-        const { designPoints, ctrlPoints, curvature, ctrlPolygon } = this;
-        designPoints.initialize(scene);
-        ctrlPoints.initialize(scene);
-        curvature.initialize(scene)
-        ctrlPolygon.initialize(scene)
-
-        // const ctrlPolygon = MeshBuilder.CreateLines(
-        //     "lines",
-        //     {
-        //         points: curve.ctrlPoints,
-        //         updatable: true,
-        //     },
-        //     scene
-        // );
-
-        // const arr = [];
-
-        // for (let i = 0; i < MAX_LINES_SEG; i++) {
-
-        //     const knots = curve.knots;
-        //     const t_min = knots ? knots[0] : 0.0;
-        //     const t_max = knots ? knots[knots.length - 1] : 1.0;
-        //     let t = t_min + i / (MAX_LINES_SEG - 1) * (t_max - t_min);
-
-        //     const pts = curve.interrogationAt(t);
-        //     const alpha = 1.0;
-        //     const crvt = pts.normal.negate().mul(pts.curvature * alpha);
-        //     const tuft = pts.point.add(crvt);
-
-        //     arr.push([new Vector3(pts.point.x, pts.point.y, pts.point.z), new Vector3(tuft.x, tuft.y, tuft.z)],)
-
-        // }
-
-        // // creates an instance of a line system
-        // const curvature = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr }, scene);
-        // curvature.color = new Color3(0.5, 0, 0);
-
-
-
-    }
-
-    addCallback(callback: (scene: Scene, msg: string) => void) {
-        this.callbacks.push(callback);
-    }
-
-    removeCallback(callback: (scene: Scene) => void) {
-        const index = this.callbacks.indexOf(callback);
-        if (index > -1) this.callbacks.splice(index, 1);
-    }
-
-    addCurve(curve: Parametric) {
-        this.execute(new AddCurveCommand(this, curve));
-    }
-
-    // addInterpolatedCurve( pole ) {
-
-    // 	this.execute( new AddInterpolatedCurveCommand( this, pole ) );
-
-    // }
-
-    updatelines(curve: Parametric, points: Vector[]) {
-        MeshBuilder.CreateLines(null, {
-            points: points,
-            instance: curve,
-        });
-    }
-
-    updateSurface(mesh, positions) {
-        mesh.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
-        // mesh.updateVerticesData(BABYLON.VertexBuffer.NormalKind, normals);
-        // mesh.updateVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
-        // mesh.updateVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
-    }
-
-    execute(cmd) {
-        this.history.excute(cmd);
-    }
-
-    addTestCurve(curve) {
-
-        this.execute(new AddCurveCommand(this, curve));
-
-    }
-
-    onKeyDown(scene: Scene) {
-        document.addEventListener("keydown", (e) => {
-            const camera = scene.activeCamera;
-
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
-                // e.preventDefault();
-            }
-            if (camera) {
-                if (e.key === "x") {
-                    // Positions the camera overwriting alpha, beta, radius
-                    camera.position = new Vector3(10, 0, 0);
-                }
-                if (e.key === "y") {
-                    camera.position = new Vector3(0, 10, 0);
-                }
-                if (e.key === "z") {
-                    camera.position = new Vector3(0, 0, 10);
-                }
-            }
-        });
-    }
+        if (e.key === "y") {
+          camera.position = new Vector3(0, 10, 0);
+        }
+        if (e.key === "z") {
+          camera.position = new Vector3(0, 0, 10);
+        }
+      }
+    });
+  }
 }

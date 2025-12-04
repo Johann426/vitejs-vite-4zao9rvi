@@ -1,14 +1,6 @@
-import {
-    Scene,
-    Color3,
-    Vector3,
-    ShaderMaterial,
-    PointsCloudSystem,
-    MeshBuilder,
-    VertexBuffer,
-} from "@babylonjs/core";
+import { Scene, Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder, VertexBuffer, LinesMesh } from "@babylonjs/core";
 
-import { Vector } from "./modeling/NurbsLib.ts"
+import { Vector } from "./modeling/NurbsLib.ts";
 import type { initializeWebWorker } from "@babylonjs/core/Misc/khronosTextureContainer2Worker";
 
 const MAX_POINTS = 1000;
@@ -71,8 +63,7 @@ const fragmentShaderCode = `
 `;
 
 function createPointsCloudSystemd(points: Array<Vector>, scene: Scene) {
-
-    const createDesignPoints = function (p: { position: Vector3; color: Color3; }, i: number) {
+    const createDesignPoints = function (p: { position: Vector3; color: Color3 }, i: number) {
         p.position = new Vector3(points[i].x, points[i].y, points[i].z);
         p.color = new Color3(1, 1, 0);
     };
@@ -82,7 +73,6 @@ function createPointsCloudSystemd(points: Array<Vector>, scene: Scene) {
     pointsCloud.addPoints(points.length, createDesignPoints);
 
     return pointsCloud;
-
 }
 
 class PointHelper {
@@ -92,14 +82,11 @@ class PointHelper {
     pcs!: PointsCloudSystem;
 
     constructor(pointSize: number, pointColor: Color3) {
-
         this.pointSize = pointSize;
         this.pointColor = pointColor;
-
     }
 
     initialize(scene: Scene) {
-
         const { pointSize, pointColor } = this;
 
         const shaderMaterial = new ShaderMaterial(
@@ -128,11 +115,10 @@ class PointHelper {
                 pcs.mesh.material = shaderMaterial;
                 pcs.mesh.material.pointsCloud = true;
             }
-        })
+        });
 
         this.shader = shaderMaterial;
         this.pcs = pcs;
-
     }
 
     update(points: Vector[]) {
@@ -140,7 +126,7 @@ class PointHelper {
         const particles = pcs.particles;
 
         if (points.length > particles.length) {
-            throw new Error("the number of points exceed MAX_POINTS")
+            throw new Error("the number of points exceed MAX_POINTS");
         }
 
         for (let i = 0; i < points.length; i++) {
@@ -151,7 +137,6 @@ class PointHelper {
 
         // pcs.setParticles();
         pcs.setParticles(0, points.length, true);
-
     }
 
     setVisible(value: boolean) {
@@ -160,15 +145,16 @@ class PointHelper {
 }
 
 class PolygonHelper {
-    color: Color3;
-    mesh!
+    lineColor: Color3;
+    shader!: ShaderMaterial;
+    mesh!: LinesMesh;
 
-    constructor(color: Color3) {
-        this.color = color;
+    constructor(lineColor: Color3) {
+        this.lineColor = lineColor;
     }
 
     initialize(scene: Scene) {
-
+        const { lineColor } = this;
         const polygon = MeshBuilder.CreateLines(
             "lines",
             {
@@ -178,36 +164,140 @@ class PolygonHelper {
             scene
         );
 
-        this.mesh = polygon
+        // Initialize color vertex data
+        const colors = new Array(MAX_LINES_SEG * 4).fill(0);
+        // for (let i = 0; i < MAX_LINES_SEG; i++) {
+        //     colors[4 * i + 0] = lineColor.r;
+        //     colors[4 * i + 1] = lineColor.g;
+        //     colors[4 * i + 2] = lineColor.b;
+        //     colors[4 * i + 3] = 1.0;
+        // }
+        polygon.setVerticesData(VertexBuffer.ColorKind, colors);
+
+        // Attach a lightweight ShaderMaterial that reads vertex colors (including alpha)
+        // and discards fragments where alpha is zero. This allows us to keep a large
+        // preallocated vertex buffer and simply set alpha=0 for unused vertices.
+        const lineVertex = `
+            precision highp float;
+
+            attribute vec3 position;
+            attribute vec4 color;
+
+            uniform mat4 worldViewProjection;
+
+            flat out int i;
+
+            void main(void) {
+                gl_Position = worldViewProjection * vec4(position, 1.0);
+                i = gl_VertexID;
+            }
+        `;
+
+        const lineFragment = `
+            precision highp float;
+            
+            uniform vec3 color;
+            uniform int drawRange;
+            
+            flat in int i;
+            
+            void main(void) {
+                if (i >= drawRange) discard;
+                // Set the final color
+                gl_FragColor = vec4(color, 1.0);
+            }
+        `;
+
+        const shader = new ShaderMaterial(
+            "lineShader",
+            scene,
+            {
+                vertexSource: lineVertex,
+                fragmentSource: lineFragment,
+            },
+            {
+                attributes: ["position", "color"],
+                uniforms: ["worldViewProjection", "drawRange"],
+                needAlphaBlending: true,
+            }
+        );
+
+        polygon.material = shader;
+        this.shader = shader;
+        this.mesh = polygon;
     }
 
     update(points: Vector[]) {
-        const { mesh, color } = this;
-        const positions = mesh.getVerticesData(VertexBuffer.PositionKind); // 2 points per line segment x 3 (Vector3)
-        const colors = mesh.getVerticesData(VertexBuffer.ColorKind);
-        let index = 0;
+        const { mesh, lineColor: color } = this;
 
-        for (let i = 0; i < MAX_LINES_SEG; i++) {
-            if (i < points.length) {
-                positions[index++] = points[i].x;
-                positions[index++] = points[i].y;
-                positions[index++] = points[i].z;
-                colors[4 * i + 0] = color.r;
-                colors[4 * i + 1] = color.g;
-                colors[4 * i + 2] = color.b;
-                colors[4 * i + 3] = 1.0;
-            } else {
-                colors[4 * i + 0] = 0.0;
-                colors[4 * i + 1] = 0.0;
-                colors[4 * i + 2] = 0.0;
-                colors[4 * i + 3] = 0.0;
-            }
+        // If there are no points, disable the mesh and return
+        if (!points || points.length === 0) {
+            mesh.setEnabled(false);
+            return;
         }
 
-        mesh.setVerticesData(VertexBuffer.PositionKind, positions);
-        mesh.setVerticesData(VertexBuffer.ColorKind, colors);
-        mesh.geometry.setDrawRange(0, points.length)
+        mesh.setEnabled(true);
 
+        // Convert incoming points to Babylon Vector3 array
+        const pts: Vector3[] = points.map((p) => new Vector3(p.x, p.y, p.z));
+
+        // Try to reuse existing buffers
+        const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
+        let colors = mesh.getVerticesData(VertexBuffer.ColorKind);
+
+        const existingVertexCount = positions ? positions.length / 3 : 0;
+
+        if (positions && existingVertexCount >= pts.length) {
+            // update positions in-place for used vertices only
+            let posIdx = 0;
+            for (let i = 0; i < pts.length; i++) {
+                positions[posIdx++] = pts[i].x;
+                positions[posIdx++] = pts[i].y;
+                positions[posIdx++] = pts[i].z;
+            }
+
+            mesh.updateVerticesData(VertexBuffer.PositionKind, positions, false);
+
+            // update colors for used vertices only (assume existing color buffer present)
+            if (colors) {
+                for (let i = 0; i < pts.length; i++) {
+                    colors[4 * i + 0] = color.r;
+                    colors[4 * i + 1] = color.g;
+                    colors[4 * i + 2] = color.b;
+                    colors[4 * i + 3] = 1.0;
+                }
+                mesh.updateVerticesData(VertexBuffer.ColorKind, colors, false);
+            }
+
+            // update drawRange uniform so shader discards unused vertices
+            try {
+                (this.shader as ShaderMaterial).setInt("drawRange", pts.length);
+            } catch {
+                // ignore
+            }
+            return;
+        }
+
+        // Fallback: create a new mesh instance and disable the old one (do not dispose)
+        const scene = mesh.getScene();
+        const newMesh = MeshBuilder.CreateLines("lines", { points: pts, updatable: true }, scene) as LinesMesh;
+        this.mesh.setEnabled(false);
+        this.mesh = newMesh;
+        // attach existing shader to new mesh
+        try {
+            newMesh.material = this.shader;
+            (this.shader as ShaderMaterial).setInt("drawRange", pts.length);
+        } catch {
+            // ignore
+        }
+        const newColors: number[] = new Array(pts.length * 4);
+        for (let i = 0; i < pts.length; i++) {
+            newColors[4 * i + 0] = color.r;
+            newColors[4 * i + 1] = color.g;
+            newColors[4 * i + 2] = color.b;
+            newColors[4 * i + 3] = 1.0;
+        }
+        newMesh.setVerticesData(VertexBuffer.ColorKind, newColors, true);
     }
 
     setVisible(value: boolean) {
@@ -217,7 +307,7 @@ class PolygonHelper {
 
 class CurvatureHelper {
     color: Color3;
-    mesh!
+    mesh!: LinesMesh;
 
     constructor(color: Color3) {
         this.color = color;
@@ -227,7 +317,7 @@ class CurvatureHelper {
         const { color } = this;
         const arr = [];
         for (let i = 0; i < MAX_LINES_SEG; i++) {
-            arr.push([new Vector3(0, 0, 0), new Vector3(1, 1, 1)],)
+            arr.push([new Vector3(0, 0, 0), new Vector3(1, 1, 1)]);
         }
         // creates an instance of a line system
         const curvature = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr }, scene);
@@ -235,43 +325,38 @@ class CurvatureHelper {
         this.mesh = curvature;
     }
 
-    update(curve) {
+    update(curve: any) {
         const { mesh } = this;
-        const positions = mesh.getVerticesData(VertexBuffer.PositionKind); // 2 points per line segment x 3 (Vector3)
+        const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
+
+        if (!positions) return;
 
         let index = 0;
         for (let i = 0; i < MAX_LINES_SEG; i++) {
-
             const knots = curve.knots;
             const t_min = knots ? knots[0] : 0.0;
             const t_max = knots ? knots[knots.length - 1] : 1.0;
-            let t = t_min + i / (MAX_LINES_SEG - 1) * (t_max - t_min);
+            const t = t_min + (i / (MAX_LINES_SEG - 1)) * (t_max - t_min);
 
             const pts = curve.interrogationAt(t);
             const alpha = 1.0;
             const crvt = pts.normal.negate().mul(pts.curvature * alpha);
             const tuft = pts.point.add(crvt);
 
-            positions[index++] = pts.point.x
-            positions[index++] = pts.point.y
-            positions[index++] = pts.point.z
+            positions[index++] = pts.point.x;
+            positions[index++] = pts.point.y;
+            positions[index++] = pts.point.z;
             positions[index++] = tuft.x;
             positions[index++] = tuft.y;
             positions[index++] = tuft.z;
-
         }
 
         mesh.setVerticesData(VertexBuffer.PositionKind, positions);
-
     }
 
     setVisible(value: boolean) {
         this.mesh.setEnabled(value);
     }
-
 }
-
-
-
 
 export { PointHelper, PolygonHelper, CurvatureHelper };
