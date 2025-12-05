@@ -17,7 +17,7 @@ import { AddCurveCommand } from "./commands/AddCurveCommand.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js";
 import { Vector } from "./modeling/NurbsLib";
 import { Parametric } from "./modeling/Parametric";
-import { PointHelper, CurvatureHelper, PolygonHelper } from "./DesignHelper.js";
+import { PointHelper, CurvatureHelper, LineHelper } from "./DesignHelper.js";
 import { SelectMesh } from "./listeners/SelectMesh.js";
 
 export default class Editor {
@@ -31,7 +31,7 @@ export default class Editor {
   ctrlPoints = new PointHelper(8.0, new Color3(0.5, 0.5, 0.5));
   designPoints = new PointHelper(8.0, new Color3(1.0, 1.0, 0.0));
   curvature = new CurvatureHelper(new Color3(0.5, 0.0, 0.0));
-  ctrlPolygon = new PolygonHelper(new Color3(0.5, 0.5, 0.5));
+  ctrlPolygon = new LineHelper(new Color3(0.5, 0.5, 0.5));
 
   constructor() {
     this.callbacks.push(this.onKeyDown);
@@ -124,13 +124,14 @@ export default class Editor {
     // Ray test
     function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
       const camera = scene.activeCamera;
+
       if (!camera) return null;
 
       // 1) from cam to pointer ray
       const ray = scene.createPickingRay(evt.clientX, evt.clientY, null, camera, false);
 
       const plane = MeshBuilder.CreatePlane("p", { size: 10 }, scene);
-      plane.rotation.x = Math.PI / 2; // xy plane -> x-z plane
+      // plane.rotation.x = Math.PI / 2; // xy plane -> x-z plane
       plane.position.y = 0;
       plane.isPickable = true;
       plane.material = new StandardMaterial("mat", scene);
@@ -141,19 +142,18 @@ export default class Editor {
       return pickInfo.hit ? pickInfo.pickedPoint! : null;
     }
 
-    scene.onPointerObservable.add((pointerInfo) => {
-      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-        const evt = pointerInfo.event as PointerEvent;
-        const point = getPointerGroundIntersection(scene, evt);
+    // scene.onPointerObservable.add((pointerInfo) => {
+    //   if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+    //     const evt = pointerInfo.event as PointerEvent;
+    //     const point = getPointerGroundIntersection(scene, evt);
 
-        if (point) {
-          point.y = 0;
-          console.log("Intersection:", point.toString());
-        } else {
-          console.log("No intersection with ground plane");
-        }
-      }
-    });
+    //     if (point) {
+    //       console.log("Intersection:", point.toString());
+    //     } else {
+    //       console.log("No intersection with ground plane");
+    //     }
+    //   }
+    // });
 
     //create design points, control points, control polygon, curvature
     const { designPoints, ctrlPoints, curvature, ctrlPolygon } = this;
