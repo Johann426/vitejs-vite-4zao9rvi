@@ -45,7 +45,7 @@ class PointHelper {
 
             // Uniforms
             uniform int drawRange;
-            uniform vec3 color;
+            uniform vec3 color3;
 
             // Vertex index
             flat in int i;
@@ -67,7 +67,7 @@ class PointHelper {
                 float alpha = 1.0 - smoothstep(0.45, 0.5, dist);
 
                 // Set the final color
-                gl_FragColor = vec4(color, alpha);
+                gl_FragColor = vec4(color3, alpha);
             }
         `;
 
@@ -80,13 +80,13 @@ class PointHelper {
             },
             {
                 attributes: ["position"],
-                uniforms: ["pointSize", "worldViewProjection", "drawRange", "color"],
+                uniforms: ["pointSize", "worldViewProjection", "drawRange", "color3"],
                 needAlphaBlending: true,
             }
         );
 
         shaderMaterial.setFloat("pointSize", pointSize);
-        shaderMaterial.setColor3("color", pointColor);
+        shaderMaterial.setColor3("color3", pointColor);
 
         const pcs = new PointsCloudSystem("pointsCloud", 1, scene);
         pcs.addPoints(MAX_POINTS);
@@ -103,8 +103,7 @@ class PointHelper {
     }
 
     update(points: Vector[]) {
-        const { pcs, shader } = this;
-        const particles = pcs.particles;
+        const { pcs, shader, pointSize, pointColor } = this;
 
         if (!pcs.mesh) return;
 
@@ -116,24 +115,36 @@ class PointHelper {
 
         pcs.mesh.setEnabled(true);
 
-        if (points.length < particles.length) {
+        const particles = pcs.particles;
 
+        if (points.length <= particles.length) {
+            // update particle positions from points data
+            points.map((p, i) => particles[i].position = new Vector3(p.x, p.y, p.z));
+            // update drawRange uniform so shader discards unused vertices
+            shader.setInt("drawRange", points.length);
+            // update the mesh according to the particle positions
+            pcs.setParticles(0, points.length, true);
         } else {
-            pcs.addPoints(MAX_POINTS);
-            // pcs.addPoints(points.length - particles.length);
-            // pcs.buildMeshAsync().then(() => {
-            //     if (pcs.mesh) {
-            //         pcs.mesh.material = shader;
-            //         pcs.mesh.material.pointsCloud = true;
-            //     }
-            // });
+            const scene = pcs.mesh.getScene();
+            // dispose existing helper point cloud system
+            pcs.dispose();
+            // new helper point cloud system since larger buffer allocation needed
+            const newPcs = new PointsCloudSystem("pointsCloud", 1, scene);
+            const createDesignPoints = function (p: { position: Vector3; color: Color3 }, i: number) {
+                p.position = new Vector3(points[i].x, points[i].y, points[i].z);
+                p.color = pointColor;
+            };
+            newPcs.addPoints(points.length, createDesignPoints);
+            shader.setInt("drawRange", points.length);
+            newPcs.buildMeshAsync().then(() => {
+                if (newPcs.mesh) {
+                    newPcs.mesh.material = shader;
+                    newPcs.mesh.material.pointsCloud = true;
+                }
+            });
+
+            this.pcs = newPcs;
         }
-        // update particle positions from points data
-        points.map((p, i) => particles[i].position = new Vector3(p.x, p.y, p.z));
-        // update drawRange uniform so shader discards unused vertices
-        shader.setInt("drawRange", points.length);
-        // update the mesh according to the particle positions
-        pcs.setParticles(0, points.length, true);
     }
 
     setVisible(value: boolean) {
@@ -142,16 +153,16 @@ class PointHelper {
 }
 
 class LineHelper {
-    lineColor: Color3;
+    color3: Color3;
     shader!: ShaderMaterial;
     mesh!: LinesMesh;
 
-    constructor(lineColor: Color3) {
-        this.lineColor = lineColor;
+    constructor(color3: Color3) {
+        this.color3 = color3;
     }
 
     initialize(scene: Scene) {
-        const { lineColor } = this;
+        const { color3 } = this;
 
 
         const lineVertex = `
@@ -177,7 +188,7 @@ class LineHelper {
             
             // Uniforms
             uniform int drawRange;
-            uniform vec3 color;
+            uniform vec3 color3;
             
             // Vertex index
             flat in int i;
@@ -187,7 +198,7 @@ class LineHelper {
                 if (i >= drawRange) discard;
                 
                 // Set the final color
-                gl_FragColor = vec4(color, 1.0);
+                gl_FragColor = vec4(color3, 1.0);
             }
         `;
 
@@ -200,12 +211,11 @@ class LineHelper {
             },
             {
                 attributes: ["position"],
-                uniforms: ["worldViewProjection", "drawRange", "color"],
+                uniforms: ["worldViewProjection", "drawRange", "color3"],
             }
         );
 
-        // shaderMaterial.setColor4("color", lineColor.toColor4());
-        shaderMaterial.setColor3("color", lineColor);
+        shaderMaterial.setColor3("color3", color3);
 
         const polygon = MeshBuilder.CreateLines(
             "lines",
@@ -237,7 +247,20 @@ class LineHelper {
 
         if (!positions) return;
 
-        if (points.length > positions.length / 3) {
+        if (points.length <= positions.length / 3) {
+            // update positions with points data
+            for (let i = 0; i < points.length; i++) {
+                positions[3 * i + 0] = points[i].x;
+                positions[3 * i + 1] = points[i].y;
+                positions[3 * i + 2] = points[i].z;
+            }
+
+            // update vertex position buffers
+            mesh.updateVerticesData(VertexBuffer.PositionKind, positions, false);
+
+            // update drawRange uniform so shader discards unused vertices
+            shader.setInt("drawRange", points.length);
+        } else {
             const scene = mesh.getScene();
 
             // dispose existing helper mesh
@@ -255,22 +278,7 @@ class LineHelper {
             );
 
             this.mesh = newMesh;
-
-        } else {
-            // update positions in-place for used vertices only
-            for (let i = 0; i < points.length; i++) {
-                positions[3 * i + 0] = points[i].x;
-                positions[3 * i + 1] = points[i].y;
-                positions[3 * i + 2] = points[i].z;
-            }
-
-            // update vertex position buffers
-            mesh.updateVerticesData(VertexBuffer.PositionKind, positions, false);
-
-            // update drawRange uniform so shader discards unused vertices
-            shader.setInt("drawRange", points.length);
         }
-
     }
 
     setVisible(value: boolean) {
