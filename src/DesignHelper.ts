@@ -1,9 +1,16 @@
 import { Scene, Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder, VertexBuffer, LinesMesh } from "@babylonjs/core";
 import { Vector } from "./modeling/NurbsLib.ts";
 
-const MAX_POINTS = 2;
+const MAX_POINTS = 100;
 const MAX_LINES_SEG = 100;
 
+/**
+ * Class to help rendering of points using a custom shader material
+ * which uses gl_VertexID to discard fragments outsie the draw range.
+ * This allows efficient rendering of a variable number of points
+ * without needing to reallocate GPU buffers.
+ *  @author Johannd0426 <
+ */
 class PointHelper {
     pointSize: number;
     pointColor: Color3;
@@ -17,9 +24,7 @@ class PointHelper {
 
     initialize(scene: Scene) {
         const { pointSize, pointColor } = this;
-
-        // Attach a ShaderMaterial that reads vertex index(gl_VertexID) and discards fragments where index is out of range.
-        // This allows us to keep a large preallocated vertex buffer and simply set a integer number for the draw range.
+        // Vertex shader code
         const vertexShaderCode = `
             precision highp float;
 
@@ -39,7 +44,7 @@ class PointHelper {
                 i = gl_VertexID;
             }
         `;
-
+        // Fragment shader code
         const fragmentShaderCode = `
             precision highp float;
 
@@ -70,7 +75,7 @@ class PointHelper {
                 gl_FragColor = vec4(color3, alpha);
             }
         `;
-
+        // create shader material
         const shaderMaterial = new ShaderMaterial(
             "pointShader",
             scene,
@@ -84,26 +89,26 @@ class PointHelper {
                 needAlphaBlending: true,
             }
         );
-
+        // set initial uniform values in fragment shader
         shaderMaterial.setFloat("pointSize", pointSize);
         shaderMaterial.setColor3("color3", pointColor);
-
+        // create a preallocated point cloud system
         const pcs = new PointsCloudSystem("pointsCloud", 1, scene);
         pcs.addPoints(MAX_POINTS);
-
+        // build the point cloud mesh
         pcs.buildMeshAsync().then(() => {
             if (pcs.mesh) {
                 pcs.mesh.material = shaderMaterial;
                 pcs.mesh.material.pointsCloud = true;
             }
         });
-
+        // store references
         this.shader = shaderMaterial;
         this.pcs = pcs;
     }
 
     update(points: Vector[]) {
-        const { pcs, shader, pointSize, pointColor } = this;
+        const { pcs, shader } = this;
 
         if (!pcs.mesh) return;
 
@@ -115,34 +120,36 @@ class PointHelper {
 
         pcs.mesh.setEnabled(true);
 
+        // particles in point cloud system
         const particles = pcs.particles;
 
         if (points.length <= particles.length) {
             // update particle positions from points data
             points.map((p, i) => particles[i].position = new Vector3(p.x, p.y, p.z));
-            // update drawRange uniform so shader discards unused vertices
-            shader.setInt("drawRange", points.length);
             // update the mesh according to the particle positions
             pcs.setParticles(0, points.length, true);
+            // update drawRange uniform so shader discards unused vertices
+            shader.setInt("drawRange", points.length);
         } else {
             const scene = pcs.mesh.getScene();
-            // dispose existing helper point cloud system
+            // dispose existing point cloud system
             pcs.dispose();
-            // new helper point cloud system since larger buffer allocation needed
+            // new point cloud system since larger buffer allocation needed
             const newPcs = new PointsCloudSystem("pointsCloud", 1, scene);
-            const createDesignPoints = function (p: { position: Vector3; color: Color3 }, i: number) {
+            const createDesignPoints = function (p: { position: Vector3 }, i: number) {
                 p.position = new Vector3(points[i].x, points[i].y, points[i].z);
-                p.color = pointColor;
             };
             newPcs.addPoints(points.length, createDesignPoints);
-            shader.setInt("drawRange", points.length);
+            // build the new point cloud mesh
             newPcs.buildMeshAsync().then(() => {
                 if (newPcs.mesh) {
                     newPcs.mesh.material = shader;
                     newPcs.mesh.material.pointsCloud = true;
                 }
             });
-
+            // update drawRange uniform so shader discards unused vertices
+            shader.setInt("drawRange", points.length);
+            // replace old pcs with new pcs
             this.pcs = newPcs;
         }
     }
@@ -152,6 +159,13 @@ class PointHelper {
     }
 }
 
+/**
+ * Class to help rendering of lines using a custom shader material
+ * which uses gl_VertexID to discard fragments outsie the draw range.
+ * This allows efficient rendering of a variable number of line segments
+ * without needing to reallocate GPU buffers.
+ *  @author Johannd0426 <
+ */
 class LineHelper {
     color3: Color3;
     shader!: ShaderMaterial;
@@ -163,8 +177,7 @@ class LineHelper {
 
     initialize(scene: Scene) {
         const { color3 } = this;
-
-
+        // Vertex shader code
         const lineVertex = `
             precision highp float;
 
@@ -182,7 +195,7 @@ class LineHelper {
                 i = gl_VertexID;
             }
         `;
-
+        // Fragment shader code
         const lineFragment = `
             precision highp float;
             
@@ -201,7 +214,7 @@ class LineHelper {
                 gl_FragColor = vec4(color3, 1.0);
             }
         `;
-
+        // create shader material
         const shaderMaterial = new ShaderMaterial(
             "lineShader",
             scene,
@@ -214,9 +227,9 @@ class LineHelper {
                 uniforms: ["worldViewProjection", "drawRange", "color3"],
             }
         );
-
+        // set initial uniform values in fragment shader
         shaderMaterial.setColor3("color3", color3);
-
+        // create a preallocated line mesh
         const polygon = MeshBuilder.CreateLines(
             "lines",
             {
@@ -226,7 +239,7 @@ class LineHelper {
             },
             scene
         );
-
+        // store references
         this.shader = shaderMaterial;
         this.mesh = polygon;
     }
@@ -254,18 +267,14 @@ class LineHelper {
                 positions[3 * i + 1] = points[i].y;
                 positions[3 * i + 2] = points[i].z;
             }
-
             // update vertex position buffers
             mesh.updateVerticesData(VertexBuffer.PositionKind, positions, false);
-
             // update drawRange uniform so shader discards unused vertices
             shader.setInt("drawRange", points.length);
         } else {
             const scene = mesh.getScene();
-
             // dispose existing helper mesh
             mesh.dispose();
-
             // new helper mesh since larger buffer allocation needed
             const newMesh = MeshBuilder.CreateLines(
                 "lines",
@@ -276,7 +285,9 @@ class LineHelper {
                 },
                 scene
             );
-
+            // update drawRange uniform so shader discards unused vertices
+            shader.setInt("drawRange", points.length);
+            //  replace old mesh with new mesh
             this.mesh = newMesh;
         }
     }
@@ -286,6 +297,11 @@ class LineHelper {
     }
 }
 
+/**
+ * Class to help rendering of curvature for a given curve
+ * using a preallocated line system mesh.
+ *  @author Johannd0426 <
+ */
 class CurvatureHelper {
     color: Color3;
     mesh!: LinesMesh;
