@@ -1,22 +1,8 @@
 import { Scene, Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder, VertexBuffer, LinesMesh } from "@babylonjs/core";
-
 import { Vector } from "./modeling/NurbsLib.ts";
 
-const MAX_POINTS = 1000;
-const MAX_LINES_SEG = 1000;
-
-function createPointsCloudSystemd(points: Array<Vector>, scene: Scene) {
-    const createDesignPoints = function (p: { position: Vector3; color: Color3 }, i: number) {
-        p.position = new Vector3(points[i].x, points[i].y, points[i].z);
-        p.color = new Color3(1, 1, 0);
-    };
-
-    const pointsCloud = new PointsCloudSystem("pointsCloud", 1, scene); // point size 1 will be ignored, since custom shader to be applied
-
-    pointsCloud.addPoints(points.length, createDesignPoints);
-
-    return pointsCloud;
-}
+const MAX_POINTS = 2;
+const MAX_LINES_SEG = 100;
 
 class PointHelper {
     pointSize: number;
@@ -32,6 +18,8 @@ class PointHelper {
     initialize(scene: Scene) {
         const { pointSize, pointColor } = this;
 
+        // Attach a ShaderMaterial that reads vertex index(gl_VertexID) and discards fragments where index is out of range.
+        // This allows us to keep a large preallocated vertex buffer and simply set a integer number for the draw range.
         const vertexShaderCode = `
             precision highp float;
 
@@ -100,7 +88,6 @@ class PointHelper {
         shaderMaterial.setFloat("pointSize", pointSize);
         shaderMaterial.setColor3("color", pointColor);
 
-        // const pcs = createPointsCloudSystemd(points, scene);
         const pcs = new PointsCloudSystem("pointsCloud", 1, scene);
         pcs.addPoints(MAX_POINTS);
 
@@ -119,16 +106,33 @@ class PointHelper {
         const { pcs, shader } = this;
         const particles = pcs.particles;
 
+        if (!pcs.mesh) return;
+
         // If there are no points, disable the mesh and return
         if (!points || points.length === 0) {
-            pcs.mesh?.setEnabled(false);
+            pcs.mesh.setEnabled(false);
             return;
         }
 
-        points.map((p, i) => particles[i].position = new Vector3(p.x, p.y, p.z))
+        pcs.mesh.setEnabled(true);
 
+        if (points.length < particles.length) {
+
+        } else {
+            pcs.addPoints(MAX_POINTS);
+            // pcs.addPoints(points.length - particles.length);
+            // pcs.buildMeshAsync().then(() => {
+            //     if (pcs.mesh) {
+            //         pcs.mesh.material = shader;
+            //         pcs.mesh.material.pointsCloud = true;
+            //     }
+            // });
+        }
+        // update particle positions from points data
+        points.map((p, i) => particles[i].position = new Vector3(p.x, p.y, p.z));
+        // update drawRange uniform so shader discards unused vertices
         shader.setInt("drawRange", points.length);
-
+        // update the mesh according to the particle positions
         pcs.setParticles(0, points.length, true);
     }
 
@@ -149,17 +153,7 @@ class LineHelper {
     initialize(scene: Scene) {
         const { lineColor } = this;
 
-        const polygon = MeshBuilder.CreateLines(
-            "lines",
-            {
-                points: new Array(MAX_LINES_SEG).fill(new Vector3()),
-                updatable: true,
-            },
-            scene
-        );
 
-        // Attach a lightweight ShaderMaterial that reads vertex index(gl_VertexID) and discards fragments where index is out of range.
-        // This allows us to keep a large preallocated vertex buffer and simply set a integer number for the draw range.
         const lineVertex = `
             precision highp float;
 
@@ -213,7 +207,16 @@ class LineHelper {
         // shaderMaterial.setColor4("color", lineColor.toColor4());
         shaderMaterial.setColor3("color", lineColor);
 
-        polygon.material = shaderMaterial;
+        const polygon = MeshBuilder.CreateLines(
+            "lines",
+            {
+                points: new Array(MAX_LINES_SEG).fill(new Vector3()),
+                material: shaderMaterial,
+                updatable: true,
+            },
+            scene
+        );
+
         this.shader = shaderMaterial;
         this.mesh = polygon;
     }
@@ -229,23 +232,45 @@ class LineHelper {
 
         mesh.setEnabled(true);
 
-        // reuse existing buffers
+        // preallocated vertex position buffers
         const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
 
-        if (positions) {
+        if (!positions) return;
+
+        if (points.length > positions.length / 3) {
+            const scene = mesh.getScene();
+
+            // dispose existing helper mesh
+            mesh.dispose();
+
+            // new helper mesh since larger buffer allocation needed
+            const newMesh = MeshBuilder.CreateLines(
+                "lines",
+                {
+                    points: points.map(p => new Vector3(p.x, p.y, p.z)),
+                    material: shader,
+                    updatable: true,
+                },
+                scene
+            );
+
+            this.mesh = newMesh;
+
+        } else {
             // update positions in-place for used vertices only
-            let index = 0;
             for (let i = 0; i < points.length; i++) {
-                positions[index++] = points[i].x;
-                positions[index++] = points[i].y;
-                positions[index++] = points[i].z;
+                positions[3 * i + 0] = points[i].x;
+                positions[3 * i + 1] = points[i].y;
+                positions[3 * i + 2] = points[i].z;
             }
 
+            // update vertex position buffers
             mesh.updateVerticesData(VertexBuffer.PositionKind, positions, false);
 
             // update drawRange uniform so shader discards unused vertices
             shader.setInt("drawRange", points.length);
         }
+
     }
 
     setVisible(value: boolean) {
@@ -275,11 +300,11 @@ class CurvatureHelper {
 
     update(curve: any) {
         const { mesh } = this;
+
         const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
 
         if (!positions) return;
 
-        let index = 0;
         for (let i = 0; i < MAX_LINES_SEG; i++) {
             const knots = curve.knots;
             const t_min = knots ? knots[0] : 0.0;
@@ -291,14 +316,15 @@ class CurvatureHelper {
             const crvt = pts.normal.negate().mul(pts.curvature * alpha);
             const tuft = pts.point.add(crvt);
 
-            positions[index++] = pts.point.x;
-            positions[index++] = pts.point.y;
-            positions[index++] = pts.point.z;
-            positions[index++] = tuft.x;
-            positions[index++] = tuft.y;
-            positions[index++] = tuft.z;
+            positions[6 * i + 0] = pts.point.x;
+            positions[6 * i + 1] = pts.point.y;
+            positions[6 * i + 2] = pts.point.z;
+            positions[6 * i + 3] = tuft.x;
+            positions[6 * i + 4] = tuft.y;
+            positions[6 * i + 5] = tuft.z;
         }
 
+        mesh.setEnabled(true);
         mesh.setVerticesData(VertexBuffer.PositionKind, positions);
     }
 

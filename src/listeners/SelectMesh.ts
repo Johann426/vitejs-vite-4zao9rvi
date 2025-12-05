@@ -67,10 +67,6 @@ export class SelectMesh {
                     ctrlPoints.update(curve.ctrlPoints);
                     ctrlPolygon.update(curve.ctrlPoints);
                     curvature.update(curve);
-                    designPoints.setVisible(true);
-                    ctrlPoints.setVisible(true);
-                    ctrlPolygon.setVisible(true);
-                    curvature.setVisible(true);
                 }
             }
         });
