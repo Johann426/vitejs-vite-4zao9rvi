@@ -183,7 +183,7 @@ class LineHelper {
             
             // Uniforms
             uniform int drawRange;
-            uniform vec4 color;
+            uniform vec3 color;
             
             // Vertex index
             flat in int i;
@@ -193,7 +193,7 @@ class LineHelper {
                 if (i >= drawRange) discard;
                 
                 // Set the final color
-                gl_FragColor = color;
+                gl_FragColor = vec4(color, 1.0);
             }
         `;
 
@@ -210,7 +210,8 @@ class LineHelper {
             }
         );
 
-        shaderMaterial.setColor4("color", lineColor.toColor4());
+        // shaderMaterial.setColor4("color", lineColor.toColor4());
+        shaderMaterial.setColor3("color", lineColor);
 
         polygon.material = shaderMaterial;
         this.shader = shaderMaterial;
