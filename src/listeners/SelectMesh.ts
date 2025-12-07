@@ -19,6 +19,7 @@ export class SelectMesh {
         this.pointerDownObserver = scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN);
     }
 
+    // Restore the original color of the previously picked object
     restoreColor() {
         if (this.pickedObject instanceof LinesMesh) {
             this.pickedObject.color = this.savedColor;
@@ -26,6 +27,7 @@ export class SelectMesh {
         }
     }
 
+    // Handle pointer move events to highlight objects under the cursor
     onPointerMove = () => {
         const { scene, picker } = this.editor;
         if (picker.pickingInProgress) {
@@ -47,6 +49,7 @@ export class SelectMesh {
         });
     };
 
+    // Handle pointer down events to select objects
     onPointerDown = () => {
         const { scene, picker, designPoints, ctrlPoints, ctrlPolygon, curvature } = this.editor;
         const x1 = scene.pointerX - PICK_TOLERANCE;
@@ -72,6 +75,7 @@ export class SelectMesh {
         });
     };
 
+    // Set the list of pickable meshes for the GPU picker
     setPickables(pickables: Mesh[]) {
         const editor = this.editor;
         const picker = editor.picker;
@@ -82,6 +86,7 @@ export class SelectMesh {
         }
     }
 
+    // Clean up observers when disposing of the SelectMesh instance
     dispose() {
         const scene = this.editor.scene;
         if (this.pointerMoveObserver) {
