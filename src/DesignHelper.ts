@@ -4,6 +4,89 @@ import { Vector } from "./modeling/NurbsLib.ts";
 const MAX_POINTS = 100;
 const MAX_LINE_SEG = 100;
 
+function createPointShader(scene: Scene) {
+    // Vertex shader code
+    const vs = `
+        precision highp float;
+        attribute vec3 position;
+        uniform float pointSize;
+        uniform mat4 worldViewProjection;
+        flat out int i;
+        void main(void) {
+            gl_PointSize = pointSize;
+            gl_Position = worldViewProjection * vec4(position, 1.0);
+            i = gl_VertexID;
+        }
+    `;
+    // Fragment shader code
+    const fs = `
+        precision highp float;
+        uniform int drawRange;
+        uniform vec3 color3;
+        flat in int i;
+        void main(void) {
+            if (i >= drawRange) discard;
+            vec2 diff = gl_PointCoord - vec2(0.5, 0.5);
+            float dist = length(diff);
+            if (dist > 0.5) discard;
+            float alpha = 1.0 - smoothstep(0.45, 0.5, dist);
+            gl_FragColor = vec4(color3, alpha);
+        }
+    `;
+    // create shader material
+    return new ShaderMaterial(
+        "pointShader",
+        scene,
+        {
+            vertexSource: vs,
+            fragmentSource: fs,
+        },
+        {
+            attributes: ["position"],
+            uniforms: ["pointSize", "worldViewProjection", "drawRange", "color3"],
+            needAlphaBlending: true,
+        }
+    );
+}
+
+function createLinesShader(scene: Scene) {
+    // Vertex shader code
+    const vs = `
+        precision highp float;
+        attribute vec3 position;
+        uniform mat4 worldViewProjection;
+        flat out int i;
+        void main(void) {
+            gl_Position = worldViewProjection * vec4(position, 1.0);
+            i = gl_VertexID;
+        }
+    `;
+    // Fragment shader code
+    const fs = `
+        precision highp float;
+        uniform int drawRange;
+        uniform vec3 color3;
+        flat in int i;
+        void main(void) {
+            if (i >= drawRange) discard;
+            gl_FragColor = vec4(color3, 1.0);
+        }
+    `;
+    // create shader material
+    return new ShaderMaterial(
+        "linesShader",
+        scene,
+        {
+            vertexSource: vs,
+            fragmentSource: fs,
+        },
+        {
+            attributes: ["position"],
+            uniforms: ["worldViewProjection", "drawRange", "color3"],
+        }
+    );
+}
+
 /**
  * Class to help rendering of points using a custom shader material
  * which uses gl_VertexID to discard fragments outsie the draw range.
@@ -24,86 +107,23 @@ export class PointHelper {
 
     initialize(scene: Scene) {
         const { pointSize, pointColor } = this;
-        // Vertex shader code
-        const vertexShader = `
-            precision highp float;
-
-            // Attributes
-            attribute vec3 position;
-
-            // Uniforms
-            uniform float pointSize;
-            uniform mat4 worldViewProjection;
-
-            // Send gl_VertexID to the fragment shader as a flat integer(to avoid interpolation)
-            flat out int i;
-
-            void main(void) {
-                gl_PointSize = pointSize;
-                gl_Position = worldViewProjection * vec4(position, 1.0);
-                i = gl_VertexID;
-            }
-        `;
-        // Fragment shader code
-        const fragmentShader = `
-            precision highp float;
-
-            // Uniforms
-            uniform int drawRange;
-            uniform vec3 color3;
-
-            // Vertex index
-            flat in int i;
-            
-            void main(void) {
-                // Discard pixels when the index is out of draw range
-                if (i >= drawRange) discard;
-
-                // Calculate the relative position vector from the point center(0.5, 0.5)
-                vec2 diff = gl_PointCoord - vec2(0.5, 0.5);
-
-                // Compute the distance from the center
-                float dist = length(diff); 
-
-                // Apply circular mask: discard pixel if distance exceeds 0.5
-                if (dist > 0.5) discard;
-
-                // Smooth edge handling for anti-aliasing (optional)
-                float alpha = 1.0 - smoothstep(0.45, 0.5, dist);
-
-                // Set the final color
-                gl_FragColor = vec4(color3, alpha);
-            }
-        `;
         // create shader material
-        const shaderMaterial = new ShaderMaterial(
-            "pointShader",
-            scene,
-            {
-                vertexSource: vertexShader,
-                fragmentSource: fragmentShader,
-            },
-            {
-                attributes: ["position"],
-                uniforms: ["pointSize", "worldViewProjection", "drawRange", "color3"],
-                needAlphaBlending: true,
-            }
-        );
+        const shader = createPointShader(scene);
         // set initial uniform values in fragment shader
-        shaderMaterial.setFloat("pointSize", pointSize);
-        shaderMaterial.setColor3("color3", pointColor);
+        shader.setFloat("pointSize", pointSize);
+        shader.setColor3("color3", pointColor);
         // create a preallocated point cloud system
         const pcs = new PointsCloudSystem("pointsCloud", 1, scene);
         pcs.addPoints(MAX_POINTS);
         // build the point cloud mesh
         pcs.buildMeshAsync().then(() => {
             if (pcs.mesh) {
-                pcs.mesh.material = shaderMaterial;
+                pcs.mesh.material = shader;
                 pcs.mesh.material.pointsCloud = true;
             }
         });
         // store references
-        this.shader = shaderMaterial;
+        this.shader = shader;
         this.pcs = pcs;
     }
 
@@ -182,70 +202,22 @@ export class LinesHelper {
 
     initialize(scene: Scene) {
         const { color3 } = this;
-        // Vertex shader code
-        const vertexShader = `
-            precision highp float;
-
-            // Attributes
-            attribute vec3 position;
-
-            // Uniforms
-            uniform mat4 worldViewProjection;
-
-            // Send gl_VertexID to the fragment shader as a flat integer(to avoid interpolation)
-            flat out int i;
-
-            void main(void) {
-                gl_Position = worldViewProjection * vec4(position, 1.0);
-                i = gl_VertexID;
-            }
-        `;
-        // Fragment shader code
-        const fragmentShader = `
-            precision highp float;
-            
-            // Uniforms
-            uniform int drawRange;
-            uniform vec3 color3;
-            
-            // Vertex index
-            flat in int i;
-            
-            void main(void) {
-                // Discard pixels when the index is out of draw range
-                if (i >= drawRange) discard;
-                
-                // Set the final color
-                gl_FragColor = vec4(color3, 1.0);
-            }
-        `;
         // create shader material
-        const shaderMaterial = new ShaderMaterial(
-            "lineShader",
-            scene,
-            {
-                vertexSource: vertexShader,
-                fragmentSource: fragmentShader,
-            },
-            {
-                attributes: ["position"],
-                uniforms: ["worldViewProjection", "drawRange", "color3"],
-            }
-        );
+        const shader = createLinesShader(scene);
         // set initial uniform values in fragment shader
-        shaderMaterial.setColor3("color3", color3);
+        shader.setColor3("color3", color3);
         // create a preallocated line mesh
         const mesh = MeshBuilder.CreateLines(
             "lines",
             {
                 points: new Array(MAX_LINE_SEG).fill(new Vector3()),
-                material: shaderMaterial,
+                material: shader,
                 updatable: true,
             },
             scene
         );
         // store references
-        this.shader = shaderMaterial;
+        this.shader = shader;
         this.mesh = mesh;
     }
 
