@@ -1,14 +1,13 @@
 import Editor from "../Editor";
 import type { Mesh } from "@babylonjs/core";
-
-const NUM_POINTS = 100;
+import type { Vector } from "../modeling/NurbsLib";
 
 export class AddPointCommand {
     editor: Editor;
-    point: any;
+    point: Vector;
     mesh: Mesh | undefined;
 
-    constructor(editor: Editor, point: any) {
+    constructor(editor: Editor, point: Vector) {
         this.editor = editor;
         this.point = point;
     }
@@ -19,8 +18,8 @@ export class AddPointCommand {
         if (mesh) {
             const curve = mesh.metadata.model;
             curve.add(point);
-            const lines = mesh.metadata.helper;
-            lines.update(curve.getPoints(NUM_POINTS));
+            const helper = mesh.metadata.helper;
+            helper.update(curve);
             this.mesh = mesh;
         }
     }
@@ -31,8 +30,8 @@ export class AddPointCommand {
             const curve = mesh.metadata.model;
             const nm1 = curve.designPoints.length - 1;
             curve.remove(nm1);
-            const lines = mesh.metadata.helper;
-            lines.update(curve.getPoints(NUM_POINTS));
+            const helper = mesh.metadata.helper;
+            helper.update(curve);
         }
     }
 }

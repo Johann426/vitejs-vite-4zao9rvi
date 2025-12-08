@@ -1,16 +1,16 @@
 import { LinesMesh, Color3 } from "@babylonjs/core";
 import Editor from "../Editor";
-import { LinesHelper } from "../DesignHelper";
+import { CurveHelper } from "../DesignHelper";
+import type { Parametric } from "./modeling/Parametric.js";
 
-const NUM_POINTS = 100;
 const lineColor = new Color3(0, 1, 0)
 
 export class AddCurveCommand {
     editor: Editor;
-    curve: any;
+    curve: Parametric;
     mesh: LinesMesh | undefined;
 
-    constructor(editor: Editor, curve: any) {
+    constructor(editor: Editor, curve: Parametric) {
         this.editor = editor;
         this.curve = curve;
     }
@@ -19,12 +19,11 @@ export class AddCurveCommand {
         const { editor, curve } = this;
         const scene = editor.scene;
 
-        const lines = new LinesHelper(lineColor);
-        lines.initialize(scene);
-        lines.update(curve.getPoints(NUM_POINTS));
+        const curvehelper = new CurveHelper(lineColor, curve);
+        curvehelper.initialize(scene);
+        curvehelper.update(curve);
 
-        const mesh = lines.mesh;;
-        mesh.metadata = { helper: lines, model: curve };
+        const mesh = curvehelper.mesh;
 
         editor.pointerEventHandler.pickedObject = mesh;
         editor.pickables.push(mesh);

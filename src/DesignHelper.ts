@@ -1,5 +1,6 @@
 import { Scene, Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder, VertexBuffer, LinesMesh } from "@babylonjs/core";
 import { Vector } from "./modeling/NurbsLib.ts";
+import type { Parametric } from "./modeling/Parametric.js";
 
 const MAX_POINTS = 100;
 const MAX_LINE_SEG = 100;
@@ -245,12 +246,12 @@ export class LinesHelper {
                 positions[3 * i + 2] = points[i].z;
             }
             // update vertex position buffers
-            mesh.updateVerticesData(VertexBuffer.PositionKind, positions, false);
+            mesh.updateVerticesData(VertexBuffer.PositionKind, positions, true);
             // update drawRange uniform so shader discards unused vertices
             shader.setInt("drawRange", points.length);
         } else {
             const scene = mesh.getScene();
-            // dispose existing helper mesh
+            // dispose existing mesh
             mesh.dispose();
             // new helper mesh since larger buffer allocation needed
             const newMesh = MeshBuilder.CreateLines(
@@ -276,6 +277,26 @@ export class LinesHelper {
     dispose() {
         this.mesh.dispose();
         this.shader.dispose();
+    }
+}
+
+export class CurveHelper extends LinesHelper {
+    curve: Parametric;
+
+    constructor(color3: Color3, curve: Parametric) {
+        super(color3);
+        this.curve = curve;
+    }
+
+    initialize(scene: Scene) {
+        super.initialize(scene);
+        this.mesh.metadata = { model: this.curve, helper: this };
+    }
+
+    update(curve: Parametric) {
+        const points = curve.getPoints(MAX_LINE_SEG);
+        super.update(points);
+        // this.mesh.metadata = { model: this.curve, helper: this };
     }
 }
 

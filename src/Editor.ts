@@ -174,16 +174,20 @@ export default class Editor {
     // const curve = new BsplineCurveInt(3, poles);
 
     const curve = new BsplineCurveInt(3);
-    const cmd = new AddCurveCommand(this, curve)
-    cmd.execute();
-    const mesh = cmd.mesh;
+    this.addCurve(curve);
+    const mesh = this.pickables[this.pickables.length - 1];
     this.pointerEventHandler.pickedObject = mesh;
     this.addCurve(curve);
     this.addPoint(new Vector(0, 0, 0));
     this.addPoint(new Vector(1, 1, 1));
     this.addPoint(new Vector(2, 0, 0));
     this.addPoint(new Vector(3, 1, 1));
+
+    // why this needed?
+    mesh?.metadata.helper.update(curve);
+
     this.updateCurveHelper(curve);
+
     this.pointerEventHandler.pickedObject = undefined;
 
     selectMesh.setPickables(this.pickables);
@@ -207,7 +211,7 @@ export default class Editor {
     this.execute(new AddCurveCommand(this, curve));
   }
 
-  updateCurveHelper(curve: any) {
+  updateCurveHelper(curve: Parametric) {
     const { designPoints, ctrlPoints, curvature, ctrlPolygon } = this;
 
     curvature.update(curve); // update nurbs curve before getting designPoints and ctrlPoints
