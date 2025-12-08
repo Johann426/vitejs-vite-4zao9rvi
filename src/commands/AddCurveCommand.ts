@@ -1,6 +1,6 @@
-import { MeshBuilder, Color3 } from "@babylonjs/core";
+import { LinesMesh, Color3 } from "@babylonjs/core";
 import Editor from "../Editor";
-import { LineHelper } from "../DesignHelper";
+import { LinesHelper } from "../DesignHelper";
 
 const NUM_POINTS = 100;
 const lineColor = new Color3(0, 1, 0)
@@ -8,9 +8,9 @@ const lineColor = new Color3(0, 1, 0)
 export class AddCurveCommand {
     editor: Editor;
     curve: any;
-    mesh: any;
+    mesh: LinesMesh | undefined;
 
-    constructor(editor: any, curve: any) {
+    constructor(editor: Editor, curve: any) {
         this.editor = editor;
         this.curve = curve;
     }
@@ -19,31 +19,20 @@ export class AddCurveCommand {
         const { editor, curve } = this;
         const scene = editor.scene;
 
-        const points = curve.getPoints(NUM_POINTS);
-        const line = MeshBuilder.CreateLines(
-            "lines",
-            {
-                points: points,
-                updatable: true,
-            },
-            scene
-        );
+        const lines = new LinesHelper(lineColor);
+        lines.initialize(scene);
+        lines.update(curve.getPoints(NUM_POINTS));
 
-        line.metadata = { model: curve };
-        line.color = new Color3(0, 1, 0);
+        const mesh = lines.mesh;;
+        mesh.metadata = { helper: lines, model: curve };
 
-        editor.pickables.push(line);
-        editor.selected = line;
-        this.mesh = line;
+        editor.pointerEventHandler.pickedObject = mesh;
+        editor.pickables.push(mesh);
+        this.mesh = mesh;
     }
 
     undo() {
-        const mesh = this.mesh;
-        mesh.dispose();
+        this.mesh?.dispose();
     }
 
-    lineMesh() {
-        const line = new LineHelper(lineColor);
-        this.mesh = line.mesh;
-    }
 }

@@ -11,7 +11,7 @@ const MAX_LINE_SEG = 100;
  * without needing to reallocate GPU buffers.
  *  @author Johannd0426 <
  */
-class PointHelper {
+export class PointHelper {
     pointSize: number;
     pointColor: Color3;
     shader!: ShaderMaterial;
@@ -171,7 +171,7 @@ class PointHelper {
  * without needing to reallocate GPU buffers.
  *  @author Johannd0426 <
  */
-class LineHelper {
+export class LinesHelper {
     color3: Color3;
     shader!: ShaderMaterial;
     mesh!: LinesMesh;
@@ -312,7 +312,7 @@ class LineHelper {
  * using a preallocated line system mesh.
  *  @author Johannd0426 <
  */
-class CurvatureHelper {
+export class CurvatureHelper {
     color: Color3;
     mesh!: LinesMesh;
 
@@ -370,5 +370,3 @@ class CurvatureHelper {
         this.mesh.dispose();
     }
 }
-
-export { PointHelper, LineHelper, CurvatureHelper };

@@ -17,7 +17,7 @@ import { AddPointCommand } from "./commands/AddPointCommand.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js";
 import { Vector } from "./modeling/NurbsLib";
 import { Parametric } from "./modeling/Parametric";
-import { PointHelper, CurvatureHelper, LineHelper } from "./DesignHelper.js";
+import { PointHelper, LinesHelper, CurvatureHelper } from "./DesignHelper.js";
 import { SelectMesh } from "./listeners/SelectMesh.js";
 import { KeyEventHandler } from "./listeners/KeyEvent.js";
 
@@ -33,7 +33,7 @@ export default class Editor {
   designPoints: PointHelper;
   ctrlPoints: PointHelper;
   curvature: CurvatureHelper;
-  ctrlPolygon: LineHelper;
+  ctrlPolygon: LinesHelper;
 
   constructor() {
     this.callbacks = [];
@@ -44,7 +44,7 @@ export default class Editor {
     this.designPoints = new PointHelper(8.0, new Color3(1.0, 1.0, 0.0));
     this.ctrlPoints = new PointHelper(8.0, new Color3(0.5, 0.5, 0.5));
     this.curvature = new CurvatureHelper(new Color3(0.5, 0.0, 0.0));
-    this.ctrlPolygon = new LineHelper(new Color3(0.5, 0.5, 0.5));
+    this.ctrlPolygon = new LinesHelper(new Color3(0.5, 0.5, 0.5));
   }
 
   dispose() {
@@ -165,20 +165,26 @@ export default class Editor {
     [designPoints, ctrlPoints, curvature, ctrlPolygon].map(e => e.initialize(scene));
 
     // Create Test curve
-    const poles = [
-      { point: new Vector(0, 0, 0) },
-      { point: new Vector(1, 1, 1) },
-      { point: new Vector(2, 0, 0) },
-      { point: new Vector(3, 1, 1) },
-    ];
-    const curve = new BsplineCurveInt(3, poles);
+    // const poles = [
+    //   { point: new Vector(0, 0, 0) },
+    //   { point: new Vector(1, 1, 1) },
+    //   { point: new Vector(2, 0, 0) },
+    //   { point: new Vector(3, 1, 1) },
+    // ];
+    // const curve = new BsplineCurveInt(3, poles);
 
-    // const curve = new BsplineCurveInt(3);
+    const curve = new BsplineCurveInt(3);
+    const cmd = new AddCurveCommand(this, curve)
+    cmd.execute();
+    const mesh = cmd.mesh;
+    this.pointerEventHandler.pickedObject = mesh;
     this.addCurve(curve);
-    // this.addPoint(new Vector(0, 0, 0));
-    // this.addPoint(new Vector(1, 1, 1));
-    // this.addPoint(new Vector(2, 0, 0));
-    // this.addPoint(new Vector(3, 1, 1));
+    this.addPoint(new Vector(0, 0, 0));
+    this.addPoint(new Vector(1, 1, 1));
+    this.addPoint(new Vector(2, 0, 0));
+    this.addPoint(new Vector(3, 1, 1));
+    this.updateCurveHelper(curve);
+    this.pointerEventHandler.pickedObject = undefined;
 
     selectMesh.setPickables(this.pickables);
 
@@ -204,10 +210,10 @@ export default class Editor {
   updateCurveHelper(curve: any) {
     const { designPoints, ctrlPoints, curvature, ctrlPolygon } = this;
 
+    curvature.update(curve); // update nurbs curve before getting designPoints and ctrlPoints
     designPoints.update(curve.designPoints);
     ctrlPoints.update(curve.ctrlPoints);
     ctrlPolygon.update(curve.ctrlPoints);
-    curvature.update(curve);
   }
 
   // addInterpolatedCurve( pole ) {

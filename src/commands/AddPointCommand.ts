@@ -1,6 +1,8 @@
 import Editor from "../Editor";
 import type { Mesh } from "@babylonjs/core";
 
+const NUM_POINTS = 100;
+
 export class AddPointCommand {
     editor: Editor;
     point: any;
@@ -17,18 +19,20 @@ export class AddPointCommand {
         if (mesh) {
             const curve = mesh.metadata.model;
             curve.add(point);
-            editor.updateCurve(curve);
+            const lines = mesh.metadata.helper;
+            lines.update(curve.getPoints(NUM_POINTS));
             this.mesh = mesh;
         }
     }
 
     undo() {
-        const { editor, mesh } = this;
+        const { mesh } = this;
         if (mesh) {
             const curve = mesh.metadata.model;
             const nm1 = curve.designPoints.length - 1;
             curve.remove(nm1);
-            editor.updateCurve(curve);
+            const lines = mesh.metadata.helper;
+            lines.update(curve.getPoints(NUM_POINTS));
         }
     }
 }

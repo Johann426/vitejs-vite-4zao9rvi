@@ -22,7 +22,8 @@ export class SelectMesh {
     // Restore the original color of the previously picked object
     restoreColor() {
         if (this.pickedObject instanceof LinesMesh) {
-            this.pickedObject.color = this.savedColor;
+            const helper = this.pickedObject.metadata.helper;
+            helper.shader.setColor3("color3", this.savedColor);
             this.pickedObject = undefined;
         }
     }
@@ -41,9 +42,11 @@ export class SelectMesh {
         picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
             if (pickingInfo) {
                 if (pickingInfo.meshes[0] instanceof LinesMesh) {
-                    this.pickedObject = pickingInfo.meshes[0];
-                    this.savedColor = pickingInfo.meshes[0].color;
-                    pickingInfo.meshes[0].color = new Color3(1, 1, 0);
+                    const mesh = pickingInfo.meshes[0];
+                    this.pickedObject = mesh;
+                    const lines = mesh.metadata.helper;
+                    this.savedColor = lines.color3;
+                    lines.shader.setColor3("color3", new Color3(1, 1, 0));
                 }
             }
         });
