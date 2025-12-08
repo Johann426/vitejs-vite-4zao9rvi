@@ -1,0 +1,44 @@
+import { Vector3, KeyboardEventTypes } from "@babylonjs/core";
+import type { Nullable, Observer, KeyboardInfo, } from "@babylonjs/core";
+import Editor from "../Editor";
+
+export class KeyEventHandler {
+    editor: Editor;
+    keyDownObserver: Nullable<Observer<KeyboardInfo>> = null;
+
+    constructor(editor: Editor) {
+        this.editor = editor;
+        const scene = editor.scene;
+        this.keyDownObserver = scene.onKeyboardObservable.add(this.onKeyDown, KeyboardEventTypes.KEYDOWN);
+    }
+    // Handle pointer move events to highlight objects under the cursor
+    onKeyDown = (kbInfo: KeyboardInfo) => {
+        const { ctrlKey, metaKey, key } = kbInfo.event
+        const { scene, history } = this.editor;
+
+        if ((ctrlKey || metaKey) && key.toLowerCase() === "z") {
+            kbInfo.event.preventDefault();
+            history.undo();
+        }
+        if ((ctrlKey || metaKey) && key.toLowerCase() === "y") {
+            kbInfo.event.preventDefault();
+            history.redo();
+        }
+
+        const camera = scene.activeCamera;
+
+        if (camera) {
+            const dist = camera.position.length();
+            if (key === "x") {
+                camera.position = new Vector3(dist, 0, 0);
+            }
+            if (key === "y") {
+                camera.position = new Vector3(0, dist, 0);
+            }
+            if (key === "z") {
+                camera.position = new Vector3(0, 0, dist);
+            }
+        }
+    };
+}
+

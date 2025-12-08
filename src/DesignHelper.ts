@@ -157,6 +157,11 @@ class PointHelper {
     setVisible(value: boolean) {
         this.pcs.mesh?.setEnabled(value);
     }
+
+    dispose() {
+        this.pcs.dispose();
+        this.shader.dispose();
+    }
 }
 
 /**
@@ -295,6 +300,11 @@ class LineHelper {
     setVisible(value: boolean) {
         this.mesh.setEnabled(value);
     }
+
+    dispose() {
+        this.mesh.dispose();
+        this.shader.dispose();
+    }
 }
 
 /**
@@ -354,6 +364,10 @@ class CurvatureHelper {
 
     setVisible(value: boolean) {
         this.mesh.setEnabled(value);
+    }
+
+    dispose() {
+        this.mesh.dispose();
     }
 }
 
