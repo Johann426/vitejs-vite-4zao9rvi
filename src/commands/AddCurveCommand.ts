@@ -1,7 +1,12 @@
-import { MeshBuilder, StandardMaterial, Color3 } from "@babylonjs/core";
+import { MeshBuilder, Color3 } from "@babylonjs/core";
+import Editor from "../Editor";
+import { LineHelper } from "../DesignHelper";
+
+const NUM_POINTS = 100;
+const lineColor = new Color3(0, 1, 0)
 
 export class AddCurveCommand {
-    editor: any;
+    editor: Editor;
     curve: any;
     mesh: any;
 
@@ -14,7 +19,7 @@ export class AddCurveCommand {
         const { editor, curve } = this;
         const scene = editor.scene;
 
-        const points = curve.getPoints(100);
+        const points = curve.getPoints(NUM_POINTS);
         const line = MeshBuilder.CreateLines(
             "lines",
             {
@@ -28,11 +33,17 @@ export class AddCurveCommand {
         line.color = new Color3(0, 1, 0);
 
         editor.pickables.push(line);
+        editor.selected = line;
         this.mesh = line;
     }
 
     undo() {
         const mesh = this.mesh;
         mesh.dispose();
+    }
+
+    lineMesh() {
+        const line = new LineHelper(lineColor);
+        this.mesh = line.mesh;
     }
 }

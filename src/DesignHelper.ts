@@ -2,7 +2,7 @@ import { Scene, Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder,
 import { Vector } from "./modeling/NurbsLib.ts";
 
 const MAX_POINTS = 100;
-const MAX_LINES_SEG = 100;
+const MAX_LINE_SEG = 100;
 
 /**
  * Class to help rendering of points using a custom shader material
@@ -25,7 +25,7 @@ class PointHelper {
     initialize(scene: Scene) {
         const { pointSize, pointColor } = this;
         // Vertex shader code
-        const vertexShaderCode = `
+        const vertexShader = `
             precision highp float;
 
             // Attributes
@@ -45,7 +45,7 @@ class PointHelper {
             }
         `;
         // Fragment shader code
-        const fragmentShaderCode = `
+        const fragmentShader = `
             precision highp float;
 
             // Uniforms
@@ -80,8 +80,8 @@ class PointHelper {
             "pointShader",
             scene,
             {
-                vertexSource: vertexShaderCode,
-                fragmentSource: fragmentShaderCode,
+                vertexSource: vertexShader,
+                fragmentSource: fragmentShader,
             },
             {
                 attributes: ["position"],
@@ -183,7 +183,7 @@ class LineHelper {
     initialize(scene: Scene) {
         const { color3 } = this;
         // Vertex shader code
-        const lineVertex = `
+        const vertexShader = `
             precision highp float;
 
             // Attributes
@@ -201,7 +201,7 @@ class LineHelper {
             }
         `;
         // Fragment shader code
-        const lineFragment = `
+        const fragmentShader = `
             precision highp float;
             
             // Uniforms
@@ -224,8 +224,8 @@ class LineHelper {
             "lineShader",
             scene,
             {
-                vertexSource: lineVertex,
-                fragmentSource: lineFragment,
+                vertexSource: vertexShader,
+                fragmentSource: fragmentShader,
             },
             {
                 attributes: ["position"],
@@ -235,10 +235,10 @@ class LineHelper {
         // set initial uniform values in fragment shader
         shaderMaterial.setColor3("color3", color3);
         // create a preallocated line mesh
-        const polygon = MeshBuilder.CreateLines(
+        const mesh = MeshBuilder.CreateLines(
             "lines",
             {
-                points: new Array(MAX_LINES_SEG).fill(new Vector3()),
+                points: new Array(MAX_LINE_SEG).fill(new Vector3()),
                 material: shaderMaterial,
                 updatable: true,
             },
@@ -246,7 +246,7 @@ class LineHelper {
         );
         // store references
         this.shader = shaderMaterial;
-        this.mesh = polygon;
+        this.mesh = mesh;
     }
 
     update(points: Vector[]) {
@@ -323,7 +323,7 @@ class CurvatureHelper {
     initialize(scene: Scene) {
         const { color } = this;
         const arr = [];
-        for (let i = 0; i < MAX_LINES_SEG; i++) {
+        for (let i = 0; i < MAX_LINE_SEG; i++) {
             arr.push([new Vector3(), new Vector3()]);
         }
         // creates an instance of a line system
@@ -339,11 +339,11 @@ class CurvatureHelper {
 
         if (!positions) return;
 
-        for (let i = 0; i < MAX_LINES_SEG; i++) {
+        for (let i = 0; i < MAX_LINE_SEG; i++) {
             const knots = curve.knots;
             const t_min = knots ? knots[0] : 0.0;
             const t_max = knots ? knots[knots.length - 1] : 1.0;
-            const t = t_min + (i / (MAX_LINES_SEG - 1)) * (t_max - t_min);
+            const t = t_min + (i / (MAX_LINE_SEG - 1)) * (t_max - t_min);
 
             const pts = curve.interrogationAt(t);
             const alpha = 1.0;

@@ -11,7 +11,8 @@ export class KeyEventHandler {
         const scene = editor.scene;
         this.keyDownObserver = scene.onKeyboardObservable.add(this.onKeyDown, KeyboardEventTypes.KEYDOWN);
     }
-    // Handle pointer move events to highlight objects under the cursor
+
+    // Handle keyboard down events
     onKeyDown = (kbInfo: KeyboardInfo) => {
         const { ctrlKey, metaKey, key } = kbInfo.event
         const { scene, history } = this.editor;
@@ -40,5 +41,14 @@ export class KeyEventHandler {
             }
         }
     };
+
+    // Clean up observers when disposing of the SelectMesh instance
+    dispose() {
+        const scene = this.editor.scene;
+        if (this.keyDownObserver) {
+            scene.onKeyboardObservable.remove(this.keyDownObserver);
+            this.keyDownObserver = null;
+        }
+    }
 }
 

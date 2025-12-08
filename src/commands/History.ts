@@ -29,7 +29,7 @@ export class History {
     }
 
     redo() {
-        var cmd = undefined;
+        let cmd = undefined;
 
         if (this.redos.length > 0) {
             cmd = this.redos.pop();

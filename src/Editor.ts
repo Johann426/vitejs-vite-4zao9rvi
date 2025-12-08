@@ -9,11 +9,11 @@ import {
   MeshBuilder,
   Mesh,
   StandardMaterial,
-  PointerEventTypes,
   Color3,
 } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddCurveCommand.js";
+import { AddPointCommand } from "./commands/AddPointCommand.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js";
 import { Vector } from "./modeling/NurbsLib";
 import { Parametric } from "./modeling/Parametric";
@@ -23,8 +23,11 @@ import { KeyEventHandler } from "./listeners/KeyEvent.js";
 
 export default class Editor {
   scene!: Scene;
+  keyEventHandler!: KeyEventHandler;
+  pointerEventHandler!: SelectMesh;
   callbacks: Array<(scene: Scene, msg: string) => void>;
   pickables: Array<Mesh>;
+  selected: Mesh | undefined;
   picker: GPUPicker;
   history: History;
   designPoints: PointHelper;
@@ -35,6 +38,7 @@ export default class Editor {
   constructor() {
     this.callbacks = [];
     this.pickables = [];
+    this.selected = undefined;
     this.picker = new GPUPicker(); // set up gpu picker
     this.history = new History();
     this.designPoints = new PointHelper(8.0, new Color3(1.0, 1.0, 0.0));
@@ -62,6 +66,13 @@ export default class Editor {
     const scope = this;
     scope.scene = scene;
     scope.callbacks.forEach((callback) => callback(scene, "observable added by callback"));
+
+    // Select mesh by using GPU pick
+    const selectMesh = new SelectMesh(scope);
+    this.pointerEventHandler = selectMesh;
+    // Key event observable
+    const keyEventHandler = new KeyEventHandler(scope);
+    this.keyEventHandler = keyEventHandler;
 
     const cameras: Array<ArcRotateCamera> = [];
 
@@ -115,10 +126,6 @@ export default class Editor {
     // Default intensity is 1. Let's dim the light a small amount
     light.intensity = 0.25;
 
-    // Select mesh by using GPU pick
-    const selectMesh = new SelectMesh(scope);
-    const keyEventHandler = new KeyEventHandler(scope);
-
     // Ray test
     function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
       const camera = scene.activeCamera;
@@ -165,7 +172,13 @@ export default class Editor {
       { point: new Vector(3, 1, 1) },
     ];
     const curve = new BsplineCurveInt(3, poles);
+
+    // const curve = new BsplineCurveInt(3);
     this.addCurve(curve);
+    // this.addPoint(new Vector(0, 0, 0));
+    // this.addPoint(new Vector(1, 1, 1));
+    // this.addPoint(new Vector(2, 0, 0));
+    // this.addPoint(new Vector(3, 1, 1));
 
     selectMesh.setPickables(this.pickables);
 
@@ -180,8 +193,21 @@ export default class Editor {
     if (index > -1) this.callbacks.splice(index, 1);
   }
 
+  addPoint(point: Vector) {
+    this.execute(new AddPointCommand(this, point));
+  }
+
   addCurve(curve: Parametric) {
     this.execute(new AddCurveCommand(this, curve));
+  }
+
+  updateCurveHelper(curve: any) {
+    const { designPoints, ctrlPoints, curvature, ctrlPolygon } = this;
+
+    designPoints.update(curve.designPoints);
+    ctrlPoints.update(curve.ctrlPoints);
+    ctrlPolygon.update(curve.ctrlPoints);
+    curvature.update(curve);
   }
 
   // addInterpolatedCurve( pole ) {
