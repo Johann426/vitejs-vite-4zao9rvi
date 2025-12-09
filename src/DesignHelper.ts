@@ -9,10 +9,17 @@ function createPointShader(scene: Scene) {
     // Vertex shader code
     const vs = `
         precision highp float;
+        
+        // Attributes
         attribute vec3 position;
+        
+        // Uniforms
         uniform float pointSize;
         uniform mat4 worldViewProjection;
+        
+        // Send gl_VertexID to the fragment shader as a flat(to avoid interpolation) integer
         flat out int i;
+        
         void main(void) {
             gl_PointSize = pointSize;
             gl_Position = worldViewProjection * vec4(position, 1.0);
@@ -22,15 +29,31 @@ function createPointShader(scene: Scene) {
     // Fragment shader code
     const fs = `
         precision highp float;
+        
+        // Uniforms
         uniform int drawRange;
         uniform vec3 color3;
+
+        // Receive gl_VertexID from vertex shader
         flat in int i;
+
         void main(void) {
+            // Discard pixels when the index is out of draw range
             if (i >= drawRange) discard;
+            
+            // Calculate the relative position vector from the point center(0.5, 0.5)
             vec2 diff = gl_PointCoord - vec2(0.5, 0.5);
+            
+            // Compute the distance from the center
             float dist = length(diff);
+            
+            // Discard pixels if distance exceeds 0.5
             if (dist > 0.5) discard;
+            
+            // Smooth edge handling for anti-aliasing (optional)
             float alpha = 1.0 - smoothstep(0.45, 0.5, dist);
+            
+            // Set the final color
             gl_FragColor = vec4(color3, alpha);
         }
     `;
@@ -54,9 +77,16 @@ function createLinesShader(scene: Scene) {
     // Vertex shader code
     const vs = `
         precision highp float;
+
+        // Attributes
         attribute vec3 position;
+        
+        // Uniforms
         uniform mat4 worldViewProjection;
+
+        // Send gl_VertexID to the fragment shader as a flat(to avoid interpolation) integer
         flat out int i;
+
         void main(void) {
             gl_Position = worldViewProjection * vec4(position, 1.0);
             i = gl_VertexID;
@@ -65,12 +95,24 @@ function createLinesShader(scene: Scene) {
     // Fragment shader code
     const fs = `
         precision highp float;
+
+        // Uniforms
         uniform int drawRange;
         uniform vec3 color3;
+        uniform float time;
+
+        // Receive gl_VertexID from vertex shader
         flat in int i;
+
         void main(void) {
+            // Discard pixels when the index is out of draw range
             if (i >= drawRange) discard;
-            gl_FragColor = vec4(color3, 1.0);
+            
+            // Animate line color alpha over time
+            float alpha = 1.0 - 0.9 * abs( sin( 2.5 * time ) );
+
+            // Set the final color
+            gl_FragColor = vec4(color3, alpha);
         }
     `;
     // create shader material
@@ -83,7 +125,8 @@ function createLinesShader(scene: Scene) {
         },
         {
             attributes: ["position"],
-            uniforms: ["worldViewProjection", "drawRange", "color3"],
+            uniforms: ["worldViewProjection", "drawRange", "color3", "time"],
+            needAlphaBlending: true,
         }
     );
 }

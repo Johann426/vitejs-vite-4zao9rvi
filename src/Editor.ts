@@ -22,6 +22,8 @@ import { PointHelper, LinesHelper, CurvatureHelper } from "./DesignHelper.js";
 import { SelectMesh } from "./listeners/SelectMesh.js";
 import { KeyEventHandler } from "./listeners/KeyEvent.js";
 
+const startTime = Date.now();
+
 export default class Editor {
   scene!: Scene;
   keyEventHandler!: KeyEventHandler;
@@ -67,20 +69,22 @@ export default class Editor {
     this.designPoints.dispose();
   }
 
-  onRender(scene: Scene) { }
+  onRender() {
+    const dt = 0.001 * (Date.now() - startTime)
+    this.ctrlPolygon.shader.setFloat("time", dt);
+  }
 
   onSceneReady(scene: Scene) {
     scene.clearColor = new Color4(0, 0, 0, 1);
 
-    const scope = this;
-    scope.scene = scene;
-    scope.callbacks.forEach((callback) => callback(scene, "observable added by callback"));
+    this.scene = scene;
+    this.callbacks.forEach((callback) => callback(scene, "observable added by callback"));
 
     // Select mesh by using GPU pick
-    const selectMesh = new SelectMesh(scope);
+    const selectMesh = new SelectMesh(this);
     this.pointerEventHandler = selectMesh;
     // Key event observable
-    const keyEventHandler = new KeyEventHandler(scope);
+    const keyEventHandler = new KeyEventHandler(this);
     this.keyEventHandler = keyEventHandler;
     // glow layer to make mesh glow
     const glowLayer = new GlowLayer("glow", scene);
