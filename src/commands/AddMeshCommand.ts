@@ -1,6 +1,3 @@
 export class AddMeshCommand {
-
-    constructor() {
-
-    }
+    constructor() {}
 }

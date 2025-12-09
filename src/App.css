@@ -1,193 +1,195 @@
 html {
-	font-size: 15px;
-	font-family: 'Open Sans, sans-serif';
-	background-color: black;
-	color-scheme: dark;
+    font-size: 15px;
+    font-family: "Open Sans, sans-serif";
+    background-color: black;
+    color-scheme: dark;
 }
 
 body {
-	/* Prevent the user selecting text in body */
-	user-select: none;
-	--menuH: 32px;
-	--sideW: 310px;
+    /* Prevent the user selecting text in body */
+    user-select: none;
+    --menuH: 32px;
+    --sideW: 300px;
 }
 
 #menubar {
-	position: absolute;
-	width: 100%;
-	height: var(--menuH);
-	top: 0;
-	right: 0;
-	background-color: rgb(36, 36, 36);
+    position: absolute;
+    width: 100%;
+    height: var(--menuH);
+    top: 0;
+    right: 0;
+    /* background-color: rgb(24, 24, 24); */
+    border-color: var(--mantine-color-blue-filled);
+    border-width: 1px;
+    border-bottom-style: solid;
 }
 
 #sidebar {
-	position: absolute;
-	width: var(--sideW);
-	height: calc(100% - var(--menuH));
-	top: var(--menuH);
-	right: 0;
-	background-color: rgb(24, 24, 24);
-	overflow: auto;
+    position: absolute;
+    width: var(--sideW);
+    height: calc(100% - var(--menuH));
+    top: var(--menuH);
+    right: 0;
+    /* background-color: rgb(24, 24, 24); */
+    /* color: var(--mantine-color-blue-light-color); */
 }
 
 #viewport {
-	position: absolute;
-	width: calc(100% - var(--sideW));
-	height: calc(100% - var(--menuH));
-	top: var(--menuH);
-	left: 0;
-	/* z-index: -1; */
-	overflow: hidden;
+    position: absolute;
+    width: calc(100% - var(--sideW));
+    height: calc(100% - var(--menuH));
+    top: var(--menuH);
+    left: 0;
+    /* z-index: -1; */
+    overflow: hidden;
 }
 
 #divider {
-	position: absolute;
-	width: calc(100% - var(--sideW));
-	height: calc(100% - var(--menuH));
-	top: var(--menuH);
-	left: 0;
-	z-index: 1;
-	pointer-events: none;
+    position: absolute;
+    width: calc(100% - var(--sideW));
+    height: calc(100% - var(--menuH));
+    top: var(--menuH);
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
 }
 
 #cntxmenu {
-	position: absolute;
-	width: 250px;
-	border: 1px solid;
-	border-color: rgb(96, 96, 96);
-	background-color: rgb(36, 36, 36);
-	z-index: 1;
-	display: none;
-	overflow: auto;
+    position: absolute;
+    width: 250px;
+    border: 1px solid;
+    border-color: rgb(96, 96, 96);
+    background-color: rgb(36, 36, 36);
+    z-index: 1;
+    display: none;
+    /* overflow: auto; */
 }
 
 .hidden {
-	visibility: hidden;
+    visibility: hidden;
 }
 
 table {
-	color: lightgray;
-	border-collapse: collapse;
-	border: 3px solid rgb(96, 96, 96);
-	letter-spacing: 1px;
-	font-size: 12px;
-	/* white-space: nowrap; */ /* Text will never wrap to the next line. */
-	table-layout: fixed; /* table's width of each column to be fixed (or to be determined if not specified) */
+    color: lightgray;
+    border-collapse: collapse;
+    border: 3px solid rgb(96, 96, 96);
+    letter-spacing: 1px;
+    font-size: 12px;
+    /* white-space: nowrap; */ /* Text will never wrap to the next line. */
+    table-layout: fixed; /* table's width of each column to be fixed (or to be determined if not specified) */
 }
 
 tr:nth-child(even) {
-	background-color: rgb(36, 36, 36);
+    background-color: rgb(36, 36, 36);
 }
-  
+
 tr:nth-child(odd) {
-	background-color: rgb(48, 48, 48);
+    background-color: rgb(48, 48, 48);
 }
-  
+
 td,
 th {
-	border: 1px solid rgb(96, 96, 96);
-	height: 20px;
-	padding: 5px 10px; /* top and bottom, right and left */
-	user-select: none;
+    border: 1px solid rgb(96, 96, 96);
+    height: 20px;
+    padding: 5px 10px; /* top and bottom, right and left */
+    user-select: none;
 }
-  
+
 td.selected,
 th.selected {
-	background-color: rgb(35, 60, 96);
+    background-color: rgb(35, 60, 96);
 }
 
 th {
-	background-color: rgb(24, 24, 24);
-	font-weight: bold;
+    background-color: rgb(24, 24, 24);
+    font-weight: bold;
 }
 
 td {
-	text-align: center;
-	/* font-weight: bold; */
-	width: 100px; /* 셀 너비 */
+    text-align: center;
+    /* font-weight: bold; */
+    width: 100px; /* 셀 너비 */
 }
 
 td input {
-	width: 100%;
-	height: 100%;
-	outline: none;
-	font: inherit;
-	text-align: inherit;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    font: inherit;
+    text-align: inherit;
 }
 
-ul, #treeview {
-	list-style-type: none;
+ul,
+#treeview {
+    list-style-type: none;
 }
 
 #treeview {
-	color: beige;
-	font-size: 14px;
-	background-color: rgb(48, 48, 48);
-	border: 1px solid rgb(96, 96, 96);
-	border-radius: 10px;
-	height: 480px;
-	overflow: auto;
+    color: beige;
+    font-size: 14px;
+    background-color: rgb(24, 24, 24);
+    border: 1px solid rgb(96, 96, 96);
+    border-radius: 10px;
+    height: 50%;
+    overflow: auto;
+    scrollbar-gutter: stable;
 }
 
 #treeview li::before {
-	content: '\25A1';
-	margin-right: 6px;
-	color: transparent;
+    content: "\25A1";
+    margin-right: 6px;
+    color: transparent;
 }
 
 #treeview li.group::before {
-	content: '\25B7';
-	margin-right: 6px;
-	color: white;
+    content: "\25B7";
+    margin-right: 6px;
+    color: white;
 }
 
 #treeview li.group-opened::before {
-	content: '\25BD';
-	margin-right: 6px;
-	color: white;
+    content: "\25BD";
+    margin-right: 6px;
+    color: white;
 }
 
-	.surface::before {
-		content: '\25B1';  /* \25B1: surface, 25CB: circle */ 
-		margin-right: 6px;
-	}
+.surface::before {
+    content: "\25B1"; /* \25B1: surface, 25CB: circle */
+    margin-right: 6px;
+}
 
-	.curve::before {
-		content: '\301C';
-		margin-right: 6px;
-		color: skyblue;
-	}
+.curve::before {
+    content: "\301C";
+    margin-right: 6px;
+    color: skyblue;
+}
 
-	.model:hover {
-		color: skyblue;
-	}
+.model:hover {
+    color: skyblue;
+}
 
-	.selected {
-		color: bisque;
-		font-weight: bold;
-	}
+.selected {
+    color: bisque;
+    font-weight: bold;
+}
 
-	.dragging {
-		padding: 4px;
-		opacity: 0.5;
-	}
+.dragging {
+    padding: 4px;
+    opacity: 0.5;
+}
 
-	.dragOver {
-		border: 1px solid rgb(48, 96, 196);
-		border-radius: 10px;
-		padding: 3px 4px 3px; /* top | right and left | bottom */
-	}
-	
-	.dragTop {
-		border-top: 1px solid rgb(48, 96, 196);
-		padding: 3px 4px 4px; /* top | right and left | bottom */
-	}
-	
-	.dragBottom {
-		border-bottom: 1px solid rgb(48, 96, 196);
-		padding: 4px 4px 3px; /* top | right and left | bottom */
-	}
+.dragOver {
+    border: 1px solid rgb(48, 96, 196);
+    border-radius: 10px;
+    padding: 3px 4px 3px; /* top | right and left | bottom */
+}
 
+.dragTop {
+    border-top: 1px solid rgb(48, 96, 196);
+    padding: 3px 4px 4px; /* top | right and left | bottom */
+}
 
-	  
+.dragBottom {
+    border-bottom: 1px solid rgb(48, 96, 196);
+    padding: 4px 4px 3px; /* top | right and left | bottom */
+}

@@ -34,9 +34,11 @@ export default function Viewport({
     const scene = new Scene(engine, sceneOptions);
 
     // If the scene is ready, call the onSceneReady callback, if not ready yet, wait for the scene to finish initializing
-    scene.isReady()
-      ? onSceneReady(scene)
-      : scene.onReadyObservable.addOnce(onSceneReady);
+    if (scene.isReady()) {
+      onSceneReady(scene);
+    } else {
+      scene.onReadyObservable.addOnce(onSceneReady);
+    }
 
     // Start the render loop
     engine.runRenderLoop(() => {
@@ -57,14 +59,7 @@ export default function Viewport({
       engine.dispose(); // Dispose of the engine
       window.removeEventListener("resize", onResize);
     };
-  }, [
-    antialias,
-    engineOptions,
-    adaptToDevice,
-    sceneOptions,
-    onSceneReady,
-    onRender,
-  ]);
+  }, [antialias, engineOptions, adaptToDevice, sceneOptions, onSceneReady, onRender]);
 
   // Render the canvas element that Babylon.js will use
   return <canvas ref={canvasRef} {...rest} />;

@@ -1,11 +1,11 @@
 class Temp {
-  constructor(a) {
-    this.a = a;
-  }
+    constructor(a) {
+        this.a = a;
+    }
 
-  foo() {
-    console.log(this.a);
-  }
+    foo() {
+        console.log(this.a);
+    }
 }
 
 export { Temp };

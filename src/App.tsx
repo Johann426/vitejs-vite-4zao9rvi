@@ -1,66 +1,38 @@
 import "./App.css";
 import "@mantine/core/styles.css";
 import { MantineProvider } from "@mantine/core";
-import {
-  Scene,
-  Color3,
-} from "@babylonjs/core";
 import { theme } from "./theme";
-import Viewport from "./Viewport";
-import Menunar from "./Menubar";
-import Sidebar from "./Sidebar";
-import { Editor } from "./Editor";
+import { useEffect } from "react";
+import { Scene } from "@babylonjs/core";
+import Editor from "./Editor";
+import Menunar from "./layout/Menubar";
+import Sidebar from "./layout/Sidebar";
 import Divider from "./layout/Divider";
+import Viewport from "./layout/Viewport";
 
 const editor = new Editor();
 
-const onSceneReady = (scene: Scene) => {
-
-  editor.scene = scene;
-  editor.addTestCurve();
-
-  scene.clearColor = new Color3(0, 0, 0);
-
-  // // Parameters: name, alpha, beta, radius, target position, scene
-  // const camera = new ArcRotateCamera("Camera", 0, 0, 10, new Vector3(0, 0, 0), scene);
-
-  // // This targets the camera to scene origin
-  // camera.setTarget(Vector3.Zero());
-
-  // const canvas = scene.getEngine().getRenderingCanvas();
-
-  // // Enable Collisions
-  // scene.collisionsEnabled = true;
-  // camera.checkCollisions = true;
-  // ground.checkCollisions = true;
-
-  editor.init(scene)
-
-};
-
-/**
- * Will run on every frame render.  We are spinning the box on y-axis.
- */
-const onRender = (scene: Scene) => {
-  // if (box !== undefined) {
-  //   const deltaTimeInMillis = scene.getEngine().getDeltaTime();
-  //   const rpm = 10;
-  //   box.rotation.y += (rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000);
-  // }
-};
-
 export default function App() {
-  return (
-    <MantineProvider theme={theme} withGlobalClasses>
-      <Menunar editor={editor} id="menubar" />
-      <Sidebar editor={editor} id="sidebar" />
-      <Divider editor={editor} id="divider" />
-      <Viewport
-        id="viewport"
-        antialias
-        onSceneReady={onSceneReady}
-        onRender={onRender}
-      />
-    </MantineProvider>
-  );
+    useEffect(() => {
+        return () => {
+            editor.dispose();
+        };
+    }, []);
+
+    const onSceneReady = (scene: Scene) => {
+        editor.onSceneReady(scene);
+    };
+
+    const onRender = (scene: Scene) => {
+        // editor.onRender(scene);
+    };
+
+    return (
+        <MantineProvider defaultColorScheme="auto" theme={theme} withGlobalClasses>
+            <Menunar editor={editor} id="menubar" />
+            <Sidebar editor={editor} id="sidebar" />
+            <Divider editor={editor} id="divider" />
+            <Viewport antialias onSceneReady={onSceneReady} onRender={onRender} id="viewport" />
+        </MantineProvider>
+    );
 }
