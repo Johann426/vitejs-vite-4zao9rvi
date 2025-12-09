@@ -21,10 +21,11 @@ export class SelectMesh {
 
     // Restore the original color of the previously picked object
     restoreColor() {
-        if (this.pickedObject instanceof LinesMesh) {
-            const helper = this.pickedObject.metadata.helper;
-            helper.shader.setColor3("color3", this.savedColor);
+        const mesh = this.pickedObject
+        if (mesh instanceof LinesMesh) {
+            mesh.metadata.helper.setColor(this.savedColor);
             this.pickedObject = undefined;
+
         }
     }
 
@@ -44,9 +45,10 @@ export class SelectMesh {
                 if (pickingInfo.meshes[0] instanceof LinesMesh) {
                     const mesh = pickingInfo.meshes[0];
                     this.pickedObject = mesh;
-                    const lines = mesh.metadata.helper;
-                    this.savedColor = lines.color3;
-                    lines.shader.setColor3("color3", new Color3(1, 1, 0));
+                    this.savedColor = mesh.metadata.helper.color;
+                    mesh.metadata.helper.setColor(new Color3(1, 1, 0));
+                    this.editor.glowLayer.referenceMeshToUseItsOwnMaterial(mesh);
+                    this.editor.glowLayer.removeExcludedMesh(mesh);
                 }
             }
         });

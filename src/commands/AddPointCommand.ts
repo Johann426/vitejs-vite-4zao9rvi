@@ -17,11 +17,13 @@ export class AddPointCommand {
         const mesh = editor.pointerEventHandler.pickedObject;
         if (mesh) {
             const curve = mesh.metadata.model;
+            // add point to curve
             curve.add(point);
-            const helper = mesh.metadata.helper;
-            helper.update(curve);
-            this.mesh = mesh;
+            // update vertex buffer
+            mesh.metadata.helper.update(curve);
         }
+        // store reference
+        this.mesh = mesh;
     }
 
     undo() {
@@ -29,9 +31,10 @@ export class AddPointCommand {
         if (mesh) {
             const curve = mesh.metadata.model;
             const nm1 = curve.designPoints.length - 1;
+            // remove point
             curve.remove(nm1);
-            const helper = mesh.metadata.helper;
-            helper.update(curve);
+            // update vertex buffer
+            mesh.metadata.helper.update(curve);
         }
     }
 }

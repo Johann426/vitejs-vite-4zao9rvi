@@ -10,6 +10,7 @@ import {
   Mesh,
   StandardMaterial,
   Color3,
+  GlowLayer,
 } from "@babylonjs/core";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddCurveCommand.js";
@@ -25,15 +26,16 @@ export default class Editor {
   scene!: Scene;
   keyEventHandler!: KeyEventHandler;
   pointerEventHandler!: SelectMesh;
+  glowLayer!: GlowLayer;
   callbacks: Array<(scene: Scene, msg: string) => void>;
   pickables: Array<Mesh>;
   selected: Mesh | undefined;
   picker: GPUPicker;
   history: History;
-  designPoints: PointHelper;
-  ctrlPoints: PointHelper;
   curvature: CurvatureHelper;
+  ctrlPoints: PointHelper;
   ctrlPolygon: LinesHelper;
+  designPoints: PointHelper;
 
   constructor() {
     this.callbacks = [];
@@ -41,10 +43,17 @@ export default class Editor {
     this.selected = undefined;
     this.picker = new GPUPicker(); // set up gpu picker
     this.history = new History();
-    this.designPoints = new PointHelper(8.0, new Color3(1.0, 1.0, 0.0));
-    this.ctrlPoints = new PointHelper(7.0, new Color3(0.5, 0.5, 0.5));
-    this.curvature = new CurvatureHelper(new Color3(0.5, 0.0, 0.0));
-    this.ctrlPolygon = new LinesHelper(new Color3(0.5, 0.5, 0.5));
+    const curvatureScale = 1.0;
+    const curvatureColor = new Color3(0.5, 0.0, 0.0);
+    const ctrlPointsSize = 7.0;
+    const ctrlPointsColor = new Color3(0.5, 0.5, 0.5)
+    const ctrlpolygonColor = new Color3(0.5, 0.5, 0.5)
+    const designPointsSize = 8.0;
+    const designPointsColor = new Color3(1.0, 1.0, 0.0);
+    this.curvature = new CurvatureHelper(curvatureColor, curvatureScale);
+    this.ctrlPoints = new PointHelper(ctrlPointsSize, ctrlPointsColor);
+    this.ctrlPolygon = new LinesHelper(ctrlpolygonColor);
+    this.designPoints = new PointHelper(designPointsSize, designPointsColor);
   }
 
   dispose() {
@@ -52,10 +61,10 @@ export default class Editor {
     this.callbacks = [];
     this.pickables = [];
     this.history.clear();
-    this.designPoints.dispose();
-    this.ctrlPoints.dispose();
     this.curvature.dispose();
+    this.ctrlPoints.dispose();
     this.ctrlPolygon.dispose();
+    this.designPoints.dispose();
   }
 
   onRender(scene: Scene) { }
@@ -73,6 +82,10 @@ export default class Editor {
     // Key event observable
     const keyEventHandler = new KeyEventHandler(scope);
     this.keyEventHandler = keyEventHandler;
+    // glow layer to make mesh glow
+    const glowLayer = new GlowLayer("glow", scene);
+    glowLayer.intensity = 1.0;
+    this.glowLayer = glowLayer;
 
     const cameras: Array<ArcRotateCamera> = [];
 
@@ -190,6 +203,9 @@ export default class Editor {
     this.pointerEventHandler.pickedObject = undefined;
     selectMesh.setPickables(this.pickables);
 
+    const gl = new GlowLayer("glow", scene);
+    gl.intensity = 2.5;
+    // gl.referenceMeshToUseItsOwnMaterial(mesh)
 
   }
 

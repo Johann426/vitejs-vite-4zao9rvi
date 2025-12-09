@@ -1,4 +1,4 @@
-import { Scene, Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder, VertexBuffer, LinesMesh } from "@babylonjs/core";
+import { Scene, Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder, VertexBuffer, LinesMesh, StandardMaterial } from "@babylonjs/core";
 import { Vector } from "./modeling/NurbsLib.ts";
 import type { Parametric } from "./modeling/Parametric.js";
 
@@ -106,6 +106,24 @@ export class PointHelper {
         this.pointColor = pointColor;
     }
 
+    get size() {
+        return this.pointSize;
+    }
+
+    get color() {
+        return this.pointColor;
+    }
+
+    setSize(pointSize: number) {
+        this.pointSize = pointSize;
+        this.shader.setFloat("pointSize", pointSize);
+    }
+
+    setColor(pointColor: Color3) {
+        this.pointColor = pointColor;
+        this.shader.setColor3("color3", pointColor);
+    }
+
     initialize(scene: Scene) {
         const { pointSize, pointColor } = this;
         // create shader material
@@ -197,8 +215,17 @@ export class LinesHelper {
     shader!: ShaderMaterial;
     mesh!: LinesMesh;
 
-    constructor(color3: Color3) {
-        this.color3 = color3;
+    constructor(color: Color3) {
+        this.color3 = color;
+    }
+
+    get color() {
+        return this.color3;
+    }
+
+    setColor(color: Color3) {
+        this.color3 = color;
+        this.shader.setColor3("color3", color);
     }
 
     initialize(scene: Scene) {
@@ -283,8 +310,8 @@ export class LinesHelper {
 export class CurveHelper extends LinesHelper {
     curve: Parametric;
 
-    constructor(color3: Color3, curve: Parametric) {
-        super(color3);
+    constructor(color: Color3, curve: Parametric) {
+        super(color);
         this.curve = curve;
     }
 
@@ -308,15 +335,26 @@ export class CurveHelper extends LinesHelper {
  *  @author Johannd0426 <
  */
 export class CurvatureHelper {
-    color: Color3;
+    color3: Color3;
+    scale: number;
     mesh!: LinesMesh;
 
-    constructor(color: Color3) {
-        this.color = color;
+    constructor(color: Color3, scale: number) {
+        this.scale = scale;
+        this.color3 = color;
+    }
+
+    get color() {
+        return this.color3;
+    }
+
+    setColor(color: Color3) {
+        this.color3 = color;
+        this.mesh.color = color;
     }
 
     initialize(scene: Scene) {
-        const { color } = this;
+        const { color3: color } = this;
         const arr = [];
         for (let i = 0; i < MAX_LINE_SEG; i++) {
             arr.push([new Vector3(), new Vector3()]);
@@ -341,8 +379,7 @@ export class CurvatureHelper {
             const t = t_min + (i / (MAX_LINE_SEG - 1)) * (t_max - t_min);
 
             const pts = curve.interrogationAt(t);
-            const alpha = 1.0;
-            const crvt = pts.normal.negate().mul(pts.curvature * alpha);
+            const crvt = pts.normal.negate().mul(pts.curvature * this.scale);
             const tuft = pts.point.add(crvt);
 
             positions[6 * i + 0] = pts.point.x;
@@ -354,7 +391,6 @@ export class CurvatureHelper {
         }
 
         mesh.setEnabled(true);
-        // mesh.updateVerticesData(VertexBuffer.PositionKind, positions);
         mesh.setVerticesData(VertexBuffer.PositionKind, positions);
     }
 
