@@ -53,29 +53,32 @@ export class SelectMesh {
     };
 
     // Handle pointer down events to select objects
-    onPointerDown = () => {
-        const { scene, picker, designPoints, ctrlPoints, ctrlPolygon, curvature } = this.editor;
-        const x1 = scene.pointerX - PICK_TOLERANCE;
-        const y1 = scene.pointerY - PICK_TOLERANCE;
-        const x2 = scene.pointerX + PICK_TOLERANCE;
-        const y2 = scene.pointerY + PICK_TOLERANCE;
-        picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
-            if (pickingInfo) {
-                if (pickingInfo.meshes.length == 0) {
-                    designPoints.setVisible(false);
-                    ctrlPoints.setVisible(false);
-                    ctrlPolygon.setVisible(false);
-                    curvature.setVisible(false);
+    onPointerDown = (pointerInfo: PointerInfo) => {
+        const event: PointerEvent = pointerInfo.event as PointerEvent;
+
+        if (event.button === 0) {
+            const editor = this.editor;
+            const { scene, picker, curvature, ctrlPoints, ctrlPolygon, designPoints } = editor;
+            const x1 = scene.pointerX - PICK_TOLERANCE;
+            const y1 = scene.pointerY - PICK_TOLERANCE;
+            const x2 = scene.pointerX + PICK_TOLERANCE;
+            const y2 = scene.pointerY + PICK_TOLERANCE;
+            picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
+                if (pickingInfo) {
+                    if (pickingInfo.meshes.length == 0) {
+                        [curvature, ctrlPoints, ctrlPolygon, designPoints].map(e => e.setVisible(false));
+                    }
+                    else if (pickingInfo.meshes[0] instanceof LinesMesh) {
+                        const curve = pickingInfo.meshes[0].metadata.model;
+                        editor.updateCurveHelper(curve);
+                    }
                 }
-                else if (pickingInfo.meshes[0] instanceof LinesMesh) {
-                    const curve = pickingInfo.meshes[0].metadata.model;
-                    designPoints.update(curve.designPoints);
-                    ctrlPoints.update(curve.ctrlPoints);
-                    ctrlPolygon.update(curve.ctrlPoints);
-                    curvature.update(curve);
-                }
-            }
-        });
+            });
+        }
+
+        if (event.button === 2) {
+            console.log("right click")
+        }
     };
 
     // Set the list of pickable meshes for the GPU picker

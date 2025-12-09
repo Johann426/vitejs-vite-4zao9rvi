@@ -42,7 +42,7 @@ export default class Editor {
     this.picker = new GPUPicker(); // set up gpu picker
     this.history = new History();
     this.designPoints = new PointHelper(8.0, new Color3(1.0, 1.0, 0.0));
-    this.ctrlPoints = new PointHelper(8.0, new Color3(0.5, 0.5, 0.5));
+    this.ctrlPoints = new PointHelper(7.0, new Color3(0.5, 0.5, 0.5));
     this.curvature = new CurvatureHelper(new Color3(0.5, 0.0, 0.0));
     this.ctrlPolygon = new LinesHelper(new Color3(0.5, 0.5, 0.5));
   }
@@ -166,31 +166,30 @@ export default class Editor {
 
     // Create Test curve
     // const poles = [
-    //   { point: new Vector(0, 0, 0) },
-    //   { point: new Vector(1, 1, 1) },
-    //   { point: new Vector(2, 0, 0) },
-    //   { point: new Vector(3, 1, 1) },
+    // { point: new Vector(0, 0, 0) },
+    // { point: new Vector(1, 1, 1) },
+    // { point: new Vector(2, 0, 0) },
+    // { point: new Vector(3, 1, 1) },
     // ];
-    // const curve = new BsplineCurveInt(3, poles);
 
+    // const curve = new BsplineCurveInt(3, poles);
     const curve = new BsplineCurveInt(3);
     this.addCurve(curve);
+
     const mesh = this.pickables[this.pickables.length - 1];
     this.pointerEventHandler.pickedObject = mesh;
-    this.addCurve(curve);
     this.addPoint(new Vector(0, 0, 0));
     this.addPoint(new Vector(1, 1, 1));
     this.addPoint(new Vector(2, 0, 0));
     this.addPoint(new Vector(3, 1, 1));
-
-    // why this needed?
-    mesh?.metadata.helper.update(curve);
-
     this.updateCurveHelper(curve);
 
-    this.pointerEventHandler.pickedObject = undefined;
+    // why this needed?
+    // mesh?.metadata.helper.update(curve);
 
+    this.pointerEventHandler.pickedObject = undefined;
     selectMesh.setPickables(this.pickables);
+
 
   }
 
@@ -212,12 +211,11 @@ export default class Editor {
   }
 
   updateCurveHelper(curve: Parametric) {
-    const { designPoints, ctrlPoints, curvature, ctrlPolygon } = this;
-
-    curvature.update(curve); // update nurbs curve before getting designPoints and ctrlPoints
-    designPoints.update(curve.designPoints);
+    const { curvature, ctrlPoints, ctrlPolygon, designPoints } = this;
+    curvature.update(curve);
     ctrlPoints.update(curve.ctrlPoints);
     ctrlPolygon.update(curve.ctrlPoints);
+    designPoints.update(curve.designPoints);
   }
 
   // addInterpolatedCurve( pole ) {

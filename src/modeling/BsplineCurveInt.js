@@ -126,6 +126,11 @@ class BsplineCurveInt extends Bspline {
         return super.getPointAt(t);
     }
 
+    getPoints(n) {
+        if (this.needsUpdate) this._calcCtrlPoints();
+        return super.getPoints(n);
+    }
+
     getDerivatives(t, k) {
         if (this.needsUpdate) this._calcCtrlPoints();
         return super.getDerivatives(t, k);

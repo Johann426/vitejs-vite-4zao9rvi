@@ -246,7 +246,7 @@ export class LinesHelper {
                 positions[3 * i + 2] = points[i].z;
             }
             // update vertex position buffers
-            mesh.updateVerticesData(VertexBuffer.PositionKind, positions, true);
+            mesh.updateVerticesData(VertexBuffer.PositionKind, positions);
             // update drawRange uniform so shader discards unused vertices
             shader.setInt("drawRange", points.length);
         } else {
@@ -296,7 +296,9 @@ export class CurveHelper extends LinesHelper {
     update(curve: Parametric) {
         const points = curve.getPoints(MAX_LINE_SEG);
         super.update(points);
-        // this.mesh.metadata = { model: this.curve, helper: this };
+        // let { mesh } = this;
+        // mesh = MeshBuilder.CreateLines("lines", { points: points, instance: mesh });
+        this.mesh.metadata = { model: this.curve, helper: this };
     }
 }
 
@@ -352,6 +354,7 @@ export class CurvatureHelper {
         }
 
         mesh.setEnabled(true);
+        // mesh.updateVerticesData(VertexBuffer.PositionKind, positions);
         mesh.setVerticesData(VertexBuffer.PositionKind, positions);
     }
 
