@@ -23,11 +23,18 @@ import { SelectMesh } from "./listeners/SelectMesh.js";
 import { KeyEventHandler } from "./listeners/KeyEvent.js";
 
 const startTime = Date.now();
+const curvatureScale = 1.0;
+const curvatureColor = new Color3(0.5, 0.0, 0.0);
+const ctrlPointsSize = 7.0;
+const ctrlPointsColor = new Color3(0.5, 0.5, 0.5)
+const ctrlpolygonColor = new Color3(0.5, 0.5, 0.5)
+const designPointsSize = 8.0;
+const designPointsColor = new Color3(1.0, 1.0, 0.0);
 
 export default class Editor {
   scene!: Scene;
   keyEventHandler!: KeyEventHandler;
-  pointerEventHandler!: SelectMesh;
+  selectMesh!: SelectMesh;
   glowLayer!: GlowLayer;
   callbacks: Array<(scene: Scene, msg: string) => void>;
   pickables: Array<Mesh>;
@@ -45,13 +52,6 @@ export default class Editor {
     this.selected = undefined;
     this.picker = new GPUPicker(); // set up gpu picker
     this.history = new History();
-    const curvatureScale = 1.0;
-    const curvatureColor = new Color3(0.5, 0.0, 0.0);
-    const ctrlPointsSize = 7.0;
-    const ctrlPointsColor = new Color3(0.5, 0.5, 0.5)
-    const ctrlpolygonColor = new Color3(0.5, 0.5, 0.5)
-    const designPointsSize = 8.0;
-    const designPointsColor = new Color3(1.0, 1.0, 0.0);
     this.curvature = new CurvatureHelper(curvatureColor, curvatureScale);
     this.ctrlPoints = new PointHelper(ctrlPointsSize, ctrlPointsColor);
     this.ctrlPolygon = new LinesHelper(ctrlpolygonColor);
@@ -60,13 +60,39 @@ export default class Editor {
 
   dispose() {
     this.scene.dispose();
+    this.keyEventHandler.dispose();
+    this.selectMesh.dispose();
+    this.glowLayer.dispose();
     this.callbacks = [];
     this.pickables = [];
+    this.selected = undefined;
+    this.picker.dispose();
     this.history.clear();
     this.curvature.dispose();
     this.ctrlPoints.dispose();
     this.ctrlPolygon.dispose();
     this.designPoints.dispose();
+  }
+
+  test() {
+    // Create Test curve
+    const curve = new BsplineCurveInt(3);
+    this.addCurve(curve);
+
+    const mesh = this.pickables[this.pickables.length - 1];
+    this.selectMesh.pickedObject = mesh;
+    this.addPoint(new Vector(0, 0, 0));
+    this.addPoint(new Vector(1, 1, 1));
+    this.addPoint(new Vector(0, 0, 2));
+    this.addPoint(new Vector(1, 1, 3));
+    this.updateCurveHelper(curve);
+
+    this.selectMesh.pickedObject = undefined;
+    this.selectMesh.setPickables([mesh]);
+
+
+
+
   }
 
   onRender() {
@@ -85,29 +111,18 @@ export default class Editor {
 
     // Select mesh by using GPU pick
     const selectMesh = new SelectMesh(this);
-    this.pointerEventHandler = selectMesh;
+    this.selectMesh = selectMesh;
     // Key event observable
     const keyEventHandler = new KeyEventHandler(this);
     this.keyEventHandler = keyEventHandler;
     // glow layer to make mesh glow
     const glowLayer = new GlowLayer("glow", scene);
-    glowLayer.intensity = 1.0;
     this.glowLayer = glowLayer;
 
     const cameras: Array<ArcRotateCamera> = [];
 
     for (let i = 0; i < 4; i++) {
-      cameras.push(
-        new ArcRotateCamera(
-          // name, alpha, beta, radius, target position, scene
-          `Camera${i}`,
-          90,
-          0,
-          10,
-          new Vector3(0, 0, 0),
-          scene
-        )
-      );
+      cameras.push(new ArcRotateCamera(`Camera${i}`, 0, 0, 0, new Vector3(0, 0, 0), scene));
     }
 
     // Set up viewport of each camera
@@ -138,7 +153,8 @@ export default class Editor {
       cameras[i].angularSensibilityY = Infinity
     })
 
-    scene.activeCameras = cameras;
+    // scene.activeCameras = cameras;
+    scene.activeCamera = cameras[0];
 
     // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
     const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
@@ -184,35 +200,7 @@ export default class Editor {
     const { designPoints, ctrlPoints, curvature, ctrlPolygon } = this;
     [designPoints, ctrlPoints, curvature, ctrlPolygon].map(e => e.initialize(scene));
 
-    // Create Test curve
-    // const poles = [
-    // { point: new Vector(0, 0, 0) },
-    // { point: new Vector(1, 1, 1) },
-    // { point: new Vector(2, 0, 0) },
-    // { point: new Vector(3, 1, 1) },
-    // ];
-
-    // const curve = new BsplineCurveInt(3, poles);
-    const curve = new BsplineCurveInt(3);
-    this.addCurve(curve);
-
-    const mesh = this.pickables[this.pickables.length - 1];
-    this.pointerEventHandler.pickedObject = mesh;
-    this.addPoint(new Vector(0, 0, 0));
-    this.addPoint(new Vector(1, 1, 1));
-    this.addPoint(new Vector(2, 0, 0));
-    this.addPoint(new Vector(3, 1, 1));
-    this.updateCurveHelper(curve);
-
-    // why this needed?
-    // mesh?.metadata.helper.update(curve);
-
-    this.pointerEventHandler.pickedObject = undefined;
-    selectMesh.setPickables(this.pickables);
-
-    const gl = new GlowLayer("glow", scene);
-    gl.intensity = 2.5;
-    // gl.referenceMeshToUseItsOwnMaterial(mesh)
+    this.test();
 
   }
 

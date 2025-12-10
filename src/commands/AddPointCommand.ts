@@ -14,7 +14,7 @@ export class AddPointCommand {
 
     execute() {
         const { editor, point } = this;
-        const mesh = editor.pointerEventHandler.pickedObject;
+        const mesh = editor.selectMesh.pickedObject;
         if (mesh) {
             const curve = mesh.metadata.model;
             // add point to curve

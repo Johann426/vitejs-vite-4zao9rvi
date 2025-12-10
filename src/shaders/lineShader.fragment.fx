@@ -15,7 +15,7 @@ void main(void) {
     if (i >= drawRange) discard;
     
     // Animate line color alpha over time
-    float alpha = 1.0 - 0.9 * abs( sin( 2.5 * time ) );
+    float alpha = 1.0 - 0.9 * abs( sin( 4.0 * time ) );
 
     // Set the final color
     gl_FragColor = vec4(color3, alpha);

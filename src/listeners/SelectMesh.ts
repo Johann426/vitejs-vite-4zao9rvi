@@ -32,9 +32,11 @@ export class SelectMesh {
     // Handle pointer move events to highlight objects under the cursor
     onPointerMove = () => {
         const { scene, picker } = this.editor;
+
         if (picker.pickingInProgress) {
             return;
         }
+
         if (this.pickedObject) this.restoreColor();
         const x1 = scene.pointerX - PICK_TOLERANCE;
         const y1 = scene.pointerY - PICK_TOLERANCE;

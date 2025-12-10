@@ -24,7 +24,7 @@ void main(void) {
     if (dist > 0.5) discard;
     
     // Animate line color alpha over time
-    float alpha = 1.0 - 0.9 * abs( sin( 2.5 * time ) );
+    float alpha = 1.0 - 0.9 * abs( sin( 4.0 * time ) );
 
     // Smooth edge handling for anti-aliasing (optional)
     alpha -= smoothstep(0.45, 0.5, dist);

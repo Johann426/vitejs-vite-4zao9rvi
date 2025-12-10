@@ -25,7 +25,7 @@ export class AddCurveCommand {
 
         const mesh = curvehelper.mesh;
 
-        editor.pointerEventHandler.pickedObject = mesh;
+        editor.selectMesh.pickedObject = mesh;
         editor.pickables.push(mesh);
         this.mesh = mesh;
     }
