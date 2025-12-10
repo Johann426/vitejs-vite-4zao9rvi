@@ -6,123 +6,23 @@ const MAX_POINTS = 100;
 const MAX_LINE_SEG = 100;
 
 function createPointShader(scene: Scene) {
-    // Vertex shader code
-    const vs = `
-        precision highp float;
-        
-        // Attributes
-        attribute vec3 position;
-        
-        // Uniforms
-        uniform float pointSize;
-        uniform mat4 worldViewProjection;
-        
-        // Send gl_VertexID to the fragment shader as a flat(to avoid interpolation) integer
-        flat out int i;
-        
-        void main(void) {
-            gl_PointSize = pointSize;
-            gl_Position = worldViewProjection * vec4(position, 1.0);
-            i = gl_VertexID;
-        }
-    `;
-    // Fragment shader code
-    const fs = `
-        precision highp float;
-        
-        // Uniforms
-        uniform int drawRange;
-        uniform vec3 color3;
-
-        // Receive gl_VertexID from vertex shader
-        flat in int i;
-
-        void main(void) {
-            // Discard pixels when the index is out of draw range
-            if (i >= drawRange) discard;
-            
-            // Calculate the relative position vector from the point center(0.5, 0.5)
-            vec2 diff = gl_PointCoord - vec2(0.5, 0.5);
-            
-            // Compute the distance from the center
-            float dist = length(diff);
-            
-            // Discard pixels if distance exceeds 0.5
-            if (dist > 0.5) discard;
-            
-            // Smooth edge handling for anti-aliasing (optional)
-            float alpha = 1.0 - smoothstep(0.45, 0.5, dist);
-            
-            // Set the final color
-            gl_FragColor = vec4(color3, alpha);
-        }
-    `;
-    // create shader material
     return new ShaderMaterial(
         "pointShader",
         scene,
-        {
-            vertexSource: vs,
-            fragmentSource: fs,
-        },
+        "./src/shaders/pointShader",
         {
             attributes: ["position"],
-            uniforms: ["pointSize", "worldViewProjection", "drawRange", "color3"],
+            uniforms: ["pointSize", "worldViewProjection", "drawRange", "color3", "time"],
             needAlphaBlending: true,
         }
     );
 }
 
 function createLinesShader(scene: Scene) {
-    // Vertex shader code
-    const vs = `
-        precision highp float;
-
-        // Attributes
-        attribute vec3 position;
-        
-        // Uniforms
-        uniform mat4 worldViewProjection;
-
-        // Send gl_VertexID to the fragment shader as a flat(to avoid interpolation) integer
-        flat out int i;
-
-        void main(void) {
-            gl_Position = worldViewProjection * vec4(position, 1.0);
-            i = gl_VertexID;
-        }
-    `;
-    // Fragment shader code
-    const fs = `
-        precision highp float;
-
-        // Uniforms
-        uniform int drawRange;
-        uniform vec3 color3;
-        uniform float time;
-
-        // Receive gl_VertexID from vertex shader
-        flat in int i;
-
-        void main(void) {
-            // Discard pixels when the index is out of draw range
-            if (i >= drawRange) discard;
-            
-            // Animate line color alpha over time
-            float alpha = 1.0 - 0.9 * abs( sin( 2.5 * time ) );
-
-            // Set the final color
-            gl_FragColor = vec4(color3, alpha);
-        }
-    `;
-    // create shader material
     return new ShaderMaterial(
-        "linesShader",
+        "lineShader",
         scene,
-        {
-            vertexSource: vs,
-            fragmentSource: fs,
-        },
+        "./src/shaders/lineShader",
         {
             attributes: ["position"],
             uniforms: ["worldViewProjection", "drawRange", "color3", "time"],
@@ -174,6 +74,7 @@ export class PointHelper {
         // set initial uniform values in fragment shader
         shader.setFloat("pointSize", pointSize);
         shader.setColor3("color3", pointColor);
+        shader.setFloat("time", 0.0);
         // create a preallocated point cloud system
         const pcs = new PointsCloudSystem("pointsCloud", 1, scene);
         pcs.addPoints(MAX_POINTS);
@@ -277,6 +178,7 @@ export class LinesHelper {
         const shader = createLinesShader(scene);
         // set initial uniform values in fragment shader
         shader.setColor3("color3", color3);
+        shader.setFloat("time", 0.0);
         // create a preallocated line mesh
         const mesh = MeshBuilder.CreateLines(
             "lines",
@@ -380,6 +282,7 @@ export class CurveHelper extends LinesHelper {
 export class CurvatureHelper {
     color3: Color3;
     scale: number;
+    shader!: ShaderMaterial;
     mesh!: LinesMesh;
 
     constructor(color: Color3, scale: number) {
@@ -393,23 +296,38 @@ export class CurvatureHelper {
 
     setColor(color: Color3) {
         this.color3 = color;
-        this.mesh.color = color;
+        this.shader.setColor3("color3", color);
     }
 
     initialize(scene: Scene) {
-        const { color3: color } = this;
+        const { color3 } = this;
+        // create shader material
+        const shader = createLinesShader(scene);
+        // set initial uniform values in fragment shader
+        shader.setColor3("color3", color3);
+        shader.setFloat("time", 0.0);
+        // set initial array of point pairs
         const arr = [];
         for (let i = 0; i < MAX_LINE_SEG; i++) {
             arr.push([new Vector3(), new Vector3()]);
         }
         // creates an instance of a line system
-        const curvature = MeshBuilder.CreateLineSystem("lineSystem", { lines: arr }, scene);
-        curvature.color = color;
+        const curvature = MeshBuilder.CreateLineSystem(
+            "lineSystem",
+            {
+                lines: arr,
+                material: shader,
+                updatable: true,
+            },
+            scene
+        );
+        // store references
+        this.shader = shader;
         this.mesh = curvature;
     }
 
     update(curve: any) {
-        const { mesh } = this;
+        const { mesh, shader } = this;
 
         const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
 
@@ -434,7 +352,10 @@ export class CurvatureHelper {
         }
 
         mesh.setEnabled(true);
+        // set vertex position buffers
         mesh.setVerticesData(VertexBuffer.PositionKind, positions);
+        // set drawRange
+        shader.setInt("drawRange", MAX_LINE_SEG * 2);
     }
 
     setVisible(value: boolean) {

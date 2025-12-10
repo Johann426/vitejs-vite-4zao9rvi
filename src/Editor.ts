@@ -70,8 +70,11 @@ export default class Editor {
   }
 
   onRender() {
-    const dt = 0.001 * (Date.now() - startTime)
-    this.ctrlPolygon.shader.setFloat("time", dt);
+    // const dt = 0.001 * (Date.now() - startTime)
+    // this.curvature.shader.setFloat("time", dt);
+    // this.ctrlPoints.shader.setFloat("time", dt);
+    // this.ctrlPolygon.shader.setFloat("time", dt);
+    // this.designPoints.shader.setFloat("time", dt);
   }
 
   onSceneReady(scene: Scene) {
