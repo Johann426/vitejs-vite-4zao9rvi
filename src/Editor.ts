@@ -36,7 +36,7 @@ export default class Editor {
   keyEventHandler!: KeyEventHandler;
   selectMesh!: SelectMesh;
   glowLayer!: GlowLayer;
-  callbacks: Array<(scene: Scene, msg: string) => void>;
+  callbacks: Array<(scene: Scene) => void>;
   pickables: Array<Mesh>;
   selected: Mesh | undefined;
   picker: GPUPicker;
@@ -45,6 +45,7 @@ export default class Editor {
   ctrlPoints: PointHelper;
   ctrlPolygon: LinesHelper;
   designPoints: PointHelper;
+  nViewport: number = 0;
 
   constructor() {
     this.callbacks = [];
@@ -57,6 +58,12 @@ export default class Editor {
     this.ctrlPolygon = new LinesHelper(ctrlpolygonColor);
     this.designPoints = new PointHelper(designPointsSize, designPointsColor);
   }
+
+  get viewportIndex() {
+    return this.nViewport;
+  }
+
+
 
   dispose() {
     this.scene.dispose();
@@ -90,24 +97,22 @@ export default class Editor {
     this.selectMesh.pickedObject = undefined;
     this.selectMesh.setPickables([mesh]);
 
-
-
-
   }
 
-  onRender() {
+  onRender(scene: Scene) {
     // const dt = 0.001 * (Date.now() - startTime)
     // this.curvature.shader.setFloat("time", dt);
     // this.ctrlPoints.shader.setFloat("time", dt);
     // this.ctrlPolygon.shader.setFloat("time", dt);
     // this.designPoints.shader.setFloat("time", dt);
+    // console.log(scene.activeCamera?.name);
   }
 
   onSceneReady(scene: Scene) {
     scene.clearColor = new Color4(0, 0, 0, 1);
 
     this.scene = scene;
-    this.callbacks.forEach((callback) => callback(scene, "observable added by callback"));
+    this.callbacks.forEach((callback) => callback(scene));
 
     // Select mesh by using GPU pick
     const selectMesh = new SelectMesh(this);
@@ -153,8 +158,7 @@ export default class Editor {
       cameras[i].angularSensibilityY = Infinity
     })
 
-    // scene.activeCameras = cameras;
-    scene.activeCamera = cameras[0];
+    scene.activeCameras = cameras;
 
     // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
     const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
@@ -200,17 +204,67 @@ export default class Editor {
     const { designPoints, ctrlPoints, curvature, ctrlPolygon } = this;
     [designPoints, ctrlPoints, curvature, ctrlPolygon].map(e => e.initialize(scene));
 
+    // keep active camera after render which may involve unexpected change of active camera
+    scene.onAfterRenderObservable.add(() => {
+      scene.activeCamera = cameras[this.nViewport];
+    })
+
     this.test();
 
   }
 
-  addCallback(callback: (scene: Scene, msg: string) => void) {
+  addCallback(callback: (scene: Scene) => void) {
     this.callbacks.push(callback);
   }
 
   removeCallback(callback: (scene: Scene) => void) {
     const index = this.callbacks.indexOf(callback);
     if (index > -1) this.callbacks.splice(index, 1);
+  }
+
+  // set index of viewport correspond to the pointer's coordinates
+  setIndexViewport(dividerX: number, dividerY: number): number {
+    const scene = this.scene;
+    const canvas = scene.getEngine().getRenderingCanvas();
+
+    if (canvas) {
+      // Get coordinates of pointer within the canvas
+      const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
+      const posX = scene.pointerX;
+      const posY = scene.pointerY - parseFloat(offset);
+      // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
+      const normalizedX = posX / canvas.clientWidth;
+      const normalizedY = posY / canvas.clientHeight;
+      // Determine which viewport is clicked and store the ref
+      if (normalizedX <= dividerX && normalizedY <= dividerY) {
+        this.nViewport = 0;
+      } else if (normalizedX > dividerX && normalizedY <= dividerY) {
+        this.nViewport = 1;
+      } else if (normalizedX <= dividerX && normalizedY >= dividerY) {
+        this.nViewport = 2;
+      } else {
+        this.nViewport = 3;
+      }
+    }
+
+    return this.nViewport;
+  }
+
+  // set active camera correspond to the viewport
+  setActiveCamera(dividerX: number, dividerY: number) {
+    const scene = this.scene;
+    const cameras = scene.activeCameras;
+
+    if (!cameras) return;
+
+    const previous = this.nViewport;
+    const n = this.setIndexViewport(dividerX, dividerY);
+
+    if (n === previous) return;
+
+    cameras[previous].detachControl();
+    cameras[n].attachControl();
+    scene.activeCamera = cameras[n];
   }
 
   addPoint(point: Vector) {

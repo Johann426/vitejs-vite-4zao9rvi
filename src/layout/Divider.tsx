@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Scene, Viewport, Camera, Observer, PointerInfo, PointerEventTypes } from "@babylonjs/core";
+import { Viewport, PointerEventTypes } from "@babylonjs/core";
+import type { Scene, Nullable, Camera, Observer, PointerInfo } from "@babylonjs/core";
 import Editor from "../Editor";
 
 interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -7,7 +8,6 @@ interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export default function Divider({ editor, ...rest }: DividerProps) {
-    const cameraRef = useRef<number>(0); // ref to active camera number
     const parentRef = useRef<HTMLDivElement>(null); // ref to the root container
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
@@ -15,59 +15,44 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     // Set event listener(s) when the component mounts
     useEffect(() => {
         const { scene } = editor;
+        const observers: Array<Observer<PointerInfo>> = [];
 
-        const observable = (scene: Scene, msg: string) => {
-            console.log(msg);
-            const setControl = (i: number) => {
-                const cameras = scene.activeCameras;
-                if (!cameras) return;
-                const n = cameraRef.current;
-                if (n == i) return;
-                // const cameras = scene.activeCameras;
-                cameras[n]?.detachControl();
-                cameras[i]?.attachControl(true);
-                scene.activeCamera = cameras[i];
-                // scene.switchActiveCamera(cameras[i]);
-                cameraRef.current = i;
-            };
+        const setObservable = (scene: Scene): void => {
+
+            let onDrag = false;
 
             const onPointerDown = (pointerInfo: PointerInfo) => {
-                const canvas = scene.getEngine().getRenderingCanvas();
-                if (!canvas) return;
-                // Get coordinates of pointer within the canvas
-                const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
-                const posX = pointerInfo.event.clientX;
-                const posY = pointerInfo.event.clientY - parseFloat(offset);
-                // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
-                const normalizedX = posX / canvas.clientWidth;
-                const normalizedY = posY / canvas.clientHeight;
-                // Determine which viewport/camera is clicked and switch the active interaction camera
-                if (normalizedX <= x && normalizedY <= y) {
-                    setControl(0);
-                } else if (normalizedX > x && normalizedY <= y) {
-                    setControl(1);
-                } else if (normalizedX <= x && normalizedY >= y) {
-                    setControl(2);
-                } else {
-                    setControl(3);
+                onDrag = true;
+            };
+
+            const onPointerMove = () => {
+                if (!onDrag) {
+                    editor.setActiveCamera(x, y);
                 }
             };
 
-            scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN);
+            const onPointerUp = (pointerInfo: PointerInfo) => {
+                onDrag = false;
+            };
+
+            observers.push(scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN));
+            observers.push(scene.onPointerObservable.add(onPointerMove, PointerEventTypes.POINTERMOVE));
+            observers.push(scene.onPointerObservable.add(onPointerUp, PointerEventTypes.POINTERUP));
+
         };
 
         if (scene && !scene.isDisposed) {
-            observable(scene, "observable added in divider");
+            // add callback to observerble if scene is ready
+            setObservable(scene);
         } else {
-            // add observable by callback when scene is not ready or disposed
-            editor.addCallback(observable);
+            // callback to be added when scene is ready(by onSceneReady)
+            editor.addCallback(setObservable);
         }
 
         // Cleanup when component unmounts
         return () => {
             if (scene && !scene.isDisposed) {
-                scene.onPointerObservable.clear();
-                console.log("observable removed in divider");
+                observers.map(observer => scene.onPointerObservable.remove(observer));
             }
         };
     }, [editor, x, y]); // re-render with changed dependencies

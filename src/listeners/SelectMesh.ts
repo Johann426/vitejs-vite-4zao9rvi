@@ -1,5 +1,5 @@
 import { Color3, LinesMesh, PointerEventTypes } from "@babylonjs/core";
-import type { Mesh, Nullable, Observer, PointerInfo, } from "@babylonjs/core";
+import type { Scene, Mesh, Nullable, Observer, PointerInfo, } from "@babylonjs/core";
 import Editor from "../Editor";
 
 // Tolerance in pixels for object picking
@@ -15,8 +15,29 @@ export class SelectMesh {
     constructor(editor: Editor) {
         this.editor = editor;
         const scene = editor.scene;
+        this.registerCallbacks(scene);
+    }
+
+    registerCallbacks(scene: Scene) {
         this.pointerMoveObserver = scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE);
         this.pointerDownObserver = scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN);
+    }
+
+    removeCallbacks(scene: Scene) {
+        if (this.pointerMoveObserver) {
+            scene.onPointerObservable.remove(this.pointerMoveObserver);
+            this.pointerMoveObserver = null;
+        }
+        if (this.pointerDownObserver) {
+            scene.onPointerObservable.remove(this.pointerDownObserver);
+            this.pointerDownObserver = null;
+        }
+    }
+
+    // Clean up observers when disposing of the SelectMesh instance
+    dispose() {
+        const scene = this.editor.scene;
+        this.removeCallbacks(scene);
     }
 
     // Restore the original color of the previously picked object
@@ -63,6 +84,7 @@ export class SelectMesh {
         if (event.button === 0) {
             const editor = this.editor;
             const { scene, picker, curvature, ctrlPoints, ctrlPolygon, designPoints } = editor;
+            console.log(scene.activeCamera?.name);
             const x1 = scene.pointerX - PICK_TOLERANCE;
             const y1 = scene.pointerY - PICK_TOLERANCE;
             const x2 = scene.pointerX + PICK_TOLERANCE;
@@ -93,19 +115,6 @@ export class SelectMesh {
             picker.setPickingList(pickables);
         } else {
             picker.setPickingList(editor.pickables);
-        }
-    }
-
-    // Clean up observers when disposing of the SelectMesh instance
-    dispose() {
-        const scene = this.editor.scene;
-        if (this.pointerMoveObserver) {
-            scene.onPointerObservable.remove(this.pointerMoveObserver);
-            this.pointerMoveObserver = null;
-        }
-        if (this.pointerDownObserver) {
-            scene.onPointerObservable.remove(this.pointerDownObserver);
-            this.pointerDownObserver = null;
         }
     }
 }

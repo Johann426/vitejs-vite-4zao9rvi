@@ -19,16 +19,12 @@ export default function App() {
         };
     }, []);
 
-
-
     const onSceneReady = (scene: Scene) => {
         editor.onSceneReady(scene);
     };
 
-    const onRender = () => {
-        editor.onRender();
-
-
+    const onRender = (scene: Scene) => {
+        editor.onRender(scene);
     };
 
     return (
