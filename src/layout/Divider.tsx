@@ -12,33 +12,29 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     const [x, setX] = useState(0.5); // left position of vertical splitter
     const [y, setY] = useState(0.5); // top position of horizontal splitter
 
-    // Set event listener(s) when the component mounts
+    // Set onPointerObservable when the component mounts
     useEffect(() => {
         const { scene } = editor;
         const observers: Array<Observer<PointerInfo>> = [];
 
         const setObservable = (scene: Scene): void => {
-
             let onDrag = false;
 
-            const onPointerDown = (pointerInfo: PointerInfo) => {
+            const onPointerDown = () => {
                 onDrag = true;
             };
-
             const onPointerMove = () => {
                 if (!onDrag) {
                     editor.setActiveCamera(x, y);
                 }
             };
-
-            const onPointerUp = (pointerInfo: PointerInfo) => {
+            const onPointerUp = () => {
                 onDrag = false;
             };
 
             observers.push(scene.onPointerObservable.add(onPointerDown, PointerEventTypes.POINTERDOWN));
             observers.push(scene.onPointerObservable.add(onPointerMove, PointerEventTypes.POINTERMOVE));
             observers.push(scene.onPointerObservable.add(onPointerUp, PointerEventTypes.POINTERUP));
-
         };
 
         if (scene && !scene.isDisposed) {
