@@ -107,6 +107,11 @@ export default class Editor {
     plane.material = new StandardMaterial("mat", scene);
     plane.material.backFaceCulling = false;
 
+    plane.enableEdgesRendering();
+    plane.edgesWidth = 2.0;
+    plane.edgesColor = new Color4(0.5, 0.5, 0.5, 1);
+    // plane.disableEdgesRendering();
+
     function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
       const camera = scene.activeCamera;
 
