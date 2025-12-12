@@ -1,6 +1,6 @@
 import type Command from "./Command.js";
 import type Editor from "../Editor";
-import type { Parametric } from "./modeling/Parametric.js";
+import type { Parametric } from "./modeling/Parametric";
 import { LinesMesh, Color3 } from "@babylonjs/core";
 import { CurveHelper } from "../DesignHelper";
 

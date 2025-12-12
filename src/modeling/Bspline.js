@@ -1,5 +1,5 @@
 import { curvePoint, curveDers, calcGreville, knotInsert, knotsRemoval } from "./NurbsLib.js";
-import { Parametric } from "./Parametric.js";
+import { Parametric } from "./Parametric.ts";
 
 class Bspline extends Parametric {
     constructor(deg, knots, ctrlp) {

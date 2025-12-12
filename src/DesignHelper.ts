@@ -14,7 +14,6 @@ function createPointShader(scene: Scene) {
         {
             attributes: ["position"],
             uniforms: ["pointSize", "worldViewProjection", "drawRange", "color3", "time"],
-            shaderLanguage: ShaderLanguage.WGSL,
             needAlphaBlending: true,
         }
     );
@@ -28,7 +27,6 @@ function createLinesShader(scene: Scene) {
         {
             attributes: ["position"],
             uniforms: ["worldViewProjection", "drawRange", "color3", "time"],
-            shaderLanguage: ShaderLanguage.WGSL,
             needAlphaBlending: true,
         }
     );

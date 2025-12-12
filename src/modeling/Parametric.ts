@@ -1,17 +1,23 @@
-import { Curve } from "./Curve.js";
+import type Curve from "./Curve.js";
 import { Vector } from "./NurbsLib.js";
 
 /*
  * Abstract class representing parametric form of geometric model
  */
-class Parametric extends Curve {
-    get ctrlPoints() {
-        console.warn("ctrlPoints() not implemented.");
-    }
+export abstract class Parametric implements Curve {
+    abstract knots: Array<number>;
+    abstract ctrlp: Array<Vector>;
 
-    get designPoints() {
-        console.warn("designPoints() not implemented.");
-    }
+    abstract get ctrlPoints(): Array<Vector>;
+    abstract get designPoints(): Array<Vector>;
+
+    abstract add(v: Vector): void
+    abstract remove(i: number): void
+    abstract mod(i: number, v: Vector): void
+    abstract split(t: number): void
+    abstract getPointAt(t: number): Vector
+    abstract getDerivatives(t: number): Array<Vector>;
+    abstract clone(): Parametric
 
     get tmin() {
         return this.knots ? this.knots[0] : 0.0;
@@ -21,7 +27,7 @@ class Parametric extends Curve {
         return this.knots ? this.knots[this.knots.length - 1] : 1.0;
     }
 
-    getPoints(n) {
+    getPoints(n: number) {
         const tmin = this.knots ? this.knots[0] : 0.0;
         const tmax = this.knots ? this.knots[this.knots.length - 1] : 1.0;
         const p = [];
@@ -138,13 +144,13 @@ class Parametric extends Curve {
         return t;
     }
 
-    closestPoint(v) {
+    closestPoint(v: Vector) {
         const t = this.closestPosition(v);
 
         return this.getPointAt(t);
     }
 
-    interrogationAt(t) {
+    interrogationAt(t: number) {
         const ders = this.getDerivatives(t, 2);
         const binormal = ders[1].cross(ders[2]);
         const normal = binormal.cross(ders[1]);
@@ -160,7 +166,7 @@ class Parametric extends Curve {
         };
     }
 
-    interrogations(n) {
+    interrogations(n: number) {
         const t_min = this.knots ? this.knots[0] : 0.0;
         const t_max = this.knots ? this.knots[this.knots.length - 1] : 1.0;
         const p = [];
@@ -173,5 +179,3 @@ class Parametric extends Curve {
         return p;
     }
 }
-
-export { Parametric };
