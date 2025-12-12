@@ -105,7 +105,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     top: 0,
                     width: `${x * 100}%`,
                     height: `${y * 100}%`,
-                    backgroundColor: "rgba(255, 0, 0, 0.1)",
+                    // backgroundColor: "rgba(255, 0, 0, 0.1)",
                 }}
             />
             <div // top-right overlay
@@ -115,7 +115,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     top: 0,
                     width: `${(1 - x) * 100}%`,
                     height: `${y * 100}%`,
-                    backgroundColor: "rgba(0, 255, 0, 0.1)",
+                    // backgroundColor: "rgba(0, 255, 0, 0.1)",
                 }}
             />
             <div // bottome-left overlay
@@ -125,7 +125,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     top: `${y * 100}%`,
                     width: `${x * 100}%`,
                     height: `${(1 - y) * 100}%`,
-                    backgroundColor: "rgba(0, 0, 255, 0.1)",
+                    // backgroundColor: "rgba(0, 0, 255, 0.1)",
                 }}
             />
             <div // bottom-right overlay
@@ -135,7 +135,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
                     top: `${y * 100}%`,
                     width: `${(1 - x) * 100}%`,
                     height: `${(1 - y) * 100}%`,
-                    backgroundColor: "rgba(0, 255, 255, 0.1)",
+                    // backgroundColor: "rgba(0, 255, 255, 0.1)",
                 }}
             />
             <div // divider vertical

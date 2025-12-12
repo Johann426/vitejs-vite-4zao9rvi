@@ -11,13 +11,15 @@ import {
   StandardMaterial,
   Color3,
   GlowLayer,
+  PointerEventTypes,
 } from "@babylonjs/core";
+import type Command from "./commands/Command.js";
+import type { Parametric } from "./modeling/Parametric.js";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddCurveCommand.js";
 import { AddPointCommand } from "./commands/AddPointCommand.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js";
 import { Vector } from "./modeling/NurbsLib";
-import { Parametric } from "./modeling/Parametric";
 import { PointHelper, LinesHelper, CurvatureHelper } from "./DesignHelper.js";
 import { SelectMesh } from "./listeners/SelectMesh.js";
 import { KeyEventHandler } from "./listeners/KeyEvent.js";
@@ -81,7 +83,7 @@ export default class Editor {
     this.designPoints.dispose();
   }
 
-  test() {
+  test(scene: Scene) {
     // Create Test curve
     const curve = new BsplineCurveInt(3);
     this.addCurve(curve);
@@ -97,19 +99,51 @@ export default class Editor {
     this.selectMesh.pickedObject = undefined;
     this.selectMesh.setPickables([mesh]);
 
+    // Ray test
+    const plane = MeshBuilder.CreatePlane("plane", { size: 10 }, scene);
+    // plane.rotation.x = Math.PI / 2; // xy plane -> x-z plane
+    plane.position.y = 0;
+    plane.isPickable = true;
+    plane.material = new StandardMaterial("mat", scene);
+    plane.material.backFaceCulling = false;
+
+    function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
+      const camera = scene.activeCamera;
+
+      if (!camera) return null;
+
+      // from cam to pointer ray
+      const ray = scene.createPickingRay(evt.clientX, evt.clientY, null, camera, false);
+      const pickInfo = ray.intersectsMesh(plane);
+
+      return pickInfo.hit ? pickInfo.pickedPoint! : null;
+    }
+
+    scene.onPointerObservable.add((pointerInfo) => {
+      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+        const evt = pointerInfo.event as PointerEvent;
+        const point = getPointerGroundIntersection(scene, evt);
+
+        if (point) {
+          console.log("Intersection:", point.toString());
+        } else {
+          console.log("No intersection with ground plane");
+        }
+      }
+    });
+
   }
 
   onRender(scene: Scene) {
-    // const dt = 0.001 * (Date.now() - startTime)
+    const dt = 0.001 * (Date.now() - startTime)
     // this.curvature.shader.setFloat("time", dt);
     // this.ctrlPoints.shader.setFloat("time", dt);
     // this.ctrlPolygon.shader.setFloat("time", dt);
     // this.designPoints.shader.setFloat("time", dt);
-    // console.log(scene.activeCamera?.name);
   }
 
   onSceneReady(scene: Scene) {
-    scene.clearColor = new Color4(0, 0, 0, 1);
+    scene.clearColor = new Color4(0, 0, 0, 0);
 
     this.scene = scene;
     this.callbacks.forEach((callback) => callback(scene));
@@ -166,40 +200,6 @@ export default class Editor {
     // Default intensity is 1. Let's dim the light a small amount
     light.intensity = 0.25;
 
-    // Ray test
-    function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
-      const camera = scene.activeCamera;
-
-      if (!camera) return null;
-
-      // 1) from cam to pointer ray
-      const ray = scene.createPickingRay(evt.clientX, evt.clientY, null, camera, false);
-
-      const plane = MeshBuilder.CreatePlane("p", { size: 10 }, scene);
-      // plane.rotation.x = Math.PI / 2; // xy plane -> x-z plane
-      plane.position.y = 0;
-      plane.isPickable = true;
-      plane.material = new StandardMaterial("mat", scene);
-      plane.material.backFaceCulling = false;
-
-      const pickInfo = ray.intersectsMesh(plane);
-
-      return pickInfo.hit ? pickInfo.pickedPoint! : null;
-    }
-
-    // scene.onPointerObservable.add((pointerInfo) => {
-    //   if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-    //     const evt = pointerInfo.event as PointerEvent;
-    //     const point = getPointerGroundIntersection(scene, evt);
-
-    //     if (point) {
-    //       console.log("Intersection:", point.toString());
-    //     } else {
-    //       console.log("No intersection with ground plane");
-    //     }
-    //   }
-    // });
-
     //create design points, control points, control polygon, curvature
     const { designPoints, ctrlPoints, curvature, ctrlPolygon } = this;
     [designPoints, ctrlPoints, curvature, ctrlPolygon].map(e => e.initialize(scene));
@@ -209,7 +209,7 @@ export default class Editor {
       scene.activeCamera = cameras[this.nViewport];
     })
 
-    this.test();
+    this.test(scene);
 
   }
 
@@ -289,7 +289,7 @@ export default class Editor {
 
   // }
 
-  execute(cmd) {
+  execute(cmd: Command) {
     this.history.excute(cmd);
   }
 

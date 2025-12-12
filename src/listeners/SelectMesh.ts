@@ -84,7 +84,6 @@ export class SelectMesh {
         if (event.button === 0) {
             const editor = this.editor;
             const { scene, picker, curvature, ctrlPoints, ctrlPolygon, designPoints } = editor;
-            console.log(scene.activeCamera?.name);
             const x1 = scene.pointerX - PICK_TOLERANCE;
             const y1 = scene.pointerY - PICK_TOLERANCE;
             const x2 = scene.pointerX + PICK_TOLERANCE;

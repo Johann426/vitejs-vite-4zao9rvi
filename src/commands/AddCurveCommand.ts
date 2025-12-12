@@ -1,11 +1,12 @@
-import { LinesMesh, Color3 } from "@babylonjs/core";
-import Editor from "../Editor";
-import { CurveHelper } from "../DesignHelper";
+import type Command from "./Command.js";
+import type Editor from "../Editor";
 import type { Parametric } from "./modeling/Parametric.js";
+import { LinesMesh, Color3 } from "@babylonjs/core";
+import { CurveHelper } from "../DesignHelper";
 
 const lineColor = new Color3(0, 1, 0)
 
-export class AddCurveCommand {
+export class AddCurveCommand implements Command {
     editor: Editor;
     curve: Parametric;
     mesh: LinesMesh | undefined;

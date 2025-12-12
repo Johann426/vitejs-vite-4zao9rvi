@@ -1,4 +1,7 @@
+import type Editor from "../Editor";
+
 export default interface Command {
-    execute: () => void;
-    undo: () => void;
+    editor: Editor;
+    execute(): void;
+    undo(): void;
 }

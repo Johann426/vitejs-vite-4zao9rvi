@@ -1,4 +1,5 @@
-import { Scene, Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder, VertexBuffer, LinesMesh, StandardMaterial } from "@babylonjs/core";
+import { Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder, VertexBuffer, ShaderLanguage } from "@babylonjs/core";
+import type { Scene, LinesMesh } from "@babylonjs/core";
 import { Vector } from "./modeling/NurbsLib.ts";
 import type { Parametric } from "./modeling/Parametric.js";
 
@@ -13,6 +14,7 @@ function createPointShader(scene: Scene) {
         {
             attributes: ["position"],
             uniforms: ["pointSize", "worldViewProjection", "drawRange", "color3", "time"],
+            shaderLanguage: ShaderLanguage.WGSL,
             needAlphaBlending: true,
         }
     );
@@ -26,6 +28,7 @@ function createLinesShader(scene: Scene) {
         {
             attributes: ["position"],
             uniforms: ["worldViewProjection", "drawRange", "color3", "time"],
+            shaderLanguage: ShaderLanguage.WGSL,
             needAlphaBlending: true,
         }
     );
