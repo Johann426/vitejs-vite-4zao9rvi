@@ -112,30 +112,30 @@ export default class Editor {
     plane.edgesColor = new Color4(0.5, 0.5, 0.5, 1);
     // plane.disableEdgesRendering();
 
-    function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
-      const camera = scene.activeCamera;
+    // function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
+    //   const camera = scene.activeCamera;
 
-      if (!camera) return null;
+    //   if (!camera) return null;
 
-      // from cam to pointer ray
-      const ray = scene.createPickingRay(evt.clientX, evt.clientY, null, camera, false);
-      const pickInfo = ray.intersectsMesh(plane);
+    //   // from cam to pointer ray
+    //   const ray = scene.createPickingRay(evt.clientX, evt.clientY, null, camera, false);
+    //   const pickInfo = ray.intersectsMesh(plane);
 
-      return pickInfo.hit ? pickInfo.pickedPoint! : null;
-    }
+    //   return pickInfo.hit ? pickInfo.pickedPoint! : null;
+    // }
 
-    scene.onPointerObservable.add((pointerInfo) => {
-      if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-        const evt = pointerInfo.event as PointerEvent;
-        const point = getPointerGroundIntersection(scene, evt);
+    // scene.onPointerObservable.add((pointerInfo) => {
+    //   if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
+    //     const evt = pointerInfo.event as PointerEvent;
+    //     const point = getPointerGroundIntersection(scene, evt);
 
-        if (point) {
-          console.log("Intersection:", point.toString());
-        } else {
-          console.log("No intersection with ground plane");
-        }
-      }
-    });
+    //     if (point) {
+    //       console.log("Intersection:", point.toString());
+    //     } else {
+    //       console.log("No intersection with ground plane");
+    //     }
+    //   }
+    // });
 
   }
 
@@ -234,9 +234,8 @@ export default class Editor {
 
     if (canvas) {
       // Get coordinates of pointer within the canvas
-      const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
       const posX = scene.pointerX;
-      const posY = scene.pointerY - parseFloat(offset);
+      const posY = scene.pointerY;
       // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
       const normalizedX = posX / canvas.clientWidth;
       const normalizedY = posY / canvas.clientHeight;

@@ -1,6 +1,9 @@
-import { Color3, LinesMesh, PointerEventTypes } from "@babylonjs/core";
+import { Plane as BPlane } from "@babylonjs/core";
+import { Color3, LinesMesh, PointerEventTypes, Matrix, RayHelper } from "@babylonjs/core";
 import type { Scene, Mesh, Nullable, Observer, PointerInfo, } from "@babylonjs/core";
 import Editor from "../Editor";
+import { Vector } from "../modeling/NurbsLib";
+import { Plane } from "../modeling/Plane";
 
 // Tolerance in pixels for object picking
 const PICK_TOLERANCE = 4;
@@ -81,7 +84,7 @@ export class SelectMesh {
     onPointerDown = (pointerInfo: PointerInfo) => {
         const event: PointerEvent = pointerInfo.event as PointerEvent;
 
-        if (event.button === 0) {
+        if (event.button === 0) { // left click
             const editor = this.editor;
             const { scene, picker, curvature, ctrlPoints, ctrlPolygon, designPoints } = editor;
             const x1 = scene.pointerX - PICK_TOLERANCE;
@@ -101,9 +104,34 @@ export class SelectMesh {
             });
         }
 
-        if (event.button === 2) {
-            console.log("right click")
+        if (event.button === 2) { // right click
+            const editor = this.editor;
+            const { scene } = editor;
+            const camera = scene.activeCamera;
+            const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, Matrix.Identity(), camera);
+            // const rayHelper = new RayHelper(ray);
+            // rayHelper.show(scene);
+            // const pickingInfo = ray.intersectsMesh(mesh);
+            const plane = new Plane();
+            const origin = new Vector(ray.origin.x, ray.origin.y, ray.origin.z);
+            const direction = new Vector(ray.direction.x, ray.direction.y, ray.direction.z);
+            console.log("camera", camera?.position);
+            console.log("origin", origin.components);
+            console.log("direction", direction.components);
+            const intersection = plane.intersectRay({ origin: origin, direction: direction });
+            console.log("intersect", intersection?.components);
+
+            const groundPlane = new BPlane(0, 0, 1, 0);
+            const distance = ray.intersectsPlane(groundPlane);
+            if (distance) {
+                const hitPoint = ray.origin.add(ray.direction.scale(distance));
+                console.log("hitPoint", [hitPoint.x, hitPoint.y, hitPoint.z]);
+            }
+
         }
+
+
+
     };
 
     // Set the list of pickable meshes for the GPU picker
