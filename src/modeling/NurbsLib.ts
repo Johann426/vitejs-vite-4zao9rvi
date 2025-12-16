@@ -1117,30 +1117,30 @@ function knotsRemoval(deg: number, knot: number[], ctrl: Vector[], u: number, nu
 /*
 function knotsRemoval( deg, knot, ctrl, t ) {
 
-	const tol = 1e-10; //Number.EPSILON;
-	const knotmuls = knotMults( knot );
+    const tol = 1e-10; //Number.EPSILON;
+    const knotmuls = knotMults( knot );
 
-	let low = 0;
-	let high = knotmuls.length - 1;
+    let low = 0;
+    let high = knotmuls.length - 1;
 
-	while ( low != high ) { // binary search
+    while ( low != high ) { // binary search
 
-		const m = ceil( ( low + high ) / 2 );
+        const m = ceil( ( low + high ) / 2 );
 
-		knotmuls[ m ].knot > t ? high = m - 1 : low = m;
+        knotmuls[ m ].knot > t ? high = m - 1 : low = m;
 
-	}
+    }
 
-	if ( knotmuls[ low ].knot - t > tol ) {
+    if ( knotmuls[ low ].knot - t > tol ) {
 
-		return;
+        return;
 
-	}
+    }
 
-	const mul = knotmuls[ low ].mult;
-	const span = findIndexSpan( deg, knot, ctrl.length, t );
+    const mul = knotmuls[ low ].mult;
+    const span = findIndexSpan( deg, knot, ctrl.length, t );
 
-	knot.splice( span, 1 );
+    knot.splice( span, 1 );
 
 }
 */

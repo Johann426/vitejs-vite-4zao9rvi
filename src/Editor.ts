@@ -18,7 +18,7 @@ import type { Parametric } from "./modeling/Parametric.js";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddCurveCommand.js";
 import { AddPointCommand } from "./commands/AddPointCommand.js";
-import { BsplineCurveInt } from "./modeling/BsplineCurveInt.js";
+import { BsplineCurveInt } from "./modeling/BsplineCurveInt.ts";
 import { Vector } from "./modeling/NurbsLib";
 import { PointHelper, LinesHelper, CurvatureHelper } from "./DesignHelper.js";
 import { SelectMesh } from "./listeners/SelectMesh.js";

@@ -5,8 +5,9 @@ import { Vector } from "./NurbsLib.js";
  * Abstract class representing parametric form of geometric model
  */
 export abstract class Parametric implements Curve {
-    abstract knots: Array<number>;
-    abstract ctrlp: Array<Vector>;
+    protected prm: Array<number> = [];
+    protected knots: Array<number> = [];
+    protected ctrlp: Array<Vector> = [];
 
     abstract get ctrlPoints(): Array<Vector>;
     abstract get designPoints(): Array<Vector>;
@@ -19,6 +20,10 @@ export abstract class Parametric implements Curve {
     abstract getDerivatives(t: number, n: number): Array<Vector>;
     abstract update(): void;
     abstract clone(): Parametric
+
+    get parameters() {
+        return this.prm;
+    }
 
     get tmin() {
         return this.knots ? this.knots[0] : 0.0;

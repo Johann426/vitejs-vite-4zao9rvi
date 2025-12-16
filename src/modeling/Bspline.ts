@@ -2,9 +2,9 @@ import { curvePoint, curveDers, calcGreville, knotInsert, knotsRemoval, Vector }
 import { Parametric } from "./Parametric.ts";
 
 abstract class Bspline extends Parametric {
-    private dmax: number = 3;
+    protected dmax: number = 3;
 
-    constructor(deg: number, knots: number[], ctrlp: Vector[]) {
+    constructor(deg: number, knots: number[] | undefined, ctrlp: Vector[] | undefined) {
         super();
         this.initialize(deg, knots, ctrlp);
     }
@@ -22,7 +22,7 @@ abstract class Bspline extends Parametric {
         return calcGreville(this.deg, this.knots).map((e) => this.getPointAt(e));
     }
 
-    public initialize(deg: number, knots: number[], ctrlp: Vector[]) {
+    public initialize(deg: number, knots: number[] | undefined, ctrlp: Vector[] | undefined) {
         this.dmax = deg !== undefined ? deg : 3;
         this.knots = knots !== undefined ? knots : [];
         this.ctrlp = ctrlp !== undefined ? ctrlp : [];
