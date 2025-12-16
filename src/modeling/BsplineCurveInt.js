@@ -7,7 +7,7 @@ import {
     split,
     Vector,
 } from "./NurbsLib.js";
-import { Bspline } from "./Bspline.js";
+import { Bspline } from "./Bspline.ts";
 import { BsplineCurve } from "./BsplineCurve.js";
 
 class BsplineCurveInt extends Bspline {

@@ -16,7 +16,8 @@ export abstract class Parametric implements Curve {
     abstract mod(i: number, v: Vector): void
     abstract split(t: number): void
     abstract getPointAt(t: number): Vector
-    abstract getDerivatives(t: number): Array<Vector>;
+    abstract getDerivatives(t: number, n: number): Array<Vector>;
+    abstract update(): void;
     abstract clone(): Parametric
 
     get tmin() {
@@ -40,7 +41,7 @@ export abstract class Parametric implements Curve {
         return p;
     }
 
-    scale(s) {
+    scale(s: number) {
         const pts = this.designPoints;
         pts.map((e) => {
             e.x *= s;
@@ -70,7 +71,7 @@ export abstract class Parametric implements Curve {
      * C(t) - P < epsilon
      *
      */
-    closestPosition(p) {
+    closestPosition(p: Vector) {
         const v = new Vector(p.x, p.y, p.z);
         const n = 200;
         const tmin = this.tmin; //this.knots ? this.knots[ 0 ] : 0.0;

@@ -6,6 +6,7 @@ export default interface Curve {
     mod(i: number, v: Vector): void;
     split(t: number): void;
     getPointAt(t: number): Vector;
-    getDerivatives(t: number): Array<Vector>;
+    getDerivatives(t: number, n: number): Array<Vector>;
+    update(): void;
     clone(): Curve;
 }

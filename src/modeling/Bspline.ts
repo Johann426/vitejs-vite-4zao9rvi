@@ -1,10 +1,11 @@
-import { curvePoint, curveDers, calcGreville, knotInsert, knotsRemoval } from "./NurbsLib.js";
+import { curvePoint, curveDers, calcGreville, knotInsert, knotsRemoval, Vector } from "./NurbsLib.js";
 import { Parametric } from "./Parametric.ts";
 
-class Bspline extends Parametric {
-    constructor(deg, knots, ctrlp) {
-        super();
+abstract class Bspline extends Parametric {
+    private dmax: number = 3;
 
+    constructor(deg: number, knots: number[], ctrlp: Vector[]) {
+        super();
         this.initialize(deg, knots, ctrlp);
     }
 
@@ -21,27 +22,25 @@ class Bspline extends Parametric {
         return calcGreville(this.deg, this.knots).map((e) => this.getPointAt(e));
     }
 
-    initialize(deg, knots, ctrlp) {
-        this.dmax = deg;
-
+    public initialize(deg: number, knots: number[], ctrlp: Vector[]) {
+        this.dmax = deg !== undefined ? deg : 3;
         this.knots = knots !== undefined ? knots : [];
-
         this.ctrlp = ctrlp !== undefined ? ctrlp : [];
     }
 
-    insertKnotAt(t) {
+    insertKnotAt(t: number) {
         if (t > this.tmin && t < this.tmax) knotInsert(this.deg, this.knots, this.ctrlp, t, 1);
     }
 
-    removeKnotAt(t, n = 1, tol = 1e-4) {
+    removeKnotAt(t: number, n = 1, tol = 1e-4) {
         knotsRemoval(this.deg, this.knots, this.ctrlp, t, n, tol);
     }
 
-    getPointAt(t) {
+    getPointAt(t: number) {
         return curvePoint(this.deg, this.knots, this.ctrlp, t);
     }
 
-    getDerivatives(t, k) {
+    getDerivatives(t: number, k: number) {
         return curveDers(this.deg, this.knots, this.ctrlp, t, k);
     }
 }

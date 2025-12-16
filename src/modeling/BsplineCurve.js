@@ -1,5 +1,5 @@
 import { parameterize, deBoorKnots, calcGreville, Vector, split } from "./NurbsLib.js";
-import { Bspline } from "./Bspline.js";
+import { Bspline } from "./Bspline.ts";
 
 class BsplineCurve extends Bspline {
     get ctrlPoints() {
