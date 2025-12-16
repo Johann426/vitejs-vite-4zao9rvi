@@ -26,11 +26,11 @@ import { KeyEventHandler } from "./listeners/KeyEvent.js";
 
 const startTime = Date.now();
 const curvatureScale = 1.0;
-const curvatureColor = new Color3(0.5, 0.0, 0.0);
 const ctrlPointsSize = 7.0;
-const ctrlPointsColor = new Color3(0.5, 0.5, 0.5)
-const ctrlpolygonColor = new Color3(0.5, 0.5, 0.5)
 const designPointsSize = 8.0;
+const curvatureColor = new Color3(0.5, 0.0, 0.0);
+const ctrlPointsColor = new Color3(0.5, 0.5, 0.5);
+const ctrlpolygonColor = new Color3(0.5, 0.5, 0.5);
 const designPointsColor = new Color3(1.0, 1.0, 0.0);
 
 export default class Editor {
@@ -40,7 +40,7 @@ export default class Editor {
   glowLayer!: GlowLayer;
   callbacks: Array<(scene: Scene) => void>;
   pickables: Array<Mesh>;
-  selected: Mesh | undefined;
+  // selected: Mesh | undefined;
   picker: GPUPicker;
   history: History;
   curvature: CurvatureHelper;
@@ -52,7 +52,7 @@ export default class Editor {
   constructor() {
     this.callbacks = [];
     this.pickables = [];
-    this.selected = undefined;
+    // this.selected = undefined;
     this.picker = new GPUPicker(); // set up gpu picker
     this.history = new History();
     this.curvature = new CurvatureHelper(curvatureColor, curvatureScale);
@@ -74,7 +74,7 @@ export default class Editor {
     this.glowLayer.dispose();
     this.callbacks = [];
     this.pickables = [];
-    this.selected = undefined;
+    // this.selected = undefined;
     this.picker.dispose();
     this.history.clear();
     this.curvature.dispose();
