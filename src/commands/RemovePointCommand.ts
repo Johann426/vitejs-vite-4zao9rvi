@@ -1,7 +1,7 @@
 import Editor from "../Editor";
 import type Command from "./Command";
 import type { Mesh } from "@babylonjs/core";
-import type { Vertex } from "../modeling/BsplineCurveInt";
+import type { Vertex } from "../modeling/Vertex";
 
 export class RemovePointCommand implements Command {
     editor: Editor;

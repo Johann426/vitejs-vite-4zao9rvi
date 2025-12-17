@@ -32,8 +32,11 @@ function createLinesShader(scene: Scene) {
     );
 }
 
-export interface DesignHelper<T> {
-    update: (data: T) => void;
+export class DesignHelper<T> {
+    helpers: T[] = [];
+    update() {
+        this.helpers.map(e => e.update());
+    }
 }
 
 /**
@@ -43,7 +46,7 @@ export interface DesignHelper<T> {
  * without needing to reallocate GPU buffers.
  *  @author Johannd0426 <
  */
-export class PointHelper implements DesignHelper<Vector[]> {
+export class PointHelper {
     pointSize: number;
     pointColor: Color3;
     shader!: ShaderMaterial;
@@ -159,7 +162,7 @@ export class PointHelper implements DesignHelper<Vector[]> {
  * without needing to reallocate GPU buffers.
  *  @author Johannd0426 <
  */
-export class LinesHelper implements DesignHelper<Vector[]> {
+export class LinesHelper {
     color3: Color3;
     shader!: ShaderMaterial;
     mesh!: LinesMesh;
@@ -276,7 +279,7 @@ export class CurveHelper extends LinesHelper {
  * using a preallocated line system mesh.
  *  @author Johannd0426 <
  */
-export class CurvatureHelper implements DesignHelper<Parametric> {
+export class CurvatureHelper {
     color3: Color3;
     scale: number;
     shader!: ShaderMaterial;
