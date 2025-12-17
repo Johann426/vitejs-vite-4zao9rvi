@@ -11,15 +11,15 @@ import {
   StandardMaterial,
   Color3,
   GlowLayer,
-  PointerEventTypes,
 } from "@babylonjs/core";
 import type { Parametric } from "./modeling/Parametric.js";
 import type Command from "./commands/Command.js";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddCurveCommand.js";
 import { AddPointCommand } from "./commands/AddPointCommand.js";
-import { AddVertexCommand } from "./commands/AddVertexCommand.ts";
-import { Vertex, BsplineCurveInt } from "./modeling/BsplineCurveInt.ts";
+import { ModifyPointCommand } from "./commands/ModifyPointCommand.ts";
+import { RemovePointCommand } from "./commands/RemovePointCommand.ts";
+import { BsplineCurveInt } from "./modeling/BsplineCurveInt.ts";
 import { Vector } from "./modeling/NurbsLib";
 import { PointHelper, LinesHelper, CurvatureHelper } from "./DesignHelper.js";
 import { SelectMesh } from "./listeners/SelectMesh.js";
@@ -89,13 +89,17 @@ export default class Editor {
 
     const mesh = this.pickables[this.pickables.length - 1];
     this.selectMesh.pickedObject = mesh;
-    this.addVertex(new Vector(0, 0, 0));
-    this.addVertex(new Vector(1, 1, 1));
-    this.addVertex(new Vector(0, 0, 2));
-    this.addVertex(new Vector(1, 1, 3));
-    this.updateCurveHelper(curve);
+    this.addPoint(new Vector(0, 0, 0));
+    this.addPoint(new Vector(1, 1, 1));
+    this.addPoint(new Vector(0, 0, 2));
 
-    curve.mod(3, new Vector(-1, -1, -1));
+    this.addPoint(new Vector(2, 1, 0));
+    this.removePoint(3);
+
+    this.addPoint(new Vector(1, 1, 3));
+    // curve.mod(3, new Vector(-1, -1, -1));
+    this.modPoint(new Vector(-1, -1, -1), 3);
+    this.updateCurveHelper(curve);
 
     this.selectMesh.pickedObject = undefined;
     this.selectMesh.setPickables([mesh]);
@@ -276,8 +280,12 @@ export default class Editor {
     this.execute(new AddPointCommand(this, point));
   }
 
-  addVertex(point: Vector) {
-    this.execute(new AddVertexCommand(this, point));
+  modPoint(point: Vector, index: number) {
+    this.execute(new ModifyPointCommand(this, point, index));
+  }
+
+  removePoint(index: number) {
+    this.execute(new RemovePointCommand(this, index));
   }
 
   addCurve(curve: Parametric) {

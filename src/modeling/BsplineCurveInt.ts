@@ -2,7 +2,7 @@ import { parameterize, assignKnot, globalCurveInterpTngt, split, Vector, } from 
 import { Bspline } from "./Bspline.ts";
 import { BsplineCurve } from "./BsplineCurve.ts";
 import type { Parametric } from "./Parametric.ts";
-import type { DesignHelper, CurveHelper as T } from "../DesignHelper.ts";
+import type { CurveHelper } from "../DesignHelper.ts";
 
 export interface Observable<T> {
     observers: T[];
@@ -11,8 +11,8 @@ export interface Observable<T> {
     notify(): void;
 }
 
-export class Vertex implements Observable<T> {
-    observers: T[] = [];
+export class Vertex implements Observable<Parametric | CurveHelper> {
+    observers: (Parametric | CurveHelper)[] = [];
     position: Vector;
     knuckle: boolean;
     tangentI: Vector;
@@ -26,12 +26,12 @@ export class Vertex implements Observable<T> {
     }
 
     // add obsrver
-    add(observer: T): void {
+    add(observer: Parametric | CurveHelper): void {
         this.observers.push(observer);
     }
 
     // remove obsrver
-    remove(observer: T): void {
+    remove(observer: Parametric | CurveHelper): void {
         const index = this.observers.indexOf(observer);
         if (index > -1) {
             this.observers.splice(index, 1);

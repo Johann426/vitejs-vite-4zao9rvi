@@ -19,27 +19,29 @@ export class KeyEventHandler {
 
         if ((ctrlKey || metaKey) && key.toLowerCase() === "z") {
             kbInfo.event.preventDefault();
+            console.log(history);
             history.undo();
         }
         if ((ctrlKey || metaKey) && key.toLowerCase() === "y") {
             kbInfo.event.preventDefault();
+            console.log(history);
             history.redo();
         }
 
         const camera = scene.activeCamera;
 
-        if (camera) {
-            const dist = camera.position.length();
-            if (key === "x") {
-                camera.position = new Vector3(dist, 0, 0);
-            }
-            if (key === "y") {
-                camera.position = new Vector3(0, dist, 0);
-            }
-            if (key === "z") {
-                camera.position = new Vector3(0, 0, dist);
-            }
-        }
+        // if (camera) {
+        //     const dist = camera.position.length();
+        //     if (key === "x") {
+        //         camera.position = new Vector3(dist, 0, 0);
+        //     }
+        //     if (key === "y") {
+        //         camera.position = new Vector3(0, dist, 0);
+        //     }
+        //     if (key === "z") {
+        //         camera.position = new Vector3(0, 0, dist);
+        //     }
+        // }
     };
 
     // Clean up observers when disposing of the SelectMesh instance

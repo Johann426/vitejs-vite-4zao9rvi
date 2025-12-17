@@ -1,40 +1,47 @@
 import Editor from "../Editor";
+import { BsplineCurveInt, Vertex } from "../modeling/BsplineCurveInt";
+import type Command from "./Command";
 import type { Mesh } from "@babylonjs/core";
 import type { Vector } from "../modeling/NurbsLib";
+import type { CurveHelper } from "../DesignHelper";
 
-export class AddPointCommand {
+export class AddPointCommand implements Command {
     editor: Editor;
-    point: Vector;
+    vertex: Vertex;
     mesh: Mesh | undefined;
 
     constructor(editor: Editor, point: Vector) {
         this.editor = editor;
-        this.point = point;
+        this.vertex = new Vertex(point);
+        this.mesh = editor.selectMesh.pickedObject;
     }
 
     execute() {
-        const { editor, point } = this;
-        const mesh = editor.selectMesh.pickedObject;
+        const { vertex, mesh } = this;
         if (mesh) {
-            const curve = mesh.metadata.curve;
+            const { curve, helper }: { curve: BsplineCurveInt, helper: CurveHelper } = mesh.metadata;
             // add point to curve
-            curve.add(point);
+            curve.add(vertex);
             // update vertex buffer
-            mesh.metadata.helper.update();
+            helper.update();
+            // add observers to observable
+            vertex.add(curve);
+            vertex.add(helper);
         }
-        // store reference
-        this.mesh = mesh;
     }
 
     undo() {
-        const { mesh } = this;
+        const { mesh, vertex } = this;
         if (mesh) {
-            const curve = mesh.metadata.curve;
+            const { curve, helper } = mesh.metadata;
             const nm1 = curve.designPoints.length - 1;
             // remove point
             curve.remove(nm1);
             // update vertex buffer
-            mesh.metadata.helper.update(curve);
+            helper.update(curve);
+            // remove observers to observable
+            vertex.remove(curve);
+            vertex.remove(helper);
         }
     }
 }
