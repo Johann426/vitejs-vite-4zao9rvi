@@ -1,7 +1,7 @@
 import { Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder, VertexBuffer, ShaderLanguage } from "@babylonjs/core";
 import type { Scene, LinesMesh } from "@babylonjs/core";
 import { Vector } from "./modeling/NurbsLib.ts";
-import type { Parametric } from "./modeling/Parametric.js";
+import { Parametric } from "./modeling/Parametric.js";
 
 const MAX_POINTS = 100;
 const MAX_LINE_SEG = 100;
@@ -32,6 +32,10 @@ function createLinesShader(scene: Scene) {
     );
 }
 
+export interface DesignHelper<T> {
+    update: (data: T) => void;
+}
+
 /**
  * Class to help rendering of points using a custom shader material
  * which uses gl_VertexID to discard fragments outsie the draw range.
@@ -39,7 +43,7 @@ function createLinesShader(scene: Scene) {
  * without needing to reallocate GPU buffers.
  *  @author Johannd0426 <
  */
-export class PointHelper {
+export class PointHelper implements DesignHelper<Vector[]> {
     pointSize: number;
     pointColor: Color3;
     shader!: ShaderMaterial;
@@ -155,7 +159,7 @@ export class PointHelper {
  * without needing to reallocate GPU buffers.
  *  @author Johannd0426 <
  */
-export class LinesHelper {
+export class LinesHelper implements DesignHelper<Vector[]> {
     color3: Color3;
     shader!: ShaderMaterial;
     mesh!: LinesMesh;
@@ -261,17 +265,9 @@ export class CurveHelper extends LinesHelper {
         this.curve = curve;
     }
 
-    initialize(scene: Scene) {
-        super.initialize(scene);
-        this.mesh.metadata = { model: this.curve, helper: this };
-    }
-
-    update(curve: Parametric) {
-        const points = curve.getPoints(MAX_LINE_SEG);
+    update() {
+        const points = this.curve.getPoints(MAX_LINE_SEG);
         super.update(points);
-        // let { mesh } = this;
-        // mesh = MeshBuilder.CreateLines("lines", { points: points, instance: mesh });
-        this.mesh.metadata = { model: this.curve, helper: this };
     }
 }
 
@@ -280,7 +276,7 @@ export class CurveHelper extends LinesHelper {
  * using a preallocated line system mesh.
  *  @author Johannd0426 <
  */
-export class CurvatureHelper {
+export class CurvatureHelper implements DesignHelper<Parametric> {
     color3: Color3;
     scale: number;
     shader!: ShaderMaterial;
@@ -327,7 +323,7 @@ export class CurvatureHelper {
         this.mesh = curvature;
     }
 
-    update(curve: any) {
+    update(curve: Parametric) {
         const { mesh, shader } = this;
 
         const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
@@ -335,7 +331,7 @@ export class CurvatureHelper {
         if (!positions) return;
 
         for (let i = 0; i < MAX_LINE_SEG; i++) {
-            const knots = curve.knots;
+            const knots = curve.knotVector;
             const t_min = knots ? knots[0] : 0.0;
             const t_max = knots ? knots[knots.length - 1] : 1.0;
             const t = t_min + (i / (MAX_LINE_SEG - 1)) * (t_max - t_min);

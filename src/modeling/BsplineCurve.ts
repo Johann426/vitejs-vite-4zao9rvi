@@ -3,7 +3,7 @@ import { Bspline } from "./Bspline.ts";
 
 class BsplineCurve extends Bspline {
     needsUpdate: boolean = false;
-    prm: Array<number> = [];
+    param: number[] = [];
 
     get ctrlPoints() {
         if (this.needsUpdate) {
@@ -15,10 +15,6 @@ class BsplineCurve extends Bspline {
 
     get designPoints() {
         return this.ctrlp;
-    }
-
-    get parameter() {
-        return this.prm;
     }
 
     add(v: Vector) {
@@ -44,7 +40,7 @@ class BsplineCurve extends Bspline {
 
     incertPointAt(t: number, v: Vector) {
         if (t > this.tmin && t < this.tmax) {
-            const i = this.prm.findIndex((e) => e > t);
+            const i = this.param.findIndex((e) => e > t);
             this.incert(i, v);
         }
     }
@@ -61,7 +57,7 @@ class BsplineCurve extends Bspline {
             return 0;
         } else if (t == this.tmax) {
             this.add(v);
-            return this.prm.length;
+            return this.param.length;
         } else {
             console.warn("Parametric position is out of range");
         }
@@ -86,8 +82,8 @@ class BsplineCurve extends Bspline {
     }
 
     update() {
-        this.prm = parameterize(this.ctrlp, "chordal");
-        this.knots = deBoorKnots(this.deg, this.prm);
+        this.param = parameterize(this.ctrlp, "chordal");
+        this.knots = deBoorKnots(this.deg, this.param);
         this.needsUpdate = false;
     }
 
@@ -110,7 +106,7 @@ class BsplineCurve extends Bspline {
         return data;
     }
 
-    static fromJSON(data: { deg: number, knots: Array<number>, ctrlp: Array<Vector> }) {
+    static fromJSON(data: { deg: number, knots: number[], ctrlp: Vector[] }) {
         const deg = data.deg;
         const knot = data.knots;
         const ctrl = data.ctrlp.map((e) => new Vector(...e.components));

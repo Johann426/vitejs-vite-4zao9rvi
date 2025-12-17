@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Viewport, PointerEventTypes } from "@babylonjs/core";
-import type { Scene, Nullable, Camera, Observer, PointerInfo } from "@babylonjs/core";
+import type { Scene, Camera, Observer, PointerInfo } from "@babylonjs/core";
 import Editor from "../Editor";
 
 interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -15,7 +15,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
     // Set onPointerObservable when the component mounts
     useEffect(() => {
         const { scene } = editor;
-        const observers: Array<Observer<PointerInfo>> = [];
+        const observers: Observer<PointerInfo>[] = [];
 
         const setObservable = (scene: Scene): void => {
             let onDrag = false;

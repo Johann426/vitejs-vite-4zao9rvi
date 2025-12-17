@@ -2,48 +2,78 @@ import { parameterize, assignKnot, globalCurveInterpTngt, split, Vector, } from 
 import { Bspline } from "./Bspline.ts";
 import { BsplineCurve } from "./BsplineCurve.ts";
 import type { Parametric } from "./Parametric.ts";
+import type { DesignHelper, CurveHelper as T } from "../DesignHelper.ts";
 
-interface Observable {
-    add(observer: Parametric): void;
-    remove(observer: Parametric): void;
+export interface Observable<T> {
+    observers: T[];
+    add(observer: T): void;
+    remove(observer: T): void;
     notify(): void;
 }
 
-export class Pole implements Observable {
-    private observers: Parametric[] = [];
-    point: Vector;
-    fold: boolean;
-    in: Vector | null;
-    out: Vector | null;
+export class Vertex implements Observable<T> {
+    observers: T[] = [];
+    position: Vector;
+    knuckle: boolean;
+    tangentI: Vector;
+    tangentO: Vector;
 
-    constructor(point: Vector, knuckle: boolean = false, tangentIn: Vector | null = null, tangentOut: Vector | null = null) {
-        this.point = point;
-        this.fold = knuckle;
-        this.in = tangentIn;
-        this.out = tangentOut;
+    constructor(position: Vector, knuckle: boolean = false, tangentIn: Vector = new Vector(), tangentOut: Vector = new Vector()) {
+        this.position = position;
+        this.knuckle = knuckle;
+        this.tangentI = tangentIn;
+        this.tangentO = tangentOut;
     }
 
-    add(observer: Parametric): void {
+    // add obsrver
+    add(observer: T): void {
         this.observers.push(observer);
     }
 
-    remove(observer: Parametric): void {
+    // remove obsrver
+    remove(observer: T): void {
         const index = this.observers.indexOf(observer);
         if (index > -1) {
             this.observers.splice(index, 1);
         }
     }
 
+    // notify the observer to update
     notify(): void {
         for (const observer of this.observers) {
             observer.update();
         }
     }
 
-    setPoint(x: number, y: number, z: number): void {
-        this.point.x = x;
-        this.point.y = y;
-        this.point.z = z;
+    private setVector(v: Vector, x: Vector | number = 0, y: number = 0, z: number = 0): void {
+        if (x instanceof Vector) {
+            v.x = x.x;
+            v.y = x.y;
+            v.z = x.z;
+        } else {
+            v.x = x;
+            v.y = y;
+            v.z = z;
+        }
+    }
+
+    setPosition(x: Vector | number = 0, y: number = 0, z: number = 0): void {
+        this.setVector(this.position, x, y, z);
+        this.notify();
+    }
+
+    setKnuckle(bool: boolean): void {
+        this.knuckle = bool;
+        this.notify();
+    }
+
+    setTangentIn(x: Vector | number = 0, y: number = 0, z: number = 0): void {
+        this.setVector(this.tangentI, x, y, z);
+        this.notify();
+    }
+
+    setTangentOut(x: Vector | number = 0, y: number = 0, z: number = 0): void {
+        this.setVector(this.tangentO, x, y, z);
         this.notify();
     }
 }
@@ -52,19 +82,13 @@ export class BsplineCurveInt extends Bspline {
     method = "chordal";
     needsUpdate: boolean = false;
 
-    constructor(deg: number, private pole: Array<Pole>) {
+    constructor(deg: number, private vertices: Vertex[] = []) {
         super(deg, Array(), Array());
-
-        if (pole !== undefined) {
-            this.pole = pole;
-            this._calcCtrlPoints();
-        } else {
-            this.pole = [];
-        }
+        this.vertices = vertices;
     }
 
     get deg() {
-        const nm1 = this.pole.length - 1;
+        const nm1 = this.vertices.length - 1;
         return nm1 > 1 ? this.dmax : nm1;
     }
 
@@ -74,41 +98,43 @@ export class BsplineCurveInt extends Bspline {
     }
 
     get designPoints() {
-        return this.pole.map((e) => e.point);
+        return this.vertices.map((e) => e.position);
     }
 
-    get parameter() {
-        return this.prm;
-    }
-
-    add(v: Vector) {
-        // this.pole.push({ point: new Vector(v.x, v.y, v.z) });
-        const point = new Vector(v.x, v.y, v.z);
-        this.pole.push(new Pole(point));
+    add(v: Vector | Vertex) {
+        if (v instanceof Vector) {
+            this.vertices.push(new Vertex(new Vector(v.x, v.y, v.z)));
+        }
+        if (v instanceof Vertex) {
+            this.vertices.push(v);
+        }
         this.needsUpdate = true;
     }
 
     remove(i: number) {
-        const removed = this.pole.splice(i, 1);
+        const point = this.vertices.splice(i, 1)[0];
         this.needsUpdate = true;
-        return removed[0];
+        return point;
     }
 
     mod(i: number, v: Vector) {
-        this.pole[i].point = new Vector(v.x, v.y, v.z);
+        this.vertices[i].setPosition(v);
         this.needsUpdate = true;
     }
 
-    incert(i: number, v: Vector) {
-        // this.pole.splice(i, 0, { point: new Vector(v.x, v.y, v.z) });
-        const point = new Vector(v.x, v.y, v.z);
-        this.pole.splice(i, 0, new Pole(point));
+    incert(i: number, v: Vector | Vertex) {
+        if (v instanceof Vector) {
+            this.vertices.splice(i, 0, new Vertex(new Vector(v.x, v.y, v.z)));
+        }
+        if (v instanceof Vertex) {
+            this.vertices.splice(i, 0, v);
+        }
         this.needsUpdate = true;
     }
 
-    incertPointAt(t: number, v: Vector) {
+    incertPointAt(t: number, v: Vector | Vertex) {
         if (t > this.tmin && t < this.tmax) {
-            const i = this.prm.findIndex((e) => e > t);
+            const i = this.param.findIndex((e) => e > t);
             this.incert(i, v);
         }
     }
@@ -118,7 +144,7 @@ export class BsplineCurveInt extends Bspline {
         const p = isKept ? new Vector(v.x, v.y, v.z) : this.getPointAt(t);
 
         if (t > this.tmin && t < this.tmax) {
-            const i = this.prm.findIndex((e) => e > t);
+            const i = this.param.findIndex((e) => e > t);
             this.incert(i, p);
             return i;
         } else if (t == this.tmin) {
@@ -126,7 +152,7 @@ export class BsplineCurveInt extends Bspline {
             return 0;
         } else if (t == this.tmax) {
             this.add(v);
-            return this.prm.length;
+            return this.param.length;
         } else {
             console.warn("Parametric position is out of range", t);
         }
@@ -134,32 +160,32 @@ export class BsplineCurveInt extends Bspline {
 
     addTangent(i: number, v: Vector) {
         v.normalize();
-        Object.assign(this.pole[i], { fold: true, in: new Vector(v.x, v.y, v.z), out: new Vector(v.x, v.y, v.z) });
+        Object.assign(this.vertices[i], { fold: true, in: new Vector(v.x, v.y, v.z), out: new Vector(v.x, v.y, v.z) });
         this.needsUpdate = true;
     }
 
     addKnuckle(i: number, v: Vector, inout) {
         if (typeof v == "boolean") {
-            Object.assign(this.pole[i], { fold: v });
+            Object.assign(this.vertices[i], { fold: v });
         } else {
             v.normalize();
-            Object.assign(this.pole[i], { fold: true });
-            this.pole[i][inout] = new Vector(v.x, v.y, v.z);
+            Object.assign(this.vertices[i], { fold: true });
+            this.vertices[i][inout] = new Vector(v.x, v.y, v.z);
         }
 
         this.needsUpdate = true;
     }
 
     removeKnuckle(i: number) {
-        const removed = ["fold", "in", "out"].map((key) => this.pole[i][key]);
-        ["fold", "in", "out"].map((key) => delete this.pole[i][key]);
+        const removed = ["fold", "in", "out"].map((key) => this.vertices[i][key]);
+        ["fold", "in", "out"].map((key) => delete this.vertices[i][key]);
         this.needsUpdate = true;
         return removed;
     }
 
     removeTangent(i: number) {
-        const removed = this.pole[i].out;
-        ["fold", "in", "out"].map((key) => delete this.pole[i][key]);
+        const removed = this.vertices[i].tangentO;
+        ["fold", "in", "out"].map((key) => delete this.vertices[i][key]);
         this.needsUpdate = true;
         return removed;
     }
@@ -197,55 +223,57 @@ export class BsplineCurveInt extends Bspline {
 
     // Subdivide a curve into local parts
     _subdivision() {
-        const n = this.pole.length;
+        const n = this.vertices.length;
         const index = []; // index array of corners
         index.push(0); // the first into index
 
         for (let i = 1; i < n - 1; i++) {
-            this.pole[i].fold ? index.push(i) : null; // knuckle into index
+            this.vertices[i].knuckle ? index.push(i) : null; // knuckle into index
         }
 
         index.push(n - 1); // the last into index
 
-        const lPole = []; // local pole points
+        const lPole: Vertex[][] = []; // local pole points
 
         for (let i = 1; i < index.length; i++) {
-            const tmp = this.pole.slice(index[i - 1], index[i] + 1);
-            lPole.push(tmp.map((e) => Object.assign({}, e)));
+            const pts = this.vertices.slice(index[i - 1], index[i] + 1);
+            // lPole.push(pts.map((e) => Object.assign({}, e)));
+            lPole.push(pts);
         }
 
-        [this.prm, this.knots, this.ctrlp] = this._assignEndDers(lPole.shift());
+        [this.param, this.knots, this.ctrlp] = this._assignEndDers(lPole.shift());
 
         lPole.map((pole) => {
-            const aPrm = this.prm[this.prm.length - 1];
+            const aPrm = this.param[this.param.length - 1];
             const aKnot = this.knots[this.knots.length - 1];
             const [prm, knot, ctrl] = this._assignEndDers(pole);
-            this.prm = this.prm.concat(prm.slice(1).map((e) => e + aPrm));
+            this.param = this.param.concat(prm.slice(1).map((e) => e + aPrm));
             this.knots = this.knots.slice(0, -1).concat(knot.slice(this.deg + 1).map((e) => e + aKnot));
             this.ctrlp = this.ctrlp.concat(ctrl.slice(1));
         });
     }
 
     // After dividing a curve into local parts, assign end derivatives to each of coner points
-    _assignEndDers(pole: Array<Pole>) {
-        const nm1 = pole.length - 1;
-        const pts = pole.map((e) => e.point);
+    _assignEndDers(points: Vertex[]) {
+        const nm1 = points.length - 1;
+        const pts = points.map((e) => e.position);
         const prm = parameterize(pts, this.method);
+        const pole = points.map(e => ({ point: e.position }))
 
         // specify end derivatives
-        if (pole.length > 1) {
-            const p0 = pole[0];
-            const p1 = pole[nm1];
+        if (points.length > 1) {
+            const p0 = points[0];
+            const p1 = points[nm1];
             const [d0, d1] = this._specifyEndDers(pts, prm);
-            p0.slope = p0.out ? p0.out : d0.normalize();
-            p1.slope = p1.in ? p1.in : d1.normalize();
+            pole[0].slope = p0.tangentO.length() !== 0 ? p0.tangentO : d0.normalize();
+            pole[nm1].slope = p1.tangentI.length() !== 0 ? p1.tangentI : d1.normalize();
         }
 
         const knots = assignKnot(this.deg, prm);
         return [prm, knots, globalCurveInterpTngt(this.deg, prm, knots, pole)];
     }
 
-    _specifyEndDers(pts: Array<Vector>, prm: Array<number>) {
+    _specifyEndDers(pts: Vector[], prm: number[]) {
         const nm1 = pts.length - 1;
 
         if (pts.length == 2) {
@@ -305,19 +333,7 @@ export class BsplineCurveInt extends Bspline {
     }
 
     clone() {
-        // const pole: Array<Pole> = [];
-        // this.pole.map((e, i) => {
-        //     pole.push({ point: new Vector(e.point.x, e.point.y, e.point.z) });
-
-        //     e["fold"] ? (pole[i]["fold"] = e["fold"]) : null;
-
-        //     ["in", "out"].map((key) => {
-        //         e[key] ? (pole[i][key] = new Vector(e[key].x, e[key].y, e[key].z)) : null;
-        //     });
-        // });
-
-        // return new this.constructor(this.dmax, pole);
-        return new BsplineCurveInt(this.dmax, this.pole.slice());
+        return new BsplineCurveInt(this.dmax, this.vertices.slice());
     }
 
     toJSON() {
@@ -328,24 +344,13 @@ export class BsplineCurveInt extends Bspline {
                 generator: this.constructor.name + ".toJSON",
             },
             deg: this.deg,
-            pole: this.pole,
+            points: this.vertices,
         };
 
         return data;
     }
 
-    static fromJSON(data: { deg: number, pole: Array<Pole> }) {
-        // const pole = data.pole;
-
-        // pole.map((e) => {
-        //     e.point = new Vector(...e.point.components);
-
-        //     ["in", "out"].map((key) => {
-        //         const v = e[key];
-        //         v ? (e[key] = new Vector(...v.components)) : null;
-        //     });
-        // });
-
-        return new BsplineCurveInt(data.deg, data.pole);
+    static fromJSON(data: { deg: number, points: Vertex[] }) {
+        return new BsplineCurveInt(data.deg, data.points);
     }
 }
