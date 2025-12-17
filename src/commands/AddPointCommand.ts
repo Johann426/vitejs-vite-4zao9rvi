@@ -1,6 +1,6 @@
 import Editor from "../Editor";
 import { BsplineCurveInt } from "../modeling/BsplineCurveInt";
-import { Vertex } from "../modeling/Vertex";
+import { Vertex } from "../modeling/VertexObservable";
 import type Command from "./Command";
 import type { Mesh } from "@babylonjs/core";
 import type { Vector } from "../modeling/NurbsLib";
