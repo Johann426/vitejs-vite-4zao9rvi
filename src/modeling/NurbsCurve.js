@@ -18,10 +18,6 @@ class NurbsCurve extends Nurbs {
         //return deWeight( this.ctrlpw );
     }
 
-    get parameter() {
-        return this.prm;
-    }
-
     add(v) {
         const w = 1.0;
         this.ctrlpw.push(weightedCtrlp(v, w));

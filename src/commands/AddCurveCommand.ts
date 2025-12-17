@@ -22,9 +22,10 @@ export class AddCurveCommand implements Command {
 
         const curvehelper = new CurveHelper(lineColor, curve);
         curvehelper.initialize(scene);
-        curvehelper.update(curve);
+        curvehelper.update();
 
         const mesh = curvehelper.mesh;
+        mesh.metadata = { curve: curve, helper: curvehelper };
 
         editor.selectMesh.pickedObject = mesh;
         editor.pickables.push(mesh);

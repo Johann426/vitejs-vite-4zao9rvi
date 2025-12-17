@@ -97,7 +97,7 @@ export class SelectMesh {
                         [curvature, ctrlPoints, ctrlPolygon, designPoints].map(e => e.setVisible(false));
                     }
                     else if (pickingInfo.meshes[0] instanceof LinesMesh) {
-                        const curve = pickingInfo.meshes[0].metadata.model;
+                        const curve = pickingInfo.meshes[0].metadata.curve;
                         editor.updateCurveHelper(curve);
                     }
                 }

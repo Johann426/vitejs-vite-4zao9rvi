@@ -47,14 +47,8 @@ class Line implements Observer<Line> {
     // 구독 대상(Point)의 상태가 변경될 때 호출됨
     update(subject: Observable<Point>): void {
         if (subject instanceof Point) {
-            console.log(`선이 알림을 받았습니다. ${subject === this.startPoint ? '시작점' : '끝점'}이 이동했습니다.`);
-            this.redraw();
+            console.log(`선이 알림을 받았습니다. ${subject === this.startPoint ? '시작점' : '끝점'}이 이동했습니다. 업데이트 합니다.`);
         }
     }
 
-    private redraw(): void {
-        // Line의 새로운 좌표(startPoint.x, startPoint.y, endPoint.x, endPoint.y)를 기반으로
-        // 캔버스에 선을 다시 그리는 로직 구현
-        console.log(`선을 새로운 위치에 다시 그립니다: (${this.startPoint.x},${this.startPoint.y}) to (${this.endPoint.x},${this.endPoint.y})`);
-    }
 }
