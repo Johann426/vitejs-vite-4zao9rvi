@@ -88,18 +88,19 @@ export default class Editor {
     this.addCurve(curve);
 
     const mesh = this.pickables[this.pickables.length - 1];
-    this.selectMesh.pickedObject = mesh;
-    this.addPoint(new Vector(0, 0, 0));
-    this.addPoint(new Vector(1, 1, 1));
-    this.addPoint(new Vector(0, 0, 2));
+    // this.selectMesh.pickedObject = mesh;
 
-    this.addPoint(new Vector(2, 1, 0));
-    this.removePoint(3);
+    this.addPoint(new Vector(0, 0, 0), mesh);
+    this.addPoint(new Vector(1, 1, 1), mesh);
+    this.addPoint(new Vector(0, 0, 2), mesh);
 
-    this.addPoint(new Vector(1, 1, 3));
+    // this.addPoint(new Vector(2, 1, 0));
+    // this.removePoint(3);
+
+    this.addPoint(new Vector(1, 1, 3), mesh);
     // curve.mod(3, new Vector(-1, -1, -1));
-    this.modPoint(new Vector(-1, -1, -1), 3);
-    this.updateCurveHelper(curve);
+    // this.modPoint(new Vector(-1, -1, -1), 3);
+    // this.updateCurveHelper(curve);
 
     this.selectMesh.pickedObject = undefined;
     this.selectMesh.setPickables([mesh]);
@@ -276,8 +277,8 @@ export default class Editor {
     scene.activeCamera = cameras[n];
   }
 
-  addPoint(point: Vector) {
-    this.execute(new AddPointCommand(this, point));
+  addPoint(point: Vector, mesh: Mesh) {
+    this.execute(new AddPointCommand(this, point, mesh));
   }
 
   modPoint(point: Vector, index: number) {

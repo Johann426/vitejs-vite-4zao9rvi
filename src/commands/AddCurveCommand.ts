@@ -9,7 +9,7 @@ const lineColor = new Color3(0, 1, 0)
 export class AddCurveCommand implements Command {
     editor: Editor;
     curve: Parametric;
-    mesh: LinesMesh | undefined;
+    mesh!: LinesMesh;
 
     constructor(editor: Editor, curve: Parametric) {
         this.editor = editor;
@@ -24,7 +24,7 @@ export class AddCurveCommand implements Command {
         curvehelper.initialize(scene);
         curvehelper.update();
 
-        const mesh = curvehelper.mesh;
+        const mesh = curvehelper.getMesh();
         mesh.metadata = { curve: curve, helper: curvehelper };
 
         editor.selectMesh.pickedObject = mesh;
@@ -33,7 +33,17 @@ export class AddCurveCommand implements Command {
     }
 
     undo() {
-        this.mesh?.dispose();
+        const { editor, mesh } = this;
+        const index = editor.pickables.indexOf(mesh);
+        if (index !== -1) {
+            editor.pickables.splice(index, 1);
+        }
+    }
+
+    redo() {
+        const { editor, mesh } = this;
+        editor.selectMesh.pickedObject = mesh;
+        editor.pickables.push(mesh);
     }
 
 }

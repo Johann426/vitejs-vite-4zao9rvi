@@ -36,7 +36,7 @@ export class History {
         }
 
         if (cmd !== undefined) {
-            cmd.execute();
+            cmd.redo();
             this.undos.push(cmd);
         }
     }

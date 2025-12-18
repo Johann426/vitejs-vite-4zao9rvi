@@ -1,5 +1,6 @@
 import type Curve from "./Curve.js";
 import { Vector } from "./NurbsLib.js";
+import type { Vertex } from "./VertexObservable.js";
 
 /*
  * Abstract class representing parametric form of geometric model
@@ -12,7 +13,7 @@ export abstract class Parametric implements Curve {
     abstract get ctrlPoints(): Vector[];
     abstract get designPoints(): Vector[];
 
-    abstract add(v: Vector): void
+    abstract add(v: Vector | Vertex<Parametric>): void
     abstract remove(i: number): void
     abstract mod(i: number, v: Vector): void
     abstract split(t: number): void

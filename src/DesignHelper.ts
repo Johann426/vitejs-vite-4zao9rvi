@@ -32,13 +32,6 @@ function createLinesShader(scene: Scene) {
     );
 }
 
-export class DesignHelper<T> {
-    helpers: T[] = [];
-    update() {
-        this.helpers.map(e => e.update());
-    }
-}
-
 /**
  * Class to help rendering of points using a custom shader material
  * which uses gl_VertexID to discard fragments outsie the draw range.
@@ -47,15 +40,13 @@ export class DesignHelper<T> {
  *  @author Johannd0426 <
  */
 export class PointHelper {
-    pointSize: number;
-    pointColor: Color3;
-    shader!: ShaderMaterial;
-    pcs!: PointsCloudSystem;
+    private shader!: ShaderMaterial;
+    private pcs!: PointsCloudSystem;
 
-    constructor(pointSize: number, pointColor: Color3) {
-        this.pointSize = pointSize;
-        this.pointColor = pointColor;
-    }
+    constructor(
+        private pointSize: number,
+        private pointColor: Color3
+    ) { }
 
     get size() {
         return this.pointSize;
@@ -163,9 +154,9 @@ export class PointHelper {
  *  @author Johannd0426 <
  */
 export class LinesHelper {
-    color3: Color3;
-    shader!: ShaderMaterial;
-    mesh!: LinesMesh;
+    private color3: Color3;
+    private shader!: ShaderMaterial;
+    private mesh!: LinesMesh;
 
     constructor(color: Color3) {
         this.color3 = color;
@@ -178,6 +169,10 @@ export class LinesHelper {
     setColor(color: Color3) {
         this.color3 = color;
         this.shader.setColor3("color3", color);
+    }
+
+    getMesh() {
+        return this.mesh;
     }
 
     initialize(scene: Scene) {
@@ -261,11 +256,9 @@ export class LinesHelper {
 }
 
 export class CurveHelper extends LinesHelper {
-    curve: Parametric;
 
-    constructor(color: Color3, curve: Parametric) {
+    constructor(color: Color3, private curve: Parametric) {
         super(color);
-        this.curve = curve;
     }
 
     update() {
@@ -281,12 +274,10 @@ export class CurveHelper extends LinesHelper {
  */
 export class CurvatureHelper {
     color3: Color3;
-    scale: number;
     shader!: ShaderMaterial;
     mesh!: LinesMesh;
 
-    constructor(color: Color3, scale: number) {
-        this.scale = scale;
+    constructor(color: Color3, private scale: number) {
         this.color3 = color;
     }
 

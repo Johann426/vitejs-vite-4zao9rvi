@@ -1,48 +1,68 @@
-import Editor from "../Editor";
-import { BsplineCurveInt } from "../modeling/BsplineCurveInt";
-import { Vertex } from "../modeling/VertexObservable";
 import type Command from "./Command";
+import type Editor from "../Editor";
 import type { Mesh } from "@babylonjs/core";
 import type { Vector } from "../modeling/NurbsLib";
+import type { Parametric } from "../modeling/Parametric";
 import type { CurveHelper } from "../DesignHelper";
+import { Vertex, Observer } from "../modeling/VertexObservable";
 
 export class AddPointCommand implements Command {
-    editor: Editor;
-    vertex: Vertex;
-    mesh: Mesh | undefined;
+    private curve: Parametric;
+    private vertex: Vertex<Parametric>;
+    private observer: Observer<Parametric>;
 
-    constructor(editor: Editor, point: Vector) {
-        this.editor = editor;
-        this.vertex = new Vertex(point);
-        this.mesh = editor.selectMesh.pickedObject;
+    constructor(
+        editor: Editor,
+        point: Vector,
+        mesh: Mesh,
+    ) {
+        const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
+        this.curve = curve;
+        // Create and store observable(vertex)
+        const vertex = new Vertex<Parametric>(curve, point);
+        this.vertex = vertex;
+        // add callback to observable(vertex) and store observer
+        const callback = () => {
+            if (curve.designPoints.length === 0) return
+            helper.update();
+            const { curvature, ctrlPoints, ctrlPolygon, designPoints } = editor;
+            curvature.update(curve);
+            ctrlPoints.update(curve.ctrlPoints);
+            ctrlPolygon.update(curve.ctrlPoints);
+            designPoints.update(curve.designPoints);
+        }
+        this.observer = this.vertex.add(callback);
     }
 
     execute() {
-        const { vertex, mesh } = this;
-        if (mesh) {
-            const { curve, helper }: { curve: BsplineCurveInt, helper: CurveHelper } = mesh.metadata;
-            // add point to curve
-            curve.add(vertex);
-            // update vertex buffer
-            helper.update();
-            // add observers to observable
-            vertex.add(curve);
-            vertex.add(helper);
-        }
+        const { curve, vertex } = this;
+        // add vertex to curve
+        curve.add(vertex);
+        // update vertex buffer
+        vertex.notify(curve);
     }
 
     undo() {
-        const { mesh, vertex } = this;
-        if (mesh) {
-            const { curve, helper } = mesh.metadata;
-            const nm1 = curve.designPoints.length - 1;
-            // remove point
-            curve.remove(nm1);
-            // update vertex buffer
-            helper.update(curve);
-            // remove observers to observable
-            vertex.remove(curve);
-            vertex.remove(helper);
+        const { curve, vertex, observer } = this;
+        const nm1 = curve.designPoints.length - 1;
+        // remove point
+        curve.remove(nm1);
+        // update vertex buffer
+        vertex.notify(curve);
+        // remove observer
+        if (observer) {
+            vertex.remove(observer);
         }
+
+    }
+
+    redo() {
+        const { curve, vertex, observer } = this;
+        // add vertex to curve
+        curve.add(vertex);
+        // add observer
+        vertex.observers.push(observer);
+        // update vertex buffer
+        vertex.notify(curve);
     }
 }

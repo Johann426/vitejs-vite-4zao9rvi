@@ -1,46 +1,79 @@
 import { Vector } from "./NurbsLib";
-import { Parametric } from "./Parametric";
-import { CurveHelper } from "../DesignHelper";
 
-export interface Observable<T> {
-    observers: T[];
-    add(observer: T): void;
-    remove(observer: T): void;
-    notify(): void;
+interface IObserver<T> {
+    update(model?: T): void;
 }
 
-export class Vertex implements Observable<Parametric | CurveHelper> {
-    observers: (Parametric | CurveHelper)[] = [];
-    position: Vector;
-    knuckle: boolean;
-    tangentI: Vector;
-    tangentO: Vector;
+export class Observer<T> implements IObserver<T> {
+    constructor(
+        private callback: (model?: T) => void
+    ) { }
 
-    constructor(position: Vector, knuckle: boolean = false, tangentIn: Vector = new Vector(), tangentOut: Vector = new Vector()) {
-        this.position = position;
-        this.knuckle = knuckle;
-        this.tangentI = tangentIn;
-        this.tangentO = tangentOut;
+    update(model?: T) {
+        this.callback(model);
+    }
+}
+
+interface IObservable<T> {
+    add(callback: (model?: T) => void): Observer<T>;
+    remove(observer: Observer<T>): boolean;
+    notify(model?: T): void;
+}
+
+export class Observable<T> implements IObservable<T> {
+    private _observers: Observer<T>[] = [];
+
+    get observers() {
+        return this._observers;
     }
 
-    // notify the observer to update
-    notify(): void {
-        for (const observer of this.observers) {
-            observer.update();
+    constructor(observer?: Observer<T>) {
+        if (observer) {
+            this._observers.push(observer);
         }
     }
 
-    // add obsrver
-    add(observer: Parametric | CurveHelper): void {
-        this.observers.push(observer);
+    add(callback: (model?: T) => void) {
+        const observer = new Observer(callback)
+        this._observers.push(observer);
+
+        return observer;
     }
 
-    // remove obsrver
-    remove(observer: Parametric | CurveHelper): void {
-        const index = this.observers.indexOf(observer);
-        if (index > -1) {
-            this.observers.splice(index, 1);
+    remove(observer: Observer<T>) {
+        const index = this._observers.indexOf(observer);
+
+        if (index !== -1) {
+            this._observers.splice(index, 1);
+            return true;
+        } else {
+            return false;
         }
+    }
+
+    notify(model?: T) {
+        for (const obs of this._observers) {
+            obs.update(model);
+        }
+    }
+}
+
+export class Vertex<T> extends Observable<T> {
+    /**
+     * Creates a new vertex observer
+     * @param position defines position vector of the vertex
+     * @param knuckle defines knuckle
+     * @param tangentI defines tangential vector entering the vertex
+     * @param tangentO defines tangential vector exiting the vertex
+     */
+    constructor(
+        private model: T,
+        public position: Vector,
+        public knuckle: boolean = false,
+        public tangentI: Vector = new Vector(),
+        public tangentO: Vector = new Vector(),
+    ) {
+        super();
     }
 
     private setVector(v: Vector, x: Vector | number = 0, y: number = 0, z: number = 0): void {
@@ -57,21 +90,21 @@ export class Vertex implements Observable<Parametric | CurveHelper> {
 
     setPosition(x: Vector | number = 0, y: number = 0, z: number = 0): void {
         this.setVector(this.position, x, y, z);
-        this.notify();
+        this.notify(this.model);
     }
 
     setKnuckle(bool: boolean): void {
         this.knuckle = bool;
-        this.notify();
+        this.notify(this.model);
     }
 
     setTangentIn(x: Vector | number = 0, y: number = 0, z: number = 0): void {
         this.setVector(this.tangentI, x, y, z);
-        this.notify();
+        this.notify(this.model);
     }
 
     setTangentOut(x: Vector | number = 0, y: number = 0, z: number = 0): void {
         this.setVector(this.tangentO, x, y, z);
-        this.notify();
+        this.notify(this.model);
     }
 }

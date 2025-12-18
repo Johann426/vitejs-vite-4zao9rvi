@@ -21,7 +21,7 @@ const { PI, abs, max, min, sin, cos, sqrt, ceil, floor, hypot } = Math;
  */
 function parameterize(points: Vector[], curveType: string = "chordal") {
     const n = points.length;
-    const prm = [0.0];
+    const prm = new Array(n).fill(0.0);
     let sum = 0.0;
 
     for (let i = 1; i < n; i++) {
@@ -49,7 +49,7 @@ function assignKnot(deg: number, prm: number[]) {
         knot.push(prm[prm.length - 1] / 3);
         knot.push((prm[prm.length - 1] * 2) / 3);
     } else {
-        // deg == 0, do nothing
+        // deg <= 0, do nothing
     }
 
     for (let i = 0; i <= deg; i++) knot.push(prm[prm.length - 1]);
@@ -1574,6 +1574,11 @@ function globalCurveInterp(deg: number, prm: number[], knot: number[], pts: Vect
  */
 function globalCurveInterpTngt(deg: number, prm: number[], knot: number[], pole: { point: Vector; slope: Vector }[]) {
     const n = pole.length;
+
+    if (n === 0) {
+        return [];
+    }
+
     const point = pole.map((e) => e.point);
     const slope = pole.map((e) => e.slope).filter(Boolean);
     var arr = [];
