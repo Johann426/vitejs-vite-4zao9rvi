@@ -48,7 +48,8 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         // Cleanup when component unmounts
         return () => {
             if (scene && !scene.isDisposed) {
-                observers.map(observer => scene.onPointerObservable.remove(observer));
+                observers.forEach(observer => scene.onPointerObservable.remove(observer));
+                observers.length = 0;
             }
         };
     }, [editor, x, y]); // re-render with changed dependencies

@@ -66,6 +66,14 @@ export class PointHelper {
         this.shader.setColor3("color3", pointColor);
     }
 
+    setTime(time: number) {
+        this.shader.setFloat("time", time);
+    }
+
+    getMesh() {
+        return this.pcs.mesh;
+    }
+
     initialize(scene: Scene) {
         const { pointSize, pointColor } = this;
         // create shader material
@@ -154,13 +162,12 @@ export class PointHelper {
  *  @author Johannd0426 <
  */
 export class LinesHelper {
-    private color3: Color3;
     private shader!: ShaderMaterial;
     private mesh!: LinesMesh;
 
-    constructor(color: Color3) {
-        this.color3 = color;
-    }
+    constructor(
+        private color3: Color3
+    ) { }
 
     get color() {
         return this.color3;
@@ -169,6 +176,10 @@ export class LinesHelper {
     setColor(color: Color3) {
         this.color3 = color;
         this.shader.setColor3("color3", color);
+    }
+
+    setTime(time: number) {
+        this.shader.setFloat("time", time);
     }
 
     getMesh() {
@@ -257,7 +268,10 @@ export class LinesHelper {
 
 export class CurveHelper extends LinesHelper {
 
-    constructor(color: Color3, private curve: Parametric) {
+    constructor(
+        color: Color3,
+        private curve: Parametric
+    ) {
         super(color);
     }
 
@@ -273,13 +287,13 @@ export class CurveHelper extends LinesHelper {
  *  @author Johannd0426 <
  */
 export class CurvatureHelper {
-    color3: Color3;
-    shader!: ShaderMaterial;
-    mesh!: LinesMesh;
+    private shader!: ShaderMaterial;
+    private mesh!: LinesMesh;
 
-    constructor(color: Color3, private scale: number) {
-        this.color3 = color;
-    }
+    constructor(
+        private color3: Color3,
+        private scale: number,
+    ) { }
 
     get color() {
         return this.color3;
@@ -288,6 +302,10 @@ export class CurvatureHelper {
     setColor(color: Color3) {
         this.color3 = color;
         this.shader.setColor3("color3", color);
+    }
+
+    setTime(time: number) {
+        this.shader.setFloat("time", time);
     }
 
     initialize(scene: Scene) {

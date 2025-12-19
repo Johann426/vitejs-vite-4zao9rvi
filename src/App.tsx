@@ -10,7 +10,36 @@ import Sidebar from "./layout/Sidebar";
 import Divider from "./layout/Divider";
 import Viewport from "./layout/Viewport";
 
-const editor = new Editor();
+const info = {
+    // Operating system and browser information
+    userAgent: navigator.userAgent,            // Browser/OS identification string
+
+    // Language and locale
+    language: navigator.language,              // Default language
+
+    // Network and cookies
+    online: navigator.onLine,                  // Online status (true/false)
+    cookieEnabled: navigator.cookieEnabled,    // Whether cookies are enabled
+
+    // Screen information
+    screenWidth: window.screen.width,          // Screen width in pixels
+    screenHeight: window.screen.height,        // Screen height in pixels
+    colorDepth: window.screen.colorDepth,      // Color depth (e.g., 24 bit)
+
+    // Date and time
+    timestamp: Date.now(),                     // Current time in milliseconds since 1970-01-01 UTC
+    currentDate: new Date(),                   // Current date/time object
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+
+    // Performance timing
+    performanceNow: performance.now(),         // Time elapsed since page load (ms)
+
+    // Browser feature support
+    geolocationSupported: 'geolocation' in navigator,      // Whether Geolocation API is supported
+    serviceWorkerSupported: 'serviceWorker' in navigator   // Whether Service Worker API is supported
+};
+
+const editor = new Editor(info);
 
 export default function App() {
     useEffect(() => {

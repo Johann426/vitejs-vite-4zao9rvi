@@ -11,6 +11,7 @@ import {
   StandardMaterial,
   Color3,
   GlowLayer,
+  PointerDragBehavior,
 } from "@babylonjs/core";
 import type { Parametric } from "./modeling/Parametric.js";
 import type Command from "./commands/Command.js";
@@ -22,10 +23,9 @@ import { RemovePointCommand } from "./commands/RemovePointCommand.ts";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.ts";
 import { Vector } from "./modeling/NurbsLib";
 import { PointHelper, LinesHelper, CurvatureHelper } from "./DesignHelper.js";
-import { SelectMesh } from "./listeners/SelectMesh.js";
-import { KeyEventHandler } from "./listeners/KeyEvent.js";
+import { SelectMesh } from "./events/SelectMesh.js";
+import { KeyEventHandler } from "./events/KeyEvent.js";
 
-const startTime = Date.now();
 const curvatureScale = 1.0;
 const ctrlPointsSize = 7.0;
 const designPointsSize = 8.0;
@@ -35,31 +35,27 @@ const ctrlpolygonColor = new Color3(0.5, 0.5, 0.5);
 const designPointsColor = new Color3(1.0, 1.0, 0.0);
 
 export default class Editor {
+  private timestamp: number;
+  private rest: Record<string, unknown>;
   scene!: Scene;
   keyEventHandler!: KeyEventHandler;
   selectMesh!: SelectMesh;
   glowLayer!: GlowLayer;
-  callbacks: ((scene: Scene) => void)[];
-  pickables: Mesh[];
-  // selected: Mesh | undefined;
-  picker: GPUPicker;
-  history: History;
-  curvature: CurvatureHelper;
-  ctrlPoints: PointHelper;
-  ctrlPolygon: LinesHelper;
-  designPoints: PointHelper;
+  private callbacks: ((scene: Scene) => void)[] = [];
+  pickables: Mesh[] = [];
+  history: History = new History();;
+  curvature: CurvatureHelper = new CurvatureHelper(curvatureColor, curvatureScale);;
+  ctrlPoints: PointHelper = new PointHelper(ctrlPointsSize, ctrlPointsColor);;
+  ctrlPolygon: LinesHelper = new LinesHelper(ctrlpolygonColor);;
+  designPoints: PointHelper = new PointHelper(designPointsSize, designPointsColor);;
   nViewport: number = 0;
 
-  constructor() {
-    this.callbacks = [];
-    this.pickables = [];
-    // this.selected = undefined;
-    this.picker = new GPUPicker(); // set up gpu picker
-    this.history = new History();
-    this.curvature = new CurvatureHelper(curvatureColor, curvatureScale);
-    this.ctrlPoints = new PointHelper(ctrlPointsSize, ctrlPointsColor);
-    this.ctrlPolygon = new LinesHelper(ctrlpolygonColor);
-    this.designPoints = new PointHelper(designPointsSize, designPointsColor);
+  constructor({
+    timestamp,
+    ...rest
+  }: { timestamp: number }) {
+    this.timestamp = timestamp;
+    this.rest = rest;
   }
 
   get viewportIndex() {
@@ -73,8 +69,6 @@ export default class Editor {
     this.glowLayer.dispose();
     this.callbacks = [];
     this.pickables = [];
-    // this.selected = undefined;
-    this.picker.dispose();
     this.history.clear();
     this.curvature.dispose();
     this.ctrlPoints.dispose();
@@ -100,7 +94,6 @@ export default class Editor {
     this.addPoint(new Vector(1, 1, 3), mesh);
     // curve.mod(3, new Vector(-1, -1, -1));
     // this.modPoint(new Vector(-1, -1, -1), 3);
-    // this.updateCurveHelper(curve);
 
     this.selectMesh.pickedObject = undefined;
     this.selectMesh.setPickables([mesh]);
@@ -116,6 +109,36 @@ export default class Editor {
     plane.enableEdgesRendering();
     plane.edgesWidth = 2.0;
     plane.edgesColor = new Color4(0.5, 0.5, 0.5, 1);
+
+    const pointerDragBehavior = new PointerDragBehavior({ dragAxis: undefined, dragPlaneNormal: new Vector3(0, 0, 1) });
+    // use drag plane in world space
+    pointerDragBehavior.useObjectOrientationForDragging = false;
+    // disable update on every frame
+    pointerDragBehavior.updateDragPlane = false;
+
+    pointerDragBehavior.onDragStartObservable.add((event) => {
+      console.log("dragStart");
+      console.log(event);
+    });
+    pointerDragBehavior.onDragObservable.add((event) => {
+      console.log("drag");
+      console.log(event);
+    });
+    pointerDragBehavior.onDragEndObservable.add((event) => {
+      console.log("dragEnd");
+      console.log(event);
+    });
+
+    // // Enable drag behavior to curve mesh
+    // mesh.intersectionThreshold = 2;
+    // mesh.addBehavior(pointerDragBehavior);
+
+    const sphere = MeshBuilder.CreateSphere("sphere1");
+    // sphere.visibility = 0;
+    sphere.addBehavior(pointerDragBehavior);
+
+
+
     // plane.disableEdgesRendering();
 
     // function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
@@ -146,11 +169,12 @@ export default class Editor {
   }
 
   onRender(scene: Scene) {
+    const startTime = this.timestamp;
     const dt = 0.001 * (Date.now() - startTime)
-    // this.curvature.shader.setFloat("time", dt);
-    // this.ctrlPoints.shader.setFloat("time", dt);
-    // this.ctrlPolygon.shader.setFloat("time", dt);
-    // this.designPoints.shader.setFloat("time", dt);
+    this.curvature.setTime(dt);
+    this.ctrlPoints.setTime(dt);
+    this.ctrlPolygon.setTime(dt);
+    this.designPoints.setTime(dt);
   }
 
   onSceneReady(scene: Scene) {
@@ -159,9 +183,24 @@ export default class Editor {
     this.scene = scene;
     this.callbacks.forEach((callback) => callback(scene));
 
+    // callback when SelectMesh
+    const onSelectMesh = (mesh?: Mesh) => {
+      const { curvature, ctrlPoints, ctrlPolygon, designPoints } = this;
+      if (mesh) {
+        const curve = mesh.metadata.curve;
+        curvature.update(curve);
+        ctrlPoints.update(curve.ctrlPoints);
+        ctrlPolygon.update(curve.ctrlPoints);
+        designPoints.update(curve.designPoints);
+      } else {
+        [curvature, ctrlPoints, ctrlPolygon, designPoints].map(e => e.setVisible(false));
+      }
+    }
+
     // Select mesh by using GPU pick
-    const selectMesh = new SelectMesh(this);
+    const selectMesh = new SelectMesh(this, onSelectMesh);
     this.selectMesh = selectMesh;
+
     // Key event observable
     const keyEventHandler = new KeyEventHandler(this);
     this.keyEventHandler = keyEventHandler;
@@ -233,6 +272,8 @@ export default class Editor {
     if (index > -1) this.callbacks.splice(index, 1);
   }
 
+
+
   // set index of viewport correspond to the pointer's coordinates
   setIndexViewport(dividerX: number, dividerY: number): number {
     const scene = this.scene;
@@ -292,20 +333,6 @@ export default class Editor {
   addCurve(curve: Parametric) {
     this.execute(new AddCurveCommand(this, curve));
   }
-
-  updateCurveHelper(curve: Parametric) {
-    const { curvature, ctrlPoints, ctrlPolygon, designPoints } = this;
-    curvature.update(curve);
-    ctrlPoints.update(curve.ctrlPoints);
-    ctrlPolygon.update(curve.ctrlPoints);
-    designPoints.update(curve.designPoints);
-  }
-
-  // addInterpolatedCurve( pole ) {
-
-  // 	this.execute( new AddInterpolatedCurveCommand( this, pole ) );
-
-  // }
 
   execute(cmd: Command) {
     this.history.excute(cmd);

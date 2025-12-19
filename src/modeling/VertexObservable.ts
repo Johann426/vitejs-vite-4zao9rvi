@@ -51,6 +51,7 @@ export class Observable<T> implements IObservable<T> {
         }
     }
 
+    // call update() on registered Observers
     notify(model?: T) {
         for (const obs of this._observers) {
             obs.update(model);

@@ -1,6 +1,6 @@
 import { Plane as BPlane } from "@babylonjs/core";
-import { Color3, LinesMesh, PointerEventTypes, Matrix, RayHelper } from "@babylonjs/core";
-import type { Scene, Mesh, Nullable, Observer, PointerInfo, } from "@babylonjs/core";
+import { GPUPicker, Color3, Mesh, PointerEventTypes, Matrix } from "@babylonjs/core";
+import type { Scene, Observer, PointerInfo, } from "@babylonjs/core";
 import Editor from "../Editor";
 import { Vector } from "../modeling/NurbsLib";
 import { Plane } from "../modeling/Plane";
@@ -9,36 +9,33 @@ import { Plane } from "../modeling/Plane";
 const PICK_TOLERANCE = 4;
 
 export class SelectMesh {
-    editor: Editor;
-    pickedObject: Mesh | undefined;
-    savedColor = new Color3(0, 0, 0);
-    pointerMoveObserver: Nullable<Observer<PointerInfo>> = null;
-    pointerDownObserver: Nullable<Observer<PointerInfo>> = null;
+    public pickedObject: Mesh | undefined;
+    private picker: GPUPicker = new GPUPicker();
+    private savedColor = new Color3(0, 0, 0);
+    private observers: Observer<PointerInfo>[] = [];
 
-    constructor(editor: Editor) {
-        this.editor = editor;
+    constructor(
+        private editor: Editor,
+        private onSelectMesh: (mesh?: Mesh) => void
+    ) {
         const scene = editor.scene;
         this.registerCallbacks(scene);
     }
 
     registerCallbacks(scene: Scene) {
-        this.pointerMoveObserver = scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE);
-        this.pointerDownObserver = scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN);
+        this.observers.push(scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE));
+        this.observers.push(scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN));
     }
 
     removeCallbacks(scene: Scene) {
-        if (this.pointerMoveObserver) {
-            scene.onPointerObservable.remove(this.pointerMoveObserver);
-            this.pointerMoveObserver = null;
-        }
-        if (this.pointerDownObserver) {
-            scene.onPointerObservable.remove(this.pointerDownObserver);
-            this.pointerDownObserver = null;
-        }
+        this.observers.forEach(observer => scene.onPointerObservable.remove(observer));
+        this.observers.length = 0;
     }
 
     // Clean up observers when disposing of the SelectMesh instance
     dispose() {
+        this.pickedObject = undefined;
+        this.picker.dispose();
         const scene = this.editor.scene;
         this.removeCallbacks(scene);
     }
@@ -46,7 +43,7 @@ export class SelectMesh {
     // Restore the original color of the previously picked object
     restoreColor() {
         const mesh = this.pickedObject
-        if (mesh instanceof LinesMesh) {
+        if (mesh instanceof Mesh) {
             mesh.metadata.helper.setColor(this.savedColor);
             this.pickedObject = undefined;
 
@@ -55,7 +52,8 @@ export class SelectMesh {
 
     // Handle pointer move events to highlight objects under the cursor
     onPointerMove = () => {
-        const { scene, picker } = this.editor;
+        const { editor, picker } = this
+        const { scene } = editor;
 
         if (picker.pickingInProgress) {
             return;
@@ -68,7 +66,7 @@ export class SelectMesh {
         const y2 = scene.pointerY + PICK_TOLERANCE;
         picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
             if (pickingInfo) {
-                if (pickingInfo.meshes[0] instanceof LinesMesh) {
+                if (pickingInfo.meshes[0] instanceof Mesh) {
                     const mesh = pickingInfo.meshes[0];
                     this.pickedObject = mesh;
                     this.savedColor = mesh.metadata.helper.color;
@@ -82,11 +80,12 @@ export class SelectMesh {
 
     // Handle pointer down events to select objects
     onPointerDown = (pointerInfo: PointerInfo) => {
+        const { editor, picker } = this
+        const { scene } = editor;
+
         const event: PointerEvent = pointerInfo.event as PointerEvent;
 
         if (event.button === 0) { // left click
-            const editor = this.editor;
-            const { scene, picker, curvature, ctrlPoints, ctrlPolygon, designPoints } = editor;
             const x1 = scene.pointerX - PICK_TOLERANCE;
             const y1 = scene.pointerY - PICK_TOLERANCE;
             const x2 = scene.pointerX + PICK_TOLERANCE;
@@ -94,19 +93,17 @@ export class SelectMesh {
             picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
                 if (pickingInfo) {
                     if (pickingInfo.meshes.length == 0) {
-                        [curvature, ctrlPoints, ctrlPolygon, designPoints].map(e => e.setVisible(false));
+                        this.onSelectMesh();
                     }
-                    else if (pickingInfo.meshes[0] instanceof LinesMesh) {
-                        const curve = pickingInfo.meshes[0].metadata.curve;
-                        editor.updateCurveHelper(curve);
+                    else if (pickingInfo.meshes[0] instanceof Mesh) {
+                        const mesh = pickingInfo.meshes[0];
+                        this.onSelectMesh(mesh);
                     }
                 }
             });
         }
 
         if (event.button === 2) { // right click
-            const editor = this.editor;
-            const { scene } = editor;
             const camera = scene.activeCamera;
             const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, Matrix.Identity(), camera);
             // const rayHelper = new RayHelper(ray);
@@ -136,8 +133,7 @@ export class SelectMesh {
 
     // Set the list of pickable meshes for the GPU picker
     setPickables(pickables: Mesh[]) {
-        const editor = this.editor;
-        const picker = editor.picker;
+        const { editor, picker } = this
         if (pickables) {
             picker.setPickingList(pickables);
         } else {
