@@ -171,9 +171,9 @@ export default class Editor {
   onRender(scene: Scene) {
     const startTime = this.timestamp;
     const dt = 0.001 * (Date.now() - startTime)
-    this.curvature.setTime(dt);
-    this.ctrlPoints.setTime(dt);
-    this.ctrlPolygon.setTime(dt);
+    // this.curvature.setTime(dt);
+    // this.ctrlPoints.setTime(dt);
+    // this.ctrlPolygon.setTime(dt);
     this.designPoints.setTime(dt);
   }
 

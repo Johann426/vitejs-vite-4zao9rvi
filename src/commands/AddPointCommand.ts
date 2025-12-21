@@ -8,8 +8,8 @@ import { Vertex, Observer } from "../modeling/VertexObservable";
 
 export class AddPointCommand implements Command {
     private curve: Parametric;
-    private vertex: Vertex<Parametric>;
-    private observer: Observer<Parametric>;
+    private vertex: Vertex;
+    private observer: Observer;
 
     constructor(
         editor: Editor,
@@ -19,7 +19,7 @@ export class AddPointCommand implements Command {
         const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
         this.curve = curve;
         // Create and store observable(vertex)
-        const vertex = new Vertex<Parametric>(curve, point);
+        const vertex = new Vertex(point);
         this.vertex = vertex;
         // add callback to observable(vertex) and store observer
         const callback = () => {
@@ -39,7 +39,7 @@ export class AddPointCommand implements Command {
         // add vertex to curve
         curve.add(vertex);
         // update vertex buffer
-        vertex.notify(curve);
+        vertex.notify();
     }
 
     undo() {
@@ -48,7 +48,7 @@ export class AddPointCommand implements Command {
         // remove point
         curve.remove(nm1);
         // update vertex buffer
-        vertex.notify(curve);
+        vertex.notify();
         // remove observer
         if (observer) {
             vertex.remove(observer);

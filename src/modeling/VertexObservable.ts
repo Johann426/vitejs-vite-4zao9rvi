@@ -1,46 +1,46 @@
 import { Vector } from "./NurbsLib";
 
-interface IObserver<T> {
-    update(model?: T): void;
+interface IObserver {
+    update(): void;
 }
 
-export class Observer<T> implements IObserver<T> {
+export class Observer implements IObserver {
     constructor(
-        private callback: (model?: T) => void
+        private callback: () => void
     ) { }
 
-    update(model?: T) {
-        this.callback(model);
+    update() {
+        this.callback();
     }
 }
 
-interface IObservable<T> {
-    add(callback: (model?: T) => void): Observer<T>;
-    remove(observer: Observer<T>): boolean;
-    notify(model?: T): void;
+interface IObservable {
+    add(callback: () => void): Observer;
+    remove(observer: Observer): boolean;
+    notify(): void;
 }
 
-export class Observable<T> implements IObservable<T> {
-    private _observers: Observer<T>[] = [];
+export class Observable implements IObservable {
+    private _observers: Observer[] = [];
 
     get observers() {
         return this._observers;
     }
 
-    constructor(observer?: Observer<T>) {
+    constructor(observer?: Observer) {
         if (observer) {
             this._observers.push(observer);
         }
     }
 
-    add(callback: (model?: T) => void) {
+    add(callback: () => void) {
         const observer = new Observer(callback)
         this._observers.push(observer);
 
         return observer;
     }
 
-    remove(observer: Observer<T>) {
+    remove(observer: Observer) {
         const index = this._observers.indexOf(observer);
 
         if (index !== -1) {
@@ -52,14 +52,14 @@ export class Observable<T> implements IObservable<T> {
     }
 
     // call update() on registered Observers
-    notify(model?: T) {
+    notify() {
         for (const obs of this._observers) {
-            obs.update(model);
+            obs.update();
         }
     }
 }
 
-export class Vertex<T> extends Observable<T> {
+export class Vertex extends Observable {
     /**
      * Creates a new vertex observer
      * @param position defines position vector of the vertex
@@ -68,7 +68,6 @@ export class Vertex<T> extends Observable<T> {
      * @param tangentO defines tangential vector exiting the vertex
      */
     constructor(
-        private model: T,
         public position: Vector,
         public knuckle: boolean = false,
         public tangentI: Vector = new Vector(),
@@ -91,21 +90,21 @@ export class Vertex<T> extends Observable<T> {
 
     setPosition(x: Vector | number = 0, y: number = 0, z: number = 0): void {
         this.setVector(this.position, x, y, z);
-        this.notify(this.model);
+        this.notify();
     }
 
     setKnuckle(bool: boolean): void {
         this.knuckle = bool;
-        this.notify(this.model);
+        this.notify();
     }
 
     setTangentIn(x: Vector | number = 0, y: number = 0, z: number = 0): void {
         this.setVector(this.tangentI, x, y, z);
-        this.notify(this.model);
+        this.notify();
     }
 
     setTangentOut(x: Vector | number = 0, y: number = 0, z: number = 0): void {
         this.setVector(this.tangentO, x, y, z);
-        this.notify(this.model);
+        this.notify();
     }
 }
