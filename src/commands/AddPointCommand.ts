@@ -4,11 +4,11 @@ import type { Mesh } from "@babylonjs/core";
 import type { Vector } from "../modeling/NurbsLib";
 import type { Parametric } from "../modeling/Parametric";
 import type { CurveHelper } from "../DesignHelper";
-import { Vertex, Observer } from "../modeling/VertexObservable";
+import { VertexObservable, Observer } from "../modeling/VertexObservable";
 
 export class AddPointCommand implements Command {
     private curve: Parametric;
-    private vertex: Vertex;
+    private vertex: VertexObservable;
     private observer: Observer;
 
     constructor(
@@ -19,7 +19,7 @@ export class AddPointCommand implements Command {
         const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
         this.curve = curve;
         // Create and store observable(vertex)
-        const vertex = new Vertex(point);
+        const vertex = new VertexObservable(point);
         this.vertex = vertex;
         // add callback to observable(vertex) and store observer
         const callback = () => {
@@ -37,7 +37,7 @@ export class AddPointCommand implements Command {
     execute() {
         const { curve, vertex } = this;
         // add vertex to curve
-        curve.add(vertex);
+        curve.append(vertex);
         // update vertex buffer
         vertex.notify();
     }
@@ -59,7 +59,7 @@ export class AddPointCommand implements Command {
     redo() {
         const { curve, vertex, observer } = this;
         // add vertex to curve
-        curve.add(vertex);
+        curve.append(vertex);
         // add observer
         vertex.observers.push(observer);
         // update vertex buffer

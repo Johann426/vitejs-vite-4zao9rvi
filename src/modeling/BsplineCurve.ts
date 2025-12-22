@@ -17,7 +17,7 @@ class BsplineCurve extends Bspline {
         return this.ctrlp;
     }
 
-    add(v: Vector) {
+    append(v: Vector) {
         this.ctrlp.push(new Vector(v.x, v.y, v.z));
         this.needsUpdate = true;
     }
@@ -56,7 +56,7 @@ class BsplineCurve extends Bspline {
             this.incert(0, v);
             return 0;
         } else if (t == this.tmax) {
-            this.add(v);
+            this.append(v);
             return this.param.length;
         } else {
             console.warn("Parametric position is out of range");

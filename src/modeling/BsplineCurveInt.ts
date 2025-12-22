@@ -1,14 +1,65 @@
 import { parameterize, assignKnot, globalCurveInterpTngt, split, Vector, } from "./NurbsLib.js";
 import { Bspline } from "./Bspline.ts";
 import { BsplineCurve } from "./BsplineCurve.ts";
-import { Vertex } from "./VertexObservable.ts";
-import type { Parametric } from "./Parametric.ts";
+
+export class Vertex {
+    /**
+     * @param position defines position vector of the vertex
+     * @param _knuckle defines knuckle
+     * @param tangentI defines tangential vector entering the vertex
+     * @param tangentO defines tangential vector exiting the vertex
+     */
+    constructor(
+        private position: Vector,
+        private _knuckle: boolean = false,
+        private tangentI: Vector = new Vector(),
+        private tangentO: Vector = new Vector(),
+    ) { }
+
+    set point(v: Vector) {
+        this.point = new Vector(v.x, v.y, v.z);
+    }
+
+    get point() {
+        return this.position;
+    }
+
+    set knuckle(bool: boolean) {
+        if (bool) {
+            this._knuckle = true;
+        } else {
+            this._knuckle = false;
+            this.tangentI = new Vector();
+            this.tangentO = new Vector();
+        }
+    }
+
+    get knuckle() {
+        return this._knuckle;
+    }
+
+    set tangentIn(v: Vector) {
+        this.tangentI = new Vector(v.x, v.y, v.z);
+    }
+
+    get tangentIn() {
+        return this.tangentI;
+    }
+
+    set tangentOut(v: Vector) {
+        this.tangentO = new Vector(v.x, v.y, v.z);
+    }
+
+    get tangentOut() {
+        return this.tangentO;
+    }
+}
 
 export class BsplineCurveInt extends Bspline {
     method = "chordal";
     needsUpdate: boolean = false;
 
-    constructor(deg: number, private vertices: Vertex<Parametric>[] = []) {
+    constructor(deg: number, private vertices: Vertex[] = []) {
         super(deg, Array(), Array());
         this.vertices = vertices;
     }
@@ -24,12 +75,12 @@ export class BsplineCurveInt extends Bspline {
     }
 
     get designPoints() {
-        return this.vertices.map((e) => e.position);
+        return this.vertices.map((e) => e.point);
     }
 
-    add(v: Vector | Vertex<Parametric>) {
+    append(v: Vector | Vertex) {
         if (v instanceof Vector) {
-            this.vertices.push(new Vertex<Parametric>(this, new Vector(v.x, v.y, v.z)));
+            this.vertices.push(new Vertex(new Vector(v.x, v.y, v.z)));
         }
         if (v instanceof Vertex) {
             this.vertices.push(v);
@@ -43,14 +94,14 @@ export class BsplineCurveInt extends Bspline {
         return point;
     }
 
-    mod(i: number, v: Vector) {
-        this.vertices[i].setPosition(v);
+    modify(i: number, v: Vector) {
+        this.vertices[i].point = v;
         this.needsUpdate = true;
     }
 
-    incert(i: number, v: Vector | Vertex<Parametric>) {
+    incert(i: number, v: Vector | Vertex) {
         if (v instanceof Vector) {
-            this.vertices.splice(i, 0, new Vertex<Parametric>(this, new Vector(v.x, v.y, v.z)));
+            this.vertices.splice(i, 0, new Vertex(new Vector(v.x, v.y, v.z)));
         }
         if (v instanceof Vertex) {
             this.vertices.splice(i, 0, v);
@@ -58,7 +109,7 @@ export class BsplineCurveInt extends Bspline {
         this.needsUpdate = true;
     }
 
-    incertPointAt(t: number, v: Vector | Vertex<Parametric>) {
+    incertPointAt(t: number, v: Vector | Vertex) {
         if (t > this.tmin && t < this.tmax) {
             const i = this.param.findIndex((e) => e > t);
             this.incert(i, v);
@@ -77,7 +128,7 @@ export class BsplineCurveInt extends Bspline {
             this.incert(0, v);
             return 0;
         } else if (t == this.tmax) {
-            this.add(v);
+            this.append(v);
             return this.param.length;
         } else {
             console.warn("Parametric position is out of range", t);
@@ -159,7 +210,7 @@ export class BsplineCurveInt extends Bspline {
 
         index.push(n - 1); // the last into index
 
-        const lPole: Vertex<Parametric>[][] = []; // local pole points
+        const lPole: Vertex[][] = []; // local pole points
 
         for (let i = 1; i < index.length; i++) {
             const pts = this.vertices.slice(index[i - 1], index[i] + 1);
@@ -180,11 +231,11 @@ export class BsplineCurveInt extends Bspline {
     }
 
     // After dividing a curve into local parts, assign end derivatives to each of coner points
-    _assignEndDers(points: Vertex<Parametric>[]) {
+    _assignEndDers(points: Vertex[]) {
         const nm1 = points.length - 1;
-        const pts = points.map((e) => e.position);
+        const pts = points.map((e) => e.point);
         const prm = parameterize(pts, this.method);
-        const pole = points.map(e => ({ point: e.position }))
+        const pole = points.map(e => ({ point: e.point }))
 
         // specify end derivatives
         if (points.length > 1) {

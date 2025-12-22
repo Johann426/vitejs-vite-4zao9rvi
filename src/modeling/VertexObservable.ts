@@ -59,7 +59,7 @@ export class Observable implements IObservable {
     }
 }
 
-export class Vertex extends Observable {
+export class VertexObservable extends Observable {
     /**
      * Creates a new vertex observer
      * @param position defines position vector of the vertex

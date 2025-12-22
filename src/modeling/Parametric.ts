@@ -1,6 +1,6 @@
 import type Curve from "./Curve.js";
 import { Vector } from "./NurbsLib.js";
-import type { Vertex } from "./VertexObservable.js";
+import type { VertexObservable } from "./VertexObservable.js";
 
 /*
  * Abstract class representing parametric form of geometric model
@@ -10,17 +10,14 @@ export abstract class Parametric implements Curve {
     protected knots: number[] = [];
     protected ctrlp: Vector[] = [];
 
-    abstract get ctrlPoints(): Vector[];
-    abstract get designPoints(): Vector[];
-
-    abstract add(v: Vector | Vertex<Parametric>): void
+    abstract append(v: Vector): void
     abstract remove(i: number): void
-    abstract mod(i: number, v: Vector): void
-    abstract split(t: number): void
+    abstract modify(i: number, v: Vector): void
+    abstract incert(i: number, v: Vector): void
+    abstract clone(): Parametric;
+    abstract split(t: number): [Parametric, Parametric]
     abstract getPointAt(t: number): Vector
     abstract getDerivatives(t: number, n: number): Vector[];
-    abstract update(): void;
-    abstract clone(): Parametric
 
     get parameters() {
         return this.param;
@@ -30,17 +27,21 @@ export abstract class Parametric implements Curve {
         return this.knots;
     }
 
+    get ctrlPoints() {
+        return this.ctrlp;
+    }
+
     get tmin() {
-        return this.knots ? this.knots[0] : 0.0;
+        return this.knots.length === 0 ? 0.0 : this.knots[0];
     }
 
     get tmax() {
-        return this.knots ? this.knots[this.knots.length - 1] : 1.0;
+        return this.knots.length === 0 ? 1.0 : this.knots[this.knots.length - 1];
     }
 
     getPoints(n: number) {
-        const tmin = this.knots ? this.knots[0] : 0.0;
-        const tmax = this.knots ? this.knots[this.knots.length - 1] : 1.0;
+        const tmin = this.tmin;
+        const tmax = this.tmax;
         const p = [];
 
         for (let i = 0; i < n; i++) {

@@ -1,12 +1,9 @@
 import type { Vector } from "./NurbsLib";
 
 export default interface Curve {
-    add(v: Vector): void;
+    append(v: Vector): void;
     remove(i: number): void;
-    mod(i: number, v: Vector): void;
-    split(t: number): void;
-    getPointAt(t: number): Vector;
-    getDerivatives(t: number, n: number): Vector[];
-    update(): void;
+    modify(i: number, v: Vector): void;
+    incert(i: number, v: Vector): void;
     clone(): Curve;
 }
