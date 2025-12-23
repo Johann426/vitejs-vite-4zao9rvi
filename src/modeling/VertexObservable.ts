@@ -1,3 +1,4 @@
+import { Vertex } from "./BsplineCurveInt";
 import { Vector } from "./NurbsLib";
 
 interface IObserver {
@@ -60,18 +61,9 @@ export class Observable implements IObservable {
 }
 
 export class VertexObservable extends Observable {
-    /**
-     * Creates a new vertex observer
-     * @param position defines position vector of the vertex
-     * @param knuckle defines knuckle
-     * @param tangentI defines tangential vector entering the vertex
-     * @param tangentO defines tangential vector exiting the vertex
-     */
+
     constructor(
-        public position: Vector,
-        public knuckle: boolean = false,
-        public tangentI: Vector = new Vector(),
-        public tangentO: Vector = new Vector(),
+        public vertex: Vertex
     ) {
         super();
     }
