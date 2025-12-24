@@ -78,13 +78,8 @@ export class BsplineCurveInt extends Bspline {
         return this.vertices.map((e) => e.point);
     }
 
-    append(v: Vector | Vertex) {
-        if (v instanceof Vector) {
-            this.vertices.push(new Vertex(new Vector(v.x, v.y, v.z)));
-        }
-        if (v instanceof Vertex) {
-            this.vertices.push(v);
-        }
+    append(v: Vector) {
+        this.vertices.push(new Vertex(new Vector(v.x, v.y, v.z)));
         this.needsUpdate = true;
     }
 
@@ -99,17 +94,12 @@ export class BsplineCurveInt extends Bspline {
         this.needsUpdate = true;
     }
 
-    incert(i: number, v: Vector | Vertex) {
-        if (v instanceof Vector) {
-            this.vertices.splice(i, 0, new Vertex(new Vector(v.x, v.y, v.z)));
-        }
-        if (v instanceof Vertex) {
-            this.vertices.splice(i, 0, v);
-        }
+    incert(i: number, v: Vector) {
+        this.vertices.splice(i, 0, new Vertex(new Vector(v.x, v.y, v.z)));
         this.needsUpdate = true;
     }
 
-    incertPointAt(t: number, v: Vector | Vertex) {
+    incertPointAt(t: number, v: Vector) {
         if (t > this.tmin && t < this.tmax) {
             const i = this.param.findIndex((e) => e > t);
             this.incert(i, v);

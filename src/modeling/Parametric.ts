@@ -31,6 +31,10 @@ export abstract class Parametric implements Curve {
         return this.ctrlp;
     }
 
+    get designPoints() {
+        return this.ctrlp;
+    }
+
     get tmin() {
         return this.knots.length === 0 ? 0.0 : this.knots[0];
     }

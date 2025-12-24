@@ -8,7 +8,7 @@ import { VertexObservable, Observer } from "../modeling/VertexObservable";
 
 export class AddPointCommand implements Command {
     private curve: Parametric;
-    private vertex: VertexObservable;
+    private observable: VertexObservable;
     private observer: Observer;
 
     constructor(
@@ -19,8 +19,8 @@ export class AddPointCommand implements Command {
         const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
         this.curve = curve;
         // Create and store observable(vertex)
-        const vertex = new VertexObservable(point);
-        this.vertex = vertex;
+        const observable = new VertexObservable(point);
+        this.observable = observable;
         // add callback to observable(vertex) and store observer
         const callback = () => {
             if (curve.designPoints.length === 0) return
@@ -31,38 +31,37 @@ export class AddPointCommand implements Command {
             ctrlPolygon.update(curve.ctrlPoints);
             designPoints.update(curve.designPoints);
         }
-        this.observer = this.vertex.add(callback);
+        this.observer = this.observable.add(callback);
     }
 
     execute() {
-        const { curve, vertex } = this;
+        const { curve, observable } = this;
         // add vertex to curve
-        curve.append(vertex);
+        curve.append(observable.vertex.point);
         // update vertex buffer
-        vertex.notify();
+        observable.notify();
     }
 
     undo() {
-        const { curve, vertex, observer } = this;
+        const { curve, observable, observer } = this;
         const nm1 = curve.designPoints.length - 1;
         // remove point
         curve.remove(nm1);
         // update vertex buffer
-        vertex.notify();
+        observable.notify();
         // remove observer
         if (observer) {
-            vertex.remove(observer);
+            observable.remove(observer);
         }
-
     }
 
     redo() {
-        const { curve, vertex, observer } = this;
+        const { curve, observable, observer } = this;
         // add vertex to curve
-        curve.append(vertex);
+        curve.append(observable.vertex.point);
         // add observer
-        vertex.observers.push(observer);
+        observable.observers.push(observer);
         // update vertex buffer
-        vertex.notify(curve);
+        observable.notify();
     }
 }

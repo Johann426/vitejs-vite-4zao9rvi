@@ -29,9 +29,7 @@ export class Observable implements IObservable {
     }
 
     constructor(observer?: Observer) {
-        if (observer) {
-            this._observers.push(observer);
-        }
+        observer && this._observers.push(observer);
     }
 
     add(callback: () => void) {
@@ -62,41 +60,36 @@ export class Observable implements IObservable {
 
 export class VertexObservable extends Observable {
 
+    private _vertex: Vertex
+
     constructor(
-        public vertex: Vertex
+        point: Vector
     ) {
         super();
+        this._vertex = new Vertex(point);
     }
 
-    private setVector(v: Vector, x: Vector | number = 0, y: number = 0, z: number = 0): void {
-        if (x instanceof Vector) {
-            v.x = x.x;
-            v.y = x.y;
-            v.z = x.z;
-        } else {
-            v.x = x;
-            v.y = y;
-            v.z = z;
-        }
+    get vertex() {
+        return this._vertex;
     }
 
-    setPosition(x: Vector | number = 0, y: number = 0, z: number = 0): void {
-        this.setVector(this.position, x, y, z);
+    setPosition(v: Vector): void {
+        this._vertex.point = new Vector(v.x, v.y, v.z);;
         this.notify();
     }
 
     setKnuckle(bool: boolean): void {
-        this.knuckle = bool;
+        this._vertex.knuckle = bool;
         this.notify();
     }
 
-    setTangentIn(x: Vector | number = 0, y: number = 0, z: number = 0): void {
-        this.setVector(this.tangentI, x, y, z);
+    setTangentIn(v: Vector): void {
+        this._vertex.tangentIn = new Vector(v.x, v.y, v.z);;
         this.notify();
     }
 
-    setTangentOut(x: Vector | number = 0, y: number = 0, z: number = 0): void {
-        this.setVector(this.tangentO, x, y, z);
+    setTangentOut(v: Vector): void {
+        this._vertex.tangentOut = new Vector(v.x, v.y, v.z);;
         this.notify();
     }
 }
