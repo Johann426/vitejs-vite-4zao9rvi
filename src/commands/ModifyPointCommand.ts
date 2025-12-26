@@ -2,39 +2,46 @@ import Editor from "../Editor";
 import type Command from "./Command";
 import type { Mesh } from "@babylonjs/core";
 import { Vector } from "../modeling/NurbsLib";
+import type { Parametric } from "../modeling/Parametric";
+import type { CurveHelper } from "../DesignHelper";
+import { VertexObservable, Observer } from "../modeling/VertexObservable";
 
 export class ModifyPointCommand implements Command {
-    editor: Editor;
-    point: Vector;
-    index: number;
-    saved: Vector | undefined;
-    mesh: Mesh | undefined;
+    private curve: Parametric;
+    private observable: VertexObservable;
+    private observer: Observer;
+    private point: Vector;
+    private index: number;
+    private saved: Vector;
 
-    constructor(editor: Editor, point: Vector, index: number) {
-        this.editor = editor;
-        this.point = point;
+    constructor(
+        editor: Editor,
+        point: Vector,
+        mesh: Mesh,
+        index: number
+    ) {
+        const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
+        this.curve = curve;
+        // save index and point
         this.index = index;
-        this.mesh = editor.selectMesh.pickedObject;
+        this.point = point;
+        const v = curve.designPoints[index];
+        this.saved = new Vector(v.x, v.y, v.z);
     }
 
     execute() {
-        const { point, index, mesh } = this;
-        if (mesh) {
-            const curve = mesh.metadata.curve;
-            // saved point
-            const v = curve.designPoints[index];
-            this.saved = new Vector(v.x, v.y, v.z);
-            // modify point
-            curve.mod(index, point);
-        }
+        const { curve, index, point } = this;
+        // modify point
+        const vertex = curve.modify(index, point);
+        console.log(vertex);
+        vertex.reference?.notify();
     }
 
     undo() {
-        const { mesh, saved, index } = this;
-        if (mesh) {
-            // restor saved point
-            const curve = mesh.metadata.curve;
-            curve.mod(index, saved);
-        }
+        const { curve, index, saved } = this;
+        // restor saved point
+        const vertex = curve.modify(index, point);
+        console.log(vertex);
+        vertex.reference?.notify();
     }
 }

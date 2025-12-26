@@ -92,7 +92,9 @@ export default class Editor {
     // this.removePoint(3);
 
     this.addPoint(new Vector(1, 1, 3), mesh);
-    // curve.mod(3, new Vector(-1, -1, -1));
+    const vertex = curve.modify(3, new Vector(-1, -1, -1));
+    console.log(vertex);
+    console.log(vertex.reference);
     // this.modPoint(new Vector(-1, -1, -1), 3);
 
     this.selectMesh.pickedObject = undefined;

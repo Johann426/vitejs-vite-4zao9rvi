@@ -1,4 +1,4 @@
-import { Vertex } from "./BsplineCurveInt";
+import { Vertex } from "./Vertex";
 import { Vector } from "./NurbsLib";
 
 interface IObserver {
@@ -67,6 +67,7 @@ export class VertexObservable extends Observable {
     ) {
         super();
         this._vertex = new Vertex(point);
+        this._vertex.reference = this;
     }
 
     get vertex() {
