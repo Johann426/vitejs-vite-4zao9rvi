@@ -92,10 +92,7 @@ export default class Editor {
     // this.removePoint(3);
 
     this.addPoint(new Vector(1, 1, 3), mesh);
-    const vertex = curve.modify(3, new Vector(-1, -1, -1));
-    console.log(vertex);
-    console.log(vertex.reference);
-    // this.modPoint(new Vector(-1, -1, -1), 3);
+    this.modPoint(new Vector(-1, -1, -1), 3, mesh);
 
     this.selectMesh.pickedObject = undefined;
     this.selectMesh.setPickables([mesh]);
@@ -324,8 +321,8 @@ export default class Editor {
     this.execute(new AddPointCommand(this, point, mesh));
   }
 
-  modPoint(point: Vector, index: number) {
-    this.execute(new ModifyPointCommand(this, point, index));
+  modPoint(point: Vector, index: number, mesh: Mesh) {
+    this.execute(new ModifyPointCommand(this, point, index, mesh));
   }
 
   removePoint(index: number) {

@@ -17,7 +17,7 @@ export class Vertex {
     ) { }
 
     set point(v: Vector) {
-        this.point = new Vector(v.x, v.y, v.z);
+        this.position = new Vector(v.x, v.y, v.z);
     }
 
     get point() {

@@ -8,8 +8,8 @@ import { VertexObservable, Observer } from "../modeling/VertexObservable";
 
 export class ModifyPointCommand implements Command {
     private curve: Parametric;
-    private observable: VertexObservable;
-    private observer: Observer;
+    // private observable: VertexObservable;
+    // private observer: Observer;
     private point: Vector;
     private index: number;
     private saved: Vector;
@@ -17,8 +17,8 @@ export class ModifyPointCommand implements Command {
     constructor(
         editor: Editor,
         point: Vector,
+        index: number,
         mesh: Mesh,
-        index: number
     ) {
         const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
         this.curve = curve;
@@ -44,4 +44,6 @@ export class ModifyPointCommand implements Command {
         console.log(vertex);
         vertex.reference?.notify();
     }
+
+    redo() { }
 }

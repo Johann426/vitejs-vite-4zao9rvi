@@ -26,8 +26,9 @@ export class BsplineCurveInt extends Bspline {
         return this.vertices.map((e) => e.point);
     }
 
-    append(v: Vector) {
-        this.vertices.push(new Vertex(new Vector(v.x, v.y, v.z)));
+    append(v: Vertex) {
+        // this.vertices.push(new Vertex(new Vector(v.x, v.y, v.z)));
+        this.vertices.push(v);
         this.needsUpdate = true;
     }
 
