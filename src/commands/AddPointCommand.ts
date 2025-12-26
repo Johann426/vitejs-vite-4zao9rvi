@@ -37,7 +37,8 @@ export class AddPointCommand implements Command {
     execute() {
         const { curve, observable } = this;
         // add a point to the curve
-        curve.append(observable.vertex);
+        const vertex = curve.append(observable.vertex.point);
+        vertex.reference = observable;
         // update vertex buffer
         observable.notify();
     }
@@ -58,7 +59,8 @@ export class AddPointCommand implements Command {
     redo() {
         const { curve, observable, observer } = this;
         // add a point to the curve
-        curve.append(observable.vertex.point);
+        const vertex = curve.append(observable.vertex.point);
+        vertex.reference = observable;
         // add observer
         observable.observers.push(observer);
         // update vertex buffer

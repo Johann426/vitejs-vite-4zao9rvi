@@ -26,10 +26,11 @@ export class BsplineCurveInt extends Bspline {
         return this.vertices.map((e) => e.point);
     }
 
-    append(v: Vertex) {
-        // this.vertices.push(new Vertex(new Vector(v.x, v.y, v.z)));
-        this.vertices.push(v);
+    append(v: Vector): Vertex {
+        const vertex = new Vertex(new Vector(v.x, v.y, v.z))
+        this.vertices.push(vertex);
         this.needsUpdate = true;
+        return vertex;
     }
 
     remove(i: number): Vertex {
@@ -46,8 +47,10 @@ export class BsplineCurveInt extends Bspline {
     }
 
     incert(i: number, v: Vector) {
-        this.vertices.splice(i, 0, new Vertex(new Vector(v.x, v.y, v.z)));
+        const vertex = new Vertex(new Vector(v.x, v.y, v.z))
+        this.vertices.splice(i, 0, vertex);
         this.needsUpdate = true;
+        return vertex;
     }
 
     incertPointAt(t: number, v: Vector) {

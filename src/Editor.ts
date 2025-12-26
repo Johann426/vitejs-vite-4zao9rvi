@@ -322,11 +322,11 @@ export default class Editor {
   }
 
   modPoint(point: Vector, index: number, mesh: Mesh) {
-    this.execute(new ModifyPointCommand(this, point, index, mesh));
+    this.execute(new ModifyPointCommand(point, index, mesh));
   }
 
   removePoint(index: number) {
-    this.execute(new RemovePointCommand(this, index));
+    this.execute(new RemovePointCommand(index));
   }
 
   addCurve(curve: Parametric) {

@@ -1,43 +1,38 @@
-import Editor from "../Editor";
 import type Command from "./Command";
 import type { Mesh } from "@babylonjs/core";
-import type { VertexObservable } from "../modeling/VertexObservable";
+import type { VertexObservable, Observer } from "../modeling/VertexObservable";
+import type { Parametric } from "../modeling/Parametric";
 
 export class RemovePointCommand implements Command {
-    editor: Editor;
-    index: number;
-    saved: VertexObservable | undefined;
-    mesh: Mesh | undefined;
+    private curve: Parametric;
+    private index: number;
+    private saved: Vector;
 
-    constructor(editor: Editor, index: number) {
-        this.editor = editor;
+    constructor(
+        index: number
+    ) {
+        const { curve } = mesh.metadata;
+        this.curve = curve;
+        // save index and point
         this.index = index;
-        this.mesh = editor.selectMesh.pickedObject;
+        this.saved = curve.designPoints[index];
     }
 
     execute() {
-        const { index, mesh } = this;
-        if (mesh) {
-            const { curve, helper } = mesh.metadata;
-            // remove point
-            const vertex = curve.remove(index);
-            // saved vertex
-            this.saved = vertex;
-            // remove observers to observable
-            vertex.remove(curve);
-            vertex.remove(helper);
-        }
+        const { curve, index } = this;
+        // modify point
+        const vertex = curve.remove(index);
+        vertex.reference.notify();
     }
 
     undo() {
-        const { mesh, saved, index } = this;
-        if (mesh && saved) {
-            // restor saved point
-            const { curve, helper } = mesh.metadata;
-            curve.incert(index, saved);
-            // add observers to observable
-            saved.add(curve);
-            saved.add(helper);
-        }
+        const { curve, index, saved } = this;
+        // restor saved point
+        const vertex = curve.incert(index, saved);
+        vertex.reference?.notify();
+    }
+
+    redo() {
+        this.execute();
     }
 }

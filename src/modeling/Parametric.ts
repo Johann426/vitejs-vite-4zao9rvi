@@ -1,7 +1,6 @@
 import type Curve from "./Curve.js";
 import { Vector } from "./NurbsLib.js";
-import type { VertexObservable } from "./VertexObservable.js";
-
+import { Vertex } from "./Vertex.js";
 /*
  * Abstract class representing parametric form of geometric model
  */
@@ -10,10 +9,10 @@ export abstract class Parametric implements Curve {
     protected knots: number[] = [];
     protected ctrlp: Vector[] = [];
 
-    abstract append(v: Vector): void
-    abstract remove(i: number): void
-    abstract modify(i: number, v: Vector): void
-    abstract incert(i: number, v: Vector): void
+    abstract append(v: Vector): Vertex
+    abstract remove(i: number): Vertex
+    abstract modify(i: number, v: Vector): Vertex
+    abstract incert(i: number, v: Vector): Vertex
     abstract clone(): Parametric;
     abstract split(t: number): [Parametric, Parametric]
     abstract getPointAt(t: number): Vector
