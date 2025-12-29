@@ -1,8 +1,6 @@
 import { Vector } from "./NurbsLib";
 
 export class Vertex {
-    public reference?: any;
-
     /**
      * @param position defines position vector of the vertex
      * @param _knuckle defines knuckle
@@ -16,12 +14,32 @@ export class Vertex {
         private tangentO: Vector = new Vector(),
     ) { }
 
+    get point() {
+        return this.position;
+    }
+
     set point(v: Vector) {
         this.position = new Vector(v.x, v.y, v.z);
     }
 
-    get point() {
-        return this.position;
+    get tangentIn() {
+        return this.tangentI;
+    }
+
+    set tangentIn(v: Vector) {
+        this.tangentI = new Vector(v.x, v.y, v.z);
+    }
+
+    get tangentOut() {
+        return this.tangentO;
+    }
+
+    set tangentOut(v: Vector) {
+        this.tangentO = new Vector(v.x, v.y, v.z);
+    }
+
+    get knuckle() {
+        return this._knuckle;
     }
 
     set knuckle(bool: boolean) {
@@ -32,25 +50,5 @@ export class Vertex {
             this.tangentI = new Vector();
             this.tangentO = new Vector();
         }
-    }
-
-    get knuckle() {
-        return this._knuckle;
-    }
-
-    set tangentIn(v: Vector) {
-        this.tangentI = new Vector(v.x, v.y, v.z);
-    }
-
-    get tangentIn() {
-        return this.tangentI;
-    }
-
-    set tangentOut(v: Vector) {
-        this.tangentO = new Vector(v.x, v.y, v.z);
-    }
-
-    get tangentOut() {
-        return this.tangentO;
     }
 }

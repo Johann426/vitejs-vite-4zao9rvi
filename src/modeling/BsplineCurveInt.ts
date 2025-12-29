@@ -26,31 +26,26 @@ export class BsplineCurveInt extends Bspline {
         return this.vertices.map((e) => e.point);
     }
 
-    append(v: Vector): Vertex {
+    append(v: Vector) {
         const vertex = new Vertex(new Vector(v.x, v.y, v.z))
         this.vertices.push(vertex);
         this.needsUpdate = true;
-        return vertex;
     }
 
-    remove(i: number): Vertex {
-        const vertex = this.vertices.splice(i, 1)[0];
+    remove(i: number) {
+        this.vertices.splice(i, 1)[0];
         this.needsUpdate = true;
-        return vertex;
     }
 
-    modify(i: number, v: Vector): Vertex {
-        const vertex = this.vertices[i];
-        vertex.point = v;
+    modify(i: number, v: Vector) {
+        this.vertices[i].point = v;
         this.needsUpdate = true;
-        return vertex;
     }
 
     incert(i: number, v: Vector) {
         const vertex = new Vertex(new Vector(v.x, v.y, v.z))
         this.vertices.splice(i, 0, vertex);
         this.needsUpdate = true;
-        return vertex;
     }
 
     incertPointAt(t: number, v: Vector) {

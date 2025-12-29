@@ -4,7 +4,6 @@ import {
   Color4,
   Viewport,
   ArcRotateCamera,
-  GPUPicker,
   HemisphericLight,
   MeshBuilder,
   Mesh,
@@ -22,7 +21,7 @@ import { ModifyPointCommand } from "./commands/ModifyPointCommand.ts";
 import { RemovePointCommand } from "./commands/RemovePointCommand.ts";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.ts";
 import { Vector } from "./modeling/NurbsLib";
-import { PointHelper, LinesHelper, CurvatureHelper } from "./DesignHelper.js";
+import { PointHelper, LinesHelper, CurveHelper, CurvatureHelper } from "./DesignHelper.js";
 import { SelectMesh } from "./events/SelectMesh.js";
 import { KeyEventHandler } from "./events/KeyEvent.js";
 
@@ -82,17 +81,16 @@ export default class Editor {
     this.addCurve(curve);
 
     const mesh = this.pickables[this.pickables.length - 1];
-    // this.selectMesh.pickedObject = mesh;
 
-    this.addPoint(new Vector(0, 0, 0), mesh);
-    this.addPoint(new Vector(1, 1, 1), mesh);
-    this.addPoint(new Vector(0, 0, 2), mesh);
+    this.addPoint(new Vector(0, 0, 0), curve, () => this.updateCurveMesh(mesh));
+    this.addPoint(new Vector(1, 1, 1), curve, () => this.updateCurveMesh(mesh));
+    this.addPoint(new Vector(0, 0, 2), curve, () => this.updateCurveMesh(mesh));
 
-    // this.addPoint(new Vector(2, 1, 0));
-    // this.removePoint(3);
+    this.addPoint(new Vector(0, 0, 4), curve, () => this.updateCurveMesh(mesh));
+    this.removePoint(3, curve, () => this.updateCurveMesh(mesh));
 
-    this.addPoint(new Vector(1, 1, 3), mesh);
-    this.modPoint(new Vector(-1, -1, -1), 3, mesh);
+    this.addPoint(new Vector(0, 0, 3), curve, () => this.updateCurveMesh(mesh));
+    this.modPoint(new Vector(-1, -1, -1), 3, curve, () => this.updateCurveMesh(mesh));
 
     this.selectMesh.pickedObject = undefined;
     this.selectMesh.setPickables([mesh]);
@@ -271,7 +269,18 @@ export default class Editor {
     if (index > -1) this.callbacks.splice(index, 1);
   }
 
+  updateCurveMesh(mesh: Mesh) {
+    const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
+    const { curvature, ctrlPoints, ctrlPolygon, designPoints } = this;
 
+    if (curve.designPoints.length === 0) return
+
+    helper.update();
+    curvature.update(curve);
+    ctrlPoints.update(curve.ctrlPoints);
+    ctrlPolygon.update(curve.ctrlPoints);
+    designPoints.update(curve.designPoints);
+  }
 
   // set index of viewport correspond to the pointer's coordinates
   setIndexViewport(dividerX: number, dividerY: number): number {
@@ -317,16 +326,16 @@ export default class Editor {
     scene.activeCamera = cameras[n];
   }
 
-  addPoint(point: Vector, mesh: Mesh) {
-    this.execute(new AddPointCommand(this, point, mesh));
+  addPoint(point: Vector, curve: Parametric, callback: () => void) {
+    this.execute(new AddPointCommand(point, curve, callback));
   }
 
-  modPoint(point: Vector, index: number, mesh: Mesh) {
-    this.execute(new ModifyPointCommand(point, index, mesh));
+  modPoint(point: Vector, index: number, curve: Parametric, callback: () => void) {
+    this.execute(new ModifyPointCommand(index, point, curve, callback));
   }
 
-  removePoint(index: number) {
-    this.execute(new RemovePointCommand(index));
+  removePoint(index: number, curve: Parametric, callback: () => void) {
+    this.execute(new RemovePointCommand(index, curve, callback));
   }
 
   addCurve(curve: Parametric) {

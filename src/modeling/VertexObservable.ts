@@ -58,39 +58,39 @@ export class Observable implements IObservable {
     }
 }
 
-export class VertexObservable extends Observable {
+// export class VertexObservable extends Observable {
 
-    private _vertex: Vertex
+//     private _vertex: Vertex
 
-    constructor(
-        point: Vector
-    ) {
-        super();
-        this._vertex = new Vertex(point);
-        this._vertex.reference = this;
-    }
+//     constructor(
+//         point: Vector
+//     ) {
+//         super();
+//         this._vertex = new Vertex(point);
+//         this._vertex.reference = this;
+//     }
 
-    get vertex() {
-        return this._vertex;
-    }
+//     get vertex() {
+//         return this._vertex;
+//     }
 
-    setPosition(v: Vector): void {
-        this._vertex.point = new Vector(v.x, v.y, v.z);;
-        this.notify();
-    }
+//     setPosition(v: Vector): void {
+//         this._vertex.point = new Vector(v.x, v.y, v.z);;
+//         this.notify();
+//     }
 
-    setKnuckle(bool: boolean): void {
-        this._vertex.knuckle = bool;
-        this.notify();
-    }
+//     setKnuckle(bool: boolean): void {
+//         this._vertex.knuckle = bool;
+//         this.notify();
+//     }
 
-    setTangentIn(v: Vector): void {
-        this._vertex.tangentIn = new Vector(v.x, v.y, v.z);;
-        this.notify();
-    }
+//     setTangentIn(v: Vector): void {
+//         this._vertex.tangentIn = new Vector(v.x, v.y, v.z);;
+//         this.notify();
+//     }
 
-    setTangentOut(v: Vector): void {
-        this._vertex.tangentOut = new Vector(v.x, v.y, v.z);;
-        this.notify();
-    }
-}
+//     setTangentOut(v: Vector): void {
+//         this._vertex.tangentOut = new Vector(v.x, v.y, v.z);;
+//         this.notify();
+//     }
+// }

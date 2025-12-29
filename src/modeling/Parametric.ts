@@ -9,10 +9,10 @@ export abstract class Parametric implements Curve {
     protected knots: number[] = [];
     protected ctrlp: Vector[] = [];
 
-    abstract append(v: Vector): Vertex
-    abstract remove(i: number): Vertex
-    abstract modify(i: number, v: Vector): Vertex
-    abstract incert(i: number, v: Vector): Vertex
+    abstract append(v: Vector): void
+    abstract remove(i: number): void
+    abstract modify(i: number, v: Vector): void
+    abstract incert(i: number, v: Vector): void
     abstract clone(): Parametric;
     abstract split(t: number): [Parametric, Parametric]
     abstract getPointAt(t: number): Vector
