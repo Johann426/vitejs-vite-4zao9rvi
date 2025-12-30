@@ -1,8 +1,11 @@
-import { Vertex } from "./Vertex";
-import { Vector } from "./NurbsLib";
-
 interface IObserver {
     update(): void;
+}
+
+interface IObservable {
+    add(callback: () => void): Observer;
+    remove(observer: Observer): boolean;
+    notify(): void;
 }
 
 export class Observer implements IObserver {
@@ -13,12 +16,6 @@ export class Observer implements IObserver {
     update() {
         this.callback();
     }
-}
-
-interface IObservable {
-    add(callback: () => void): Observer;
-    remove(observer: Observer): boolean;
-    notify(): void;
 }
 
 export class Observable implements IObservable {
@@ -50,7 +47,6 @@ export class Observable implements IObservable {
         }
     }
 
-    // call update() on registered Observers
     notify() {
         for (const obs of this._observers) {
             obs.update();

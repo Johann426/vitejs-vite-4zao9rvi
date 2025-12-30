@@ -7,17 +7,12 @@ import { CurveHelper } from "../DesignHelper";
 const lineColor = new Color3(0, 1, 0)
 
 export class AddCurveCommand implements Command {
-    editor: Editor;
-    curve: Parametric;
     mesh!: LinesMesh;
 
-    constructor(editor: Editor, curve: Parametric) {
-        this.editor = editor;
-        this.curve = curve;
-    }
-
-    execute() {
-        const { editor, curve } = this;
+    constructor(
+        private editor: Editor,
+        private curve: Parametric
+    ) {
         const scene = editor.scene;
 
         const curvehelper = new CurveHelper(lineColor, curve);
@@ -26,8 +21,13 @@ export class AddCurveCommand implements Command {
 
         const mesh = curvehelper.getMesh();
         mesh.metadata = { curve: curve, helper: curvehelper };
-        editor.pickables.push(mesh);
         this.mesh = mesh;
+    }
+
+    execute() {
+        const { editor, mesh } = this;
+        editor.pickables.push(mesh);
+        editor.updateCurveMesh(mesh)
     }
 
     undo() {
@@ -37,28 +37,11 @@ export class AddCurveCommand implements Command {
             editor.pickables.splice(index, 1);
         }
 
-        const { helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
-        const { curvature, ctrlPoints, ctrlPolygon, designPoints } = editor;
-
-        helper.setVisible(false);
-        curvature.setVisible(false);
-        ctrlPoints.setVisible(false);
-        ctrlPolygon.setVisible(false);
-        designPoints.setVisible(false);
+        editor.updateCurveMesh(mesh)
     }
 
     redo() {
-        const { editor, mesh } = this;
-        editor.pickables.push(mesh);
-
-        const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
-        const { curvature, ctrlPoints, ctrlPolygon, designPoints } = editor;
-
-        helper.update();
-        curvature.update(curve);
-        ctrlPoints.update(curve.ctrlPoints);
-        ctrlPolygon.update(curve.ctrlPoints);
-        designPoints.update(curve.designPoints);
+        this.execute();
     }
 
 }

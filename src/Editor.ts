@@ -275,11 +275,19 @@ export default class Editor {
     const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
     const { curvature, ctrlPoints, ctrlPolygon, designPoints } = this;
 
-    helper.update();
-    curvature.update(curve);
-    ctrlPoints.update(curve.ctrlPoints);
-    ctrlPolygon.update(curve.ctrlPoints);
-    designPoints.update(curve.designPoints);
+    if (curve.designPoints.length === 0) {
+      helper.setVisible(false);
+      curvature.setVisible(false);
+      ctrlPoints.setVisible(false);
+      ctrlPolygon.setVisible(false);
+      designPoints.setVisible(false);
+    } else {
+      helper.update();
+      curvature.update(curve);
+      ctrlPoints.update(curve.ctrlPoints);
+      ctrlPolygon.update(curve.ctrlPoints);
+      designPoints.update(curve.designPoints);
+    }
   }
 
   // set index of viewport correspond to the pointer's coordinates

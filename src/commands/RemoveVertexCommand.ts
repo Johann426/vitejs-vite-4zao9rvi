@@ -24,9 +24,8 @@ export class RemoveVertexCommand implements Command {
     undo() {
         const { curve, index, saved } = this;
         // restor saved info
-        console.log(saved)
         curve.incert(index, saved.point);
-        curve.addKnuckle(index, saved.knuckle);
+        curve.addKnuckle(index);
         curve.addTangent(index, saved.tangentIn, saved.tangentOut);
         // update vertex buffer
         this.callback();
