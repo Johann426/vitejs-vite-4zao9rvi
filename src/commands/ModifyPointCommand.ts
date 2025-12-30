@@ -1,6 +1,6 @@
 import type Command from "./Command";
 import { Vector } from "../modeling/NurbsLib";
-import type { Parametric } from "../modeling/Parametric";
+import type Curve from "../modeling/Curve";
 
 export class ModifyPointCommand implements Command {
     private saved: Vector;
@@ -8,7 +8,7 @@ export class ModifyPointCommand implements Command {
     constructor(
         private index: number,
         private point: Vector,
-        private curve: Parametric,
+        private curve: Curve<Vector>,
         private callback: () => void,
     ) {
         this.saved = curve.designPoints[index];

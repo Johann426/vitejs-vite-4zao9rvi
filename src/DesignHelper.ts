@@ -104,6 +104,7 @@ export class PointHelper {
 
         // If there are no points, disable the mesh and return
         if (!points || points.length === 0) {
+            console.log("no points")
             pcs.mesh.setEnabled(false);
             return;
         }

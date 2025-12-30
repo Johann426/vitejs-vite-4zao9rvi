@@ -24,6 +24,8 @@ import { Vector } from "./modeling/NurbsLib";
 import { PointHelper, LinesHelper, CurveHelper, CurvatureHelper } from "./DesignHelper.js";
 import { SelectMesh } from "./events/SelectMesh.js";
 import { KeyEventHandler } from "./events/KeyEvent.js";
+import type Curve from "./modeling/Curve.ts";
+import { RemoveVertexCommand } from "./commands/RemoveVertexCommand.ts";
 
 const curvatureScale = 1.0;
 const ctrlPointsSize = 7.0;
@@ -326,19 +328,23 @@ export default class Editor {
     scene.activeCamera = cameras[n];
   }
 
-  addPoint(point: Vector, curve: Parametric, callback: () => void) {
+  addPoint(point: Vector, curve: Curve<Vector>, callback: () => void) {
     this.execute(new AddPointCommand(point, curve, callback));
   }
 
-  modPoint(point: Vector, index: number, curve: Parametric, callback: () => void) {
+  modPoint(point: Vector, index: number, curve: Curve<Vector>, callback: () => void) {
     this.execute(new ModifyPointCommand(index, point, curve, callback));
   }
 
-  removePoint(index: number, curve: Parametric, callback: () => void) {
-    this.execute(new RemovePointCommand(index, curve, callback));
+  removePoint(index: number, curve: Curve<Vector>, callback: () => void) {
+    if (curve instanceof BsplineCurveInt) {
+      this.execute(new RemoveVertexCommand(index, curve, callback));
+    } else {
+      this.execute(new RemovePointCommand(index, curve, callback));
+    }
   }
 
-  addCurve(curve: Parametric) {
+  addCurve(curve: Curve<Vector>) {
     this.execute(new AddCurveCommand(this, curve));
   }
 

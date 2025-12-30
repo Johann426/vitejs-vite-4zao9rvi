@@ -4,18 +4,18 @@ import { Vertex } from "./Vertex.js";
 /*
  * Abstract class representing parametric form of geometric model
  */
-export abstract class Parametric implements Curve {
+export abstract class Parametric implements Curve<Vector> {
     protected param: number[] = [];
     protected knots: number[] = [];
     protected ctrlp: Vector[] = [];
 
-    abstract append(v: Vector): void
-    abstract remove(i: number): void
-    abstract modify(i: number, v: Vector): void
-    abstract incert(i: number, v: Vector): void
+    abstract append(v: Vector): void;
+    abstract remove(i: number): void;
+    abstract modify(i: number, v: Vector): void;
+    abstract incert(i: number, v: Vector): void;
     abstract clone(): Parametric;
-    abstract split(t: number): [Parametric, Parametric]
-    abstract getPointAt(t: number): Vector
+    abstract split(t: number): [Parametric, Parametric];
+    abstract getPointAt(t: number): Vector;
     abstract getDerivatives(t: number, n: number): Vector[];
 
     get parameters() {

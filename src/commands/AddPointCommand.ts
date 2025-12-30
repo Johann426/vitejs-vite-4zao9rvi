@@ -1,12 +1,12 @@
 import type Command from "./Command";
 import type { Vector } from "../modeling/NurbsLib";
-import type { Parametric } from "../modeling/Parametric";
+import type Curve from "../modeling/Curve";
 
 export class AddPointCommand implements Command {
 
     constructor(
         private point: Vector,
-        private curve: Parametric,
+        private curve: Curve<Vector>,
         private callback: () => void,
     ) { }
 

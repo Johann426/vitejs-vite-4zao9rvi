@@ -19,7 +19,7 @@ export class Vertex {
     }
 
     set point(v: Vector) {
-        this.position = new Vector(v.x, v.y, v.z);
+        this.position = v;
     }
 
     get tangentIn() {
@@ -27,7 +27,7 @@ export class Vertex {
     }
 
     set tangentIn(v: Vector) {
-        this.tangentI = new Vector(v.x, v.y, v.z);
+        this.tangentI = v;
     }
 
     get tangentOut() {
@@ -35,7 +35,7 @@ export class Vertex {
     }
 
     set tangentOut(v: Vector) {
-        this.tangentO = new Vector(v.x, v.y, v.z);
+        this.tangentO = v;
     }
 
     get knuckle() {

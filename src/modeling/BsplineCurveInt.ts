@@ -4,17 +4,22 @@ import { BsplineCurve } from "./BsplineCurve.ts";
 import { Vertex } from "./Vertex.ts";
 
 export class BsplineCurveInt extends Bspline {
-    method = "chordal";
-    needsUpdate: boolean = false;
+    private method = "chordal";
+    private needsUpdate: boolean = false;
+    private _vertices: Vertex[];
 
-    constructor(deg: number, private vertices: Vertex[] = []) {
+    constructor(deg: number, vertices: Vertex[] = []) {
         super(deg, Array(), Array());
-        this.vertices = vertices;
+        this._vertices = vertices;
     }
 
     get deg() {
-        const nm1 = this.vertices.length - 1;
+        const nm1 = this._vertices.length - 1;
         return nm1 > 1 ? this.dmax : nm1;
+    }
+
+    get vertices() {
+        return this._vertices;
     }
 
     get ctrlPoints() {
@@ -23,28 +28,28 @@ export class BsplineCurveInt extends Bspline {
     }
 
     get designPoints() {
-        return this.vertices.map((e) => e.point);
+        return this._vertices.map((e) => e.point);
     }
 
     append(v: Vector) {
         const vertex = new Vertex(new Vector(v.x, v.y, v.z))
-        this.vertices.push(vertex);
+        this._vertices.push(vertex);
         this.needsUpdate = true;
     }
 
     remove(i: number) {
-        this.vertices.splice(i, 1)[0];
+        this._vertices.splice(i, 1)[0];
         this.needsUpdate = true;
     }
 
     modify(i: number, v: Vector) {
-        this.vertices[i].point = v;
+        this._vertices[i].point = v;
         this.needsUpdate = true;
     }
 
     incert(i: number, v: Vector) {
         const vertex = new Vertex(new Vector(v.x, v.y, v.z))
-        this.vertices.splice(i, 0, vertex);
+        this._vertices.splice(i, 0, vertex);
         this.needsUpdate = true;
     }
 
@@ -74,36 +79,26 @@ export class BsplineCurveInt extends Bspline {
         }
     }
 
-    addTangent(i: number, v: Vector) {
-        v.normalize();
-        Object.assign(this.vertices[i], { fold: true, in: new Vector(v.x, v.y, v.z), out: new Vector(v.x, v.y, v.z) });
-        this.needsUpdate = true;
-    }
-
-    addKnuckle(i: number, v: Vector, inout) {
-        if (typeof v == "boolean") {
-            Object.assign(this.vertices[i], { fold: v });
-        } else {
-            v.normalize();
-            Object.assign(this.vertices[i], { fold: true });
-            this.vertices[i][inout] = new Vector(v.x, v.y, v.z);
-        }
-
+    addKnuckle(i: number) {
+        this._vertices[i].knuckle = true;
         this.needsUpdate = true;
     }
 
     removeKnuckle(i: number) {
-        const removed = ["fold", "in", "out"].map((key) => this.vertices[i][key]);
-        ["fold", "in", "out"].map((key) => delete this.vertices[i][key]);
+        this._vertices[i].knuckle = false;
         this.needsUpdate = true;
-        return removed;
+    }
+
+    addTangent(i: number, vin: Vector, vout: Vector) {
+        this._vertices[i].tangentIn = vin.normalize();
+        this._vertices[i].tangentOut = vout.normalize();
+        this.needsUpdate = true;
     }
 
     removeTangent(i: number) {
-        const removed = this.vertices[i].tangentO;
-        ["fold", "in", "out"].map((key) => delete this.vertices[i][key]);
+        this._vertices[i].tangentIn = new Vector();
+        this._vertices[i].tangentOut = new Vector();
         this.needsUpdate = true;
-        return removed;
     }
 
     getPointAt(t: number) {
@@ -139,12 +134,12 @@ export class BsplineCurveInt extends Bspline {
 
     // Subdivide a curve into local parts
     _subdivision() {
-        const n = this.vertices.length;
+        const n = this._vertices.length;
         const index = []; // index array of corners
         index.push(0); // the first into index
 
         for (let i = 1; i < n - 1; i++) {
-            this.vertices[i].knuckle ? index.push(i) : null; // knuckle into index
+            this._vertices[i].knuckle ? index.push(i) : null; // knuckle into index
         }
 
         index.push(n - 1); // the last into index
@@ -152,7 +147,7 @@ export class BsplineCurveInt extends Bspline {
         const lPole: Vertex[][] = []; // local pole points
 
         for (let i = 1; i < index.length; i++) {
-            const pts = this.vertices.slice(index[i - 1], index[i] + 1);
+            const pts = this._vertices.slice(index[i - 1], index[i] + 1);
             // lPole.push(pts.map((e) => Object.assign({}, e)));
             lPole.push(pts);
         }
@@ -249,7 +244,7 @@ export class BsplineCurveInt extends Bspline {
     }
 
     clone() {
-        return new BsplineCurveInt(this.dmax, this.vertices.slice());
+        return new BsplineCurveInt(this.dmax, this._vertices.slice());
     }
 
     toJSON() {
@@ -260,7 +255,7 @@ export class BsplineCurveInt extends Bspline {
                 generator: this.constructor.name + ".toJSON",
             },
             deg: this.deg,
-            points: this.vertices,
+            points: this._vertices,
         };
 
         return data;
