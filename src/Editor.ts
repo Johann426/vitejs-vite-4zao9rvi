@@ -275,8 +275,6 @@ export default class Editor {
     const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
     const { curvature, ctrlPoints, ctrlPolygon, designPoints } = this;
 
-    if (curve.designPoints.length === 0) return
-
     helper.update();
     curvature.update(curve);
     ctrlPoints.update(curve.ctrlPoints);

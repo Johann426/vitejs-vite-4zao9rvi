@@ -26,8 +26,6 @@ export class AddCurveCommand implements Command {
 
         const mesh = curvehelper.getMesh();
         mesh.metadata = { curve: curve, helper: curvehelper };
-
-        editor.selectMesh.pickedObject = mesh;
         editor.pickables.push(mesh);
         this.mesh = mesh;
     }
@@ -38,12 +36,29 @@ export class AddCurveCommand implements Command {
         if (index !== -1) {
             editor.pickables.splice(index, 1);
         }
+
+        const { helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
+        const { curvature, ctrlPoints, ctrlPolygon, designPoints } = editor;
+
+        helper.setVisible(false);
+        curvature.setVisible(false);
+        ctrlPoints.setVisible(false);
+        ctrlPolygon.setVisible(false);
+        designPoints.setVisible(false);
     }
 
     redo() {
         const { editor, mesh } = this;
-        editor.selectMesh.pickedObject = mesh;
         editor.pickables.push(mesh);
+
+        const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
+        const { curvature, ctrlPoints, ctrlPolygon, designPoints } = editor;
+
+        helper.update();
+        curvature.update(curve);
+        ctrlPoints.update(curve.ctrlPoints);
+        ctrlPolygon.update(curve.ctrlPoints);
+        designPoints.update(curve.designPoints);
     }
 
 }
