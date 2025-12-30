@@ -181,21 +181,8 @@ export default class Editor {
     this.scene = scene;
     this.callbacks.forEach((callback) => callback(scene));
 
-    // callback when SelectMesh
-    const onSelectMesh = (mesh?: Mesh) => {
-      const { curvature, ctrlPoints, ctrlPolygon, designPoints } = this;
-      if (mesh) {
-        const curve = mesh.metadata.curve;
-        curvature.update(curve);
-        ctrlPoints.update(curve.ctrlPoints);
-        ctrlPolygon.update(curve.ctrlPoints);
-        designPoints.update(curve.designPoints);
-      } else {
-        [curvature, ctrlPoints, ctrlPolygon, designPoints].map(e => e.setVisible(false));
-      }
-    }
-
     // Select mesh by using GPU pick
+    const onSelectMesh = (mesh?: Mesh) => this.updateCurveMesh(mesh);
     const selectMesh = new SelectMesh(this, onSelectMesh);
     this.selectMesh = selectMesh;
 
@@ -314,16 +301,16 @@ export default class Editor {
     scene.activeCamera = cameras[n];
   }
 
-  updateCurveMesh(mesh: Mesh) {
-    const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
+  updateCurveMesh(mesh?: Mesh) {
     const { curvature, ctrlPoints, ctrlPolygon, designPoints } = this;
+    [curvature, ctrlPoints, ctrlPolygon, designPoints].forEach(e => e.setVisible(false));
+
+    if (!mesh) return;
+
+    const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
 
     if (curve.designPoints.length === 0) {
       helper.setVisible(false);
-      curvature.setVisible(false);
-      ctrlPoints.setVisible(false);
-      ctrlPolygon.setVisible(false);
-      designPoints.setVisible(false);
     } else {
       helper.update();
       curvature.update(curve);

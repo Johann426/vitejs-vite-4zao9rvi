@@ -1,6 +1,5 @@
 import type Curve from "./Curve.js";
 import { Vector } from "./NurbsLib.js";
-import { Vertex } from "./Vertex.js";
 /*
  * Abstract class representing parametric form of geometric model
  */

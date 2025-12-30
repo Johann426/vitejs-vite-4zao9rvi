@@ -1,17 +1,17 @@
 import type Command from "./Command.js";
 import type Editor from "../Editor";
-import type { Parametric } from "./modeling/Parametric";
+import type { Parametric } from "../modeling/Parametric";
 import { LinesMesh, Color3 } from "@babylonjs/core";
 import { CurveHelper } from "../DesignHelper";
 
 const lineColor = new Color3(0, 1, 0)
 
 export class AddCurveCommand implements Command {
-    mesh!: LinesMesh;
+    private mesh: LinesMesh;
 
     constructor(
         private editor: Editor,
-        private curve: Parametric
+        curve: Parametric
     ) {
         const scene = editor.scene;
 
@@ -36,7 +36,6 @@ export class AddCurveCommand implements Command {
         if (index !== -1) {
             editor.pickables.splice(index, 1);
         }
-
         editor.updateCurveMesh(mesh)
     }
 

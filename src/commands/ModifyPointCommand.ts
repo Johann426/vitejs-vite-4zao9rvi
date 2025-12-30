@@ -1,5 +1,5 @@
 import type Command from "./Command";
-import { Vector } from "../modeling/NurbsLib";
+import type { Vector } from "../modeling/NurbsLib";
 import type Curve from "../modeling/Curve";
 
 export class ModifyPointCommand implements Command {
