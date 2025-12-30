@@ -1,6 +1,6 @@
-import { Vector3, KeyboardEventTypes } from "@babylonjs/core";
-import type { Nullable, Observer, KeyboardInfo, } from "@babylonjs/core";
 import Editor from "../Editor";
+import { KeyboardEventTypes } from "@babylonjs/core";
+import type { Nullable, Observer, KeyboardInfo, } from "@babylonjs/core";
 
 export class KeyEventHandler {
     editor: Editor;

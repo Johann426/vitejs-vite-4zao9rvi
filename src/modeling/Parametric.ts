@@ -14,7 +14,6 @@ export abstract class Parametric implements Curve<Vector> {
     abstract modify(i: number, v: Vector): void;
     abstract incert(i: number, v: Vector): void;
     abstract clone(): Parametric;
-    abstract split(t: number): [Parametric, Parametric];
     abstract getPointAt(t: number): Vector;
     abstract getDerivatives(t: number, n: number): Vector[];
 

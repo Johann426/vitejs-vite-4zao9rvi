@@ -13,18 +13,18 @@ import {
   PointerDragBehavior,
 } from "@babylonjs/core";
 import type { Parametric } from "./modeling/Parametric.js";
+import { BsplineCurveInt } from "./modeling/BsplineCurveInt.ts";
+import { Vector } from "./modeling/NurbsLib";
+import { PointHelper, LinesHelper, CurveHelper, CurvatureHelper } from "./DesignHelper.js";
+import { SelectMesh } from "./events/SelectMesh.js";
+import { KeyEventHandler } from "./events/KeyEvent.js";
+
 import type Command from "./commands/Command.js";
 import { History } from "./commands/History.js";
 import { AddCurveCommand } from "./commands/AddCurveCommand.js";
 import { AddPointCommand } from "./commands/AddPointCommand.js";
 import { ModifyPointCommand } from "./commands/ModifyPointCommand.ts";
 import { RemovePointCommand } from "./commands/RemovePointCommand.ts";
-import { BsplineCurveInt } from "./modeling/BsplineCurveInt.ts";
-import { Vector } from "./modeling/NurbsLib";
-import { PointHelper, LinesHelper, CurveHelper, CurvatureHelper } from "./DesignHelper.js";
-import { SelectMesh } from "./events/SelectMesh.js";
-import { KeyEventHandler } from "./events/KeyEvent.js";
-import type Curve from "./modeling/Curve.ts";
 import { RemoveVertexCommand } from "./commands/RemoveVertexCommand.ts";
 
 const curvatureScale = 1.0;
@@ -37,26 +37,24 @@ const designPointsColor = new Color3(1.0, 1.0, 0.0);
 
 export default class Editor {
   private timestamp: number;
-  private rest: Record<string, unknown>;
   scene!: Scene;
   keyEventHandler!: KeyEventHandler;
   selectMesh!: SelectMesh;
   glowLayer!: GlowLayer;
   private callbacks: ((scene: Scene) => void)[] = [];
   pickables: Mesh[] = [];
-  history: History = new History();;
-  curvature: CurvatureHelper = new CurvatureHelper(curvatureColor, curvatureScale);;
-  ctrlPoints: PointHelper = new PointHelper(ctrlPointsSize, ctrlPointsColor);;
-  ctrlPolygon: LinesHelper = new LinesHelper(ctrlpolygonColor);;
-  designPoints: PointHelper = new PointHelper(designPointsSize, designPointsColor);;
-  nViewport: number = 0;
+  history: History = new History();
+  curvature: CurvatureHelper = new CurvatureHelper(curvatureColor, curvatureScale);
+  ctrlPoints: PointHelper = new PointHelper(ctrlPointsSize, ctrlPointsColor);
+  ctrlPolygon: LinesHelper = new LinesHelper(ctrlpolygonColor);
+  designPoints: PointHelper = new PointHelper(designPointsSize, designPointsColor);
+  private nViewport: number = 0;
 
-  constructor({
-    timestamp,
-    ...rest
-  }: { timestamp: number }) {
+  constructor(
+    { timestamp, ...rest }: { timestamp: number }
+  ) {
     this.timestamp = timestamp;
-    this.rest = rest;
+    console.log(rest);
   }
 
   get viewportIndex() {
@@ -83,16 +81,17 @@ export default class Editor {
     this.addCurve(curve);
 
     const mesh = this.pickables[this.pickables.length - 1];
+    this.selectMesh.pickedObject = mesh;
 
-    this.addPoint(new Vector(0, 0, 0), curve, () => this.updateCurveMesh(mesh));
-    this.addPoint(new Vector(1, 1, 1), curve, () => this.updateCurveMesh(mesh));
-    this.addPoint(new Vector(0, 0, 2), curve, () => this.updateCurveMesh(mesh));
+    this.addPoint(new Vector(0, 0, 0));
+    this.addPoint(new Vector(1, 1, 1));
+    this.addPoint(new Vector(0, 0, 2));
 
-    this.addPoint(new Vector(0, 0, 4), curve, () => this.updateCurveMesh(mesh));
-    this.removePoint(3, curve, () => this.updateCurveMesh(mesh));
+    this.addPoint(new Vector(0, 0, 4));
+    this.removePoint(3);
 
-    this.addPoint(new Vector(0, 0, 3), curve, () => this.updateCurveMesh(mesh));
-    this.modPoint(new Vector(-1, -1, -1), 3, curve, () => this.updateCurveMesh(mesh));
+    this.addPoint(new Vector(0, 0, 3));
+    this.modPoint(3, new Vector(-1, -1, -1));
 
     this.selectMesh.pickedObject = undefined;
     this.selectMesh.setPickables([mesh]);
@@ -271,25 +270,6 @@ export default class Editor {
     if (index > -1) this.callbacks.splice(index, 1);
   }
 
-  updateCurveMesh(mesh: Mesh) {
-    const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
-    const { curvature, ctrlPoints, ctrlPolygon, designPoints } = this;
-
-    if (curve.designPoints.length === 0) {
-      helper.setVisible(false);
-      curvature.setVisible(false);
-      ctrlPoints.setVisible(false);
-      ctrlPolygon.setVisible(false);
-      designPoints.setVisible(false);
-    } else {
-      helper.update();
-      curvature.update(curve);
-      ctrlPoints.update(curve.ctrlPoints);
-      ctrlPolygon.update(curve.ctrlPoints);
-      designPoints.update(curve.designPoints);
-    }
-  }
-
   // set index of viewport correspond to the pointer's coordinates
   setIndexViewport(dividerX: number, dividerY: number): number {
     const scene = this.scene;
@@ -334,23 +314,62 @@ export default class Editor {
     scene.activeCamera = cameras[n];
   }
 
-  addPoint(point: Vector, curve: Curve<Vector>, callback: () => void) {
+  updateCurveMesh(mesh: Mesh) {
+    const { curve, helper }: { curve: Parametric, helper: CurveHelper } = mesh.metadata;
+    const { curvature, ctrlPoints, ctrlPolygon, designPoints } = this;
+
+    if (curve.designPoints.length === 0) {
+      helper.setVisible(false);
+      curvature.setVisible(false);
+      ctrlPoints.setVisible(false);
+      ctrlPolygon.setVisible(false);
+      designPoints.setVisible(false);
+    } else {
+      helper.update();
+      curvature.update(curve);
+      ctrlPoints.update(curve.ctrlPoints);
+      ctrlPolygon.update(curve.ctrlPoints);
+      designPoints.update(curve.designPoints);
+    }
+  }
+
+  addPoint(point: Vector) {
+    const mesh = this.selectMesh.pickedObject;
+
+    if (!mesh) return
+
+    const curve: Parametric = mesh.metadata.curve;
+    const callback = () => this.updateCurveMesh(mesh);
     this.execute(new AddPointCommand(point, curve, callback));
   }
 
-  modPoint(point: Vector, index: number, curve: Curve<Vector>, callback: () => void) {
+  modPoint(index: number, point: Vector) {
+    const mesh = this.selectMesh.pickedObject;
+
+    if (!mesh) return
+
+    const curve: Parametric = mesh.metadata.curve;
+    const callback = () => this.updateCurveMesh(mesh);
     this.execute(new ModifyPointCommand(index, point, curve, callback));
   }
 
-  removePoint(index: number, curve: Curve<Vector>, callback: () => void) {
+  removePoint(index: number) {
+    const mesh = this.selectMesh.pickedObject;
+
+    if (!mesh) return
+
+    const curve: Parametric = mesh.metadata.curve;
+    const callback = () => this.updateCurveMesh(mesh);
+
     if (curve instanceof BsplineCurveInt) {
       this.execute(new RemoveVertexCommand(index, curve, callback));
     } else {
       this.execute(new RemovePointCommand(index, curve, callback));
     }
+
   }
 
-  addCurve(curve: Curve<Vector>) {
+  addCurve(curve: Parametric) {
     this.execute(new AddCurveCommand(this, curve));
   }
 

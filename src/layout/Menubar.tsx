@@ -15,7 +15,7 @@ function File() {
         }
     };
 
-    const onClickSave = () => {};
+    const onClickSave = () => { };
 
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={200} classNames={classes}>
@@ -48,16 +48,7 @@ function File() {
     );
 }
 
-import { Temp } from "../temp.js";
-
-function onAddPoint() {
-    const temp = new Temp(10);
-    temp.foo();
-}
-
 function Edit() {
-    onAddPoint();
-
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
             <Menu.Target>
