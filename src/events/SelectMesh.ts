@@ -94,10 +94,12 @@ export class SelectMesh {
                 if (pickingInfo) {
                     if (pickingInfo.meshes.length == 0) {
                         this.onSelectMesh();
+                        // editor.editMesh.unregister();
                     }
                     else if (pickingInfo.meshes[0] instanceof Mesh) {
                         const mesh = pickingInfo.meshes[0];
                         this.onSelectMesh(mesh);
+                        editor.editMesh.registerMesh(mesh);
                     }
                 }
             });
@@ -124,11 +126,7 @@ export class SelectMesh {
                 const hitPoint = ray.origin.add(ray.direction.scale(distance));
                 console.log("hitPoint", [hitPoint.x, hitPoint.y, hitPoint.z]);
             }
-
         }
-
-
-
     };
 
     // Set the list of pickable meshes for the GPU picker

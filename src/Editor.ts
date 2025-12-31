@@ -1,17 +1,16 @@
 import {
-  Scene,
   Vector3,
   Color4,
   Viewport,
   ArcRotateCamera,
   HemisphericLight,
   MeshBuilder,
-  Mesh,
   StandardMaterial,
   Color3,
   GlowLayer,
   PointerDragBehavior,
 } from "@babylonjs/core";
+import type { Scene, Mesh } from "@babylonjs/core";
 import type { Parametric } from "./modeling/Parametric.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.ts";
 import { Vector } from "./modeling/NurbsLib";
@@ -26,6 +25,7 @@ import { AddPointCommand } from "./commands/AddPointCommand.js";
 import { ModifyPointCommand } from "./commands/ModifyPointCommand.ts";
 import { RemovePointCommand } from "./commands/RemovePointCommand.ts";
 import { RemoveVertexCommand } from "./commands/RemoveVertexCommand.ts";
+import { EditMesh } from "./events/EditMesh.ts";
 
 const curvatureScale = 1.0;
 const ctrlPointsSize = 7.0;
@@ -37,28 +37,25 @@ const designPointsColor = new Color3(1.0, 1.0, 0.0);
 
 export default class Editor {
   private timestamp: number;
+  private nViewport: number = 0;
+  private callbacks: ((scene: Scene) => void)[] = [];
   scene!: Scene;
   keyEventHandler!: KeyEventHandler;
   selectMesh!: SelectMesh;
   glowLayer!: GlowLayer;
-  private callbacks: ((scene: Scene) => void)[] = [];
   pickables: Mesh[] = [];
   history: History = new History();
   curvature: CurvatureHelper = new CurvatureHelper(curvatureColor, curvatureScale);
   ctrlPoints: PointHelper = new PointHelper(ctrlPointsSize, ctrlPointsColor);
   ctrlPolygon: LinesHelper = new LinesHelper(ctrlpolygonColor);
   designPoints: PointHelper = new PointHelper(designPointsSize, designPointsColor);
-  private nViewport: number = 0;
+  editMesh = new EditMesh(this);
 
   constructor(
     { timestamp, ...rest }: { timestamp: number }
   ) {
     this.timestamp = timestamp;
     console.log(rest);
-  }
-
-  get viewportIndex() {
-    return this.nViewport;
   }
 
   dispose() {
@@ -108,32 +105,7 @@ export default class Editor {
     plane.edgesWidth = 2.0;
     plane.edgesColor = new Color4(0.5, 0.5, 0.5, 1);
 
-    const pointerDragBehavior = new PointerDragBehavior({ dragAxis: undefined, dragPlaneNormal: new Vector3(0, 0, 1) });
-    // use drag plane in world space
-    pointerDragBehavior.useObjectOrientationForDragging = false;
-    // disable update on every frame
-    pointerDragBehavior.updateDragPlane = false;
 
-    pointerDragBehavior.onDragStartObservable.add((event) => {
-      console.log("dragStart");
-      console.log(event);
-    });
-    pointerDragBehavior.onDragObservable.add((event) => {
-      console.log("drag");
-      console.log(event);
-    });
-    pointerDragBehavior.onDragEndObservable.add((event) => {
-      console.log("dragEnd");
-      console.log(event);
-    });
-
-    // // Enable drag behavior to curve mesh
-    // mesh.intersectionThreshold = 2;
-    // mesh.addBehavior(pointerDragBehavior);
-
-    const sphere = MeshBuilder.CreateSphere("sphere1");
-    // sphere.visibility = 0;
-    sphere.addBehavior(pointerDragBehavior);
 
 
 
