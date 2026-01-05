@@ -204,24 +204,24 @@ export class BsplineCurveInt extends Bspline {
 
             return [d0, de];
 
-            // 5-point method (unstable when end point close to ajacent point )
-            const abs = Math.abs;
-            const q1 = pts[1].sub(pts[0]);
-            const q2 = pts[2].sub(pts[1]);
-            const q0 = q1.mul(2).sub(q2);
-            const qm1 = q0.mul(2).sub(q1);
-            const tmp = abs(qm1.cross(q0).length());
-            const alpha0 = tmp / (tmp + abs(q1.cross(q2).length()));
-            const v0 = q0.mul(1 - alpha0).add(q1.mul(alpha0));
-            const qn = pts[nm1].sub(pts[nm1 - 1]);
-            const qm = pts[nm1 - 1].sub(pts[nm1 - 2]);
-            const qn1 = qn.mul(2).sub(qm);
-            const qn2 = qn1.mul(2).sub(qn);
-            const temp = abs(qm.cross(qn).length());
-            const alphan = temp / (temp + abs(qn1.cross(qn2).length()));
-            const vn = qn.mul(1 - alphan).add(qn1.mul(alphan));
+            // // 5-point method (unstable when end point close to ajacent point )
+            // const abs = Math.abs;
+            // const q1 = pts[1].sub(pts[0]);
+            // const q2 = pts[2].sub(pts[1]);
+            // const q0 = q1.mul(2).sub(q2);
+            // const qm1 = q0.mul(2).sub(q1);
+            // const tmp = abs(qm1.cross(q0).length());
+            // const alpha0 = tmp / (tmp + abs(q1.cross(q2).length()));
+            // const v0 = q0.mul(1 - alpha0).add(q1.mul(alpha0));
+            // const qn = pts[nm1].sub(pts[nm1 - 1]);
+            // const qm = pts[nm1 - 1].sub(pts[nm1 - 2]);
+            // const qn1 = qn.mul(2).sub(qm);
+            // const qn2 = qn1.mul(2).sub(qn);
+            // const temp = abs(qm.cross(qn).length());
+            // const alphan = temp / (temp + abs(qn1.cross(qn2).length()));
+            // const vn = qn.mul(1 - alphan).add(qn1.mul(alphan));
 
-            return [v0.normalize(), vn.normalize()];
+            // return [v0.normalize(), vn.normalize()];
         }
     }
 

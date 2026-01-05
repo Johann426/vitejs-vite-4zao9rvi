@@ -6,12 +6,13 @@ import { Vector } from "../modeling/NurbsLib";
 import { Plane } from "../modeling/Plane";
 
 // Tolerance in pixels for object picking
-const PICK_TOLERANCE = 4;
+const PICK_MARGIN = 4;
 
 export class SelectMesh {
     public pickedObject: Mesh | undefined;
     private picker: GPUPicker = new GPUPicker();
-    private savedColor = new Color3(0, 0, 0);
+    private savedMesh: Mesh | undefined;
+    private savedColor: Color3 = new Color3(0, 0, 0);
     private observers: Observer<PointerInfo>[] = [];
 
     constructor(
@@ -42,11 +43,10 @@ export class SelectMesh {
 
     // Restore the original color of the previously picked object
     restoreColor() {
-        const mesh = this.pickedObject
+        const mesh = this.savedMesh
         if (mesh instanceof Mesh) {
             mesh.metadata.helper.setColor(this.savedColor);
-            this.pickedObject = undefined;
-
+            this.savedMesh = undefined;
         }
     }
 
@@ -55,20 +55,18 @@ export class SelectMesh {
         const { editor, picker } = this
         const { scene } = editor;
 
-        if (picker.pickingInProgress) {
-            return;
-        }
+        if (picker.pickingInProgress) return;
 
-        if (this.pickedObject) this.restoreColor();
-        const x1 = scene.pointerX - PICK_TOLERANCE;
-        const y1 = scene.pointerY - PICK_TOLERANCE;
-        const x2 = scene.pointerX + PICK_TOLERANCE;
-        const y2 = scene.pointerY + PICK_TOLERANCE;
+        const [x, y] = [scene.pointerX, scene.pointerY];
+        const [x1, y1, x2, y2] = [x - PICK_MARGIN, y - PICK_MARGIN, x + PICK_MARGIN, y + PICK_MARGIN];
+
+        if (this.savedMesh) this.restoreColor();
+
         picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
             if (pickingInfo) {
                 if (pickingInfo.meshes[0] instanceof Mesh) {
                     const mesh = pickingInfo.meshes[0];
-                    this.pickedObject = mesh;
+                    this.savedMesh = mesh;
                     this.savedColor = mesh.metadata.helper.color;
                     mesh.metadata.helper.setColor(new Color3(1, 1, 0));
                     this.editor.glowLayer.referenceMeshToUseItsOwnMaterial(mesh);
@@ -82,24 +80,28 @@ export class SelectMesh {
     onPointerDown = (pointerInfo: PointerInfo) => {
         const { editor, picker } = this
         const { scene } = editor;
+        const [x, y] = [scene.pointerX, scene.pointerY];
+        const [x1, y1, x2, y2] = [x - PICK_MARGIN, y - PICK_MARGIN, x + PICK_MARGIN, y + PICK_MARGIN];
 
         const event: PointerEvent = pointerInfo.event as PointerEvent;
 
         if (event.button === 0) { // left click
-            const x1 = scene.pointerX - PICK_TOLERANCE;
-            const y1 = scene.pointerY - PICK_TOLERANCE;
-            const x2 = scene.pointerX + PICK_TOLERANCE;
-            const y2 = scene.pointerY + PICK_TOLERANCE;
             picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
                 if (pickingInfo) {
                     if (pickingInfo.meshes.length == 0) {
                         this.onSelectMesh();
                         // editor.editMesh.unregister();
+                        this.pickedObject = undefined;
                     }
                     else if (pickingInfo.meshes[0] instanceof Mesh) {
                         const mesh = pickingInfo.meshes[0];
+                        if (this.pickedObject == mesh) {
+                            console.log("return")
+                            return
+                        }
                         this.onSelectMesh(mesh);
                         editor.editMesh.registerMesh(mesh);
+                        this.pickedObject = mesh;
                     }
                 }
             });
