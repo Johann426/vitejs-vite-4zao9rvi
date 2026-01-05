@@ -2,6 +2,8 @@ import classes from "./Menubar.module.css";
 import { Menu, Button, Text, Modal, Group } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconUpload, IconFile, IconDownload } from "@tabler/icons-react";
+import type Editor from "../Editor";
+import { BsplineCurveInt } from "../modeling/BsplineCurveInt";
 
 function File() {
     const [opened, { open, close }] = useDisclosure(false);
@@ -84,7 +86,21 @@ function Edit() {
     );
 }
 
-function Curve() {
+interface CurveProps {
+    editor: Editor;
+}
+
+function Curve({ editor }: CurveProps) {
+
+    const onClickInterpolatedSpline = () => {
+        const curve = new BsplineCurveInt(3);
+        editor.addCurve(curve);
+
+        const mesh = editor.pickables[editor.pickables.length - 1];
+        editor.editMesh.registerMesh(mesh);
+        editor.selectMesh.pickedObject = mesh;
+    }
+
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
             <Menu.Target>
@@ -99,7 +115,9 @@ function Curve() {
                 <Menu.Item>Bspline</Menu.Item>
                 <Menu.Item>Nurbs</Menu.Item>
                 <Menu.Divider />
-                <Menu.Item>Interpolated Spline</Menu.Item>
+                <Menu.Item onClick={onClickInterpolatedSpline}>
+                    Interpolated Spline
+                </Menu.Item>
                 <Menu.Item disabled>Offset Curve</Menu.Item>
             </Menu.Dropdown>
         </Menu>
@@ -126,7 +144,7 @@ function Surface() {
 }
 
 interface MenubarProps extends React.HTMLAttributes<HTMLDivElement> {
-    editor: object;
+    editor: Editor;
 }
 
 export default function Menubar({ editor, ...rest }: MenubarProps) {
@@ -134,7 +152,7 @@ export default function Menubar({ editor, ...rest }: MenubarProps) {
         <div {...rest}>
             <File />
             <Edit />
-            <Curve />
+            <Curve editor={editor} />
             <Surface />
         </div>
     );

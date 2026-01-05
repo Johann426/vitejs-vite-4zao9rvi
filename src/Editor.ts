@@ -8,7 +8,6 @@ import {
   StandardMaterial,
   Color3,
   GlowLayer,
-  PointerDragBehavior,
 } from "@babylonjs/core";
 import type { Scene, Mesh } from "@babylonjs/core";
 import type { Parametric } from "./modeling/Parametric.js";

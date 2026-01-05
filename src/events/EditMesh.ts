@@ -13,14 +13,6 @@ export class EditMesh {
         private editor: Editor,
     ) { }
 
-    // set dragAxis(axis: Vector3) {
-    //     this.pointerDragBehavior.options = { dragAxis: axis };
-    // }
-
-    // set dragPlaneNormal(normal: Vector3) {
-    //     this.pointerDragBehavior.options = { dragPlaneNormal: normal };
-    // }
-
     registerMesh(mesh: Mesh) {
         const { editor } = this;
 
@@ -62,7 +54,6 @@ export class EditMesh {
                     // execute command
                     editor.selectMesh.pickedObject = mesh;
                     editor.modPoint(i, vec());
-                    console.log("???")
                 });
 
             });
