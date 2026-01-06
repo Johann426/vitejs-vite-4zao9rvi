@@ -5,6 +5,10 @@ import { IconUpload, IconFile, IconDownload } from "@tabler/icons-react";
 import type Editor from "../Editor";
 import { BsplineCurveInt } from "../modeling/BsplineCurveInt";
 
+interface Props {
+    editor: Editor;
+}
+
 function File() {
     const [opened, { open, close }] = useDisclosure(false);
 
@@ -86,11 +90,7 @@ function Edit() {
     );
 }
 
-interface CurveProps {
-    editor: Editor;
-}
-
-function Curve({ editor }: CurveProps) {
+function Curve({ editor }: Props) {
 
     const onClickInterpolatedSpline = () => {
         const curve = new BsplineCurveInt(3);
