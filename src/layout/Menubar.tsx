@@ -54,7 +54,18 @@ function File() {
     );
 }
 
-function Edit() {
+function Edit({ editor }: Props) {
+
+    const { history } = editor;
+
+    const onClickUndo = () => {
+        history.undo();
+    }
+
+    const onClickRedo = () => {
+        history.redo();
+    }
+
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
             <Menu.Target>
@@ -83,8 +94,8 @@ function Edit() {
                 <Menu.Item rightSection={<Text>ctrl+X</Text>}>Cut</Menu.Item>
                 <Menu.Item rightSection={<Text>ctrl+P</Text>}>Paste</Menu.Item>
                 <Menu.Divider />
-                <Menu.Item rightSection={<Text>ctrl+Z</Text>}>Undo</Menu.Item>
-                <Menu.Item rightSection={<Text>ctrl+Y</Text>}>Redo</Menu.Item>
+                <Menu.Item rightSection={<Text>ctrl+Z</Text>} onClick={onClickUndo}>Undo</Menu.Item>
+                <Menu.Item rightSection={<Text>ctrl+Y</Text>} onClick={onClickRedo}>Redo</Menu.Item>
             </Menu.Dropdown>
         </Menu>
     );
@@ -151,7 +162,7 @@ export default function Menubar({ editor, ...rest }: MenubarProps) {
     return (
         <div {...rest}>
             <File />
-            <Edit />
+            <Edit editor={editor} />
             <Curve editor={editor} />
             <Surface />
         </div>

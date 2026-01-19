@@ -219,6 +219,7 @@ export default class Editor {
 
   }
 
+  // add callback to be excuted when scene is ready
   addCallback(callback: (scene: Scene) => void) {
     this.callbacks.push(callback);
   }
@@ -318,12 +319,7 @@ export default class Editor {
 
     const curve: Parametric = mesh.metadata.curve;
     const callback = () => this.updateCurveMesh(mesh);
-
-    if (curve instanceof BsplineCurveInt) {
-      this.execute(new RemoveVertexCommand(index, curve, callback));
-    } else {
-      this.execute(new RemovePointCommand(index, curve, callback));
-    }
+    curve instanceof BsplineCurveInt ? this.execute(new RemoveVertexCommand(index, curve, callback)) : this.execute(new RemovePointCommand(index, curve, callback));
 
   }
 
