@@ -89,9 +89,10 @@ export class SelectMesh {
             picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
                 if (pickingInfo) {
                     if (pickingInfo.meshes.length == 0) {
+                        if (editor.editMesh.editing) return
                         this.onSelectMesh();
-                        // editor.editMesh.unregister();
                         this.pickedObject = undefined;
+                        editor.editMesh.unregister();
                     }
                     else if (pickingInfo.meshes[0] instanceof Mesh) {
                         const mesh = pickingInfo.meshes[0];
@@ -99,9 +100,13 @@ export class SelectMesh {
                             console.log("return")
                             return
                         }
+                        // excute onSelectMesh callback & register mesh to start editing
                         this.onSelectMesh(mesh);
                         editor.editMesh.registerMesh(mesh);
                         this.pickedObject = mesh;
+                        // // remove callbacks
+                        // const scene = editor.scene;
+                        // this.removeCallbacks(scene);
                     }
                 }
             });
