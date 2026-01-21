@@ -15,6 +15,12 @@ export class EditMesh {
         private editor: Editor,
     ) { }
 
+    // Clean up observers when disposing of the SelectMesh instance
+    dispose() {
+        this.spheres.forEach(e => e.dispose());
+        this.spheres.length = 0;
+    }
+
     registerMesh(mesh: Mesh) {
         this.unregister();
 

@@ -20,14 +20,15 @@ import { KeyEventHandler } from "./events/KeyEvent.js";
 import { PointHelper, LinesHelper, CurveHelper, CurvatureHelper } from "./DesignHelper.js";
 
 import { CONFIG } from "./constant.ts";
+import { SketchInput } from "./events/SketchInput.ts";
 
 export default class Editor {
   private timestamp: number;
   private nViewport: number = 0;
   private callbacks: ((scene: Scene) => void)[] = [];
   scene!: Scene;
-  keyEventHandler!: KeyEventHandler;
   selectMesh!: SelectMesh;
+  keyEventHandler!: KeyEventHandler;
   glowLayer!: GlowLayer;
   pickables: Mesh[] = [];
   history: History = new History();
@@ -36,6 +37,7 @@ export default class Editor {
   ctrlPolygon: LinesHelper = new LinesHelper(CONFIG.ctrlpolygonColor);
   designPoints: PointHelper = new PointHelper(CONFIG.designPointsSize, CONFIG.designPointsColor);
   editMesh = new EditMesh(this);
+  sketchInput = new SketchInput(this);
 
   constructor(
     { timestamp, ...rest }: { timestamp: number }
@@ -46,8 +48,8 @@ export default class Editor {
 
   dispose() {
     this.scene.dispose();
-    this.keyEventHandler.dispose();
     this.selectMesh.dispose();
+    this.keyEventHandler.dispose();
     this.glowLayer.dispose();
     this.callbacks = [];
     this.pickables = [];
@@ -56,6 +58,8 @@ export default class Editor {
     this.ctrlPoints.dispose();
     this.ctrlPolygon.dispose();
     this.designPoints.dispose();
+    this.editMesh.dispose();
+    this.sketchInput.dispose();
   }
 
   test(scene: Scene) {

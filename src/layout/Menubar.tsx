@@ -4,6 +4,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconUpload, IconFile, IconDownload } from "@tabler/icons-react";
 import type Editor from "../Editor";
 import { BsplineCurveInt } from "../modeling/BsplineCurveInt";
+import { Vector } from "../modeling/NurbsLib";
 
 interface Props {
     editor: Editor;
@@ -55,7 +56,6 @@ function File() {
 }
 
 function Edit({ editor }: Props) {
-
     const { history } = editor;
 
     const onClickUndo = () => {
@@ -66,13 +66,36 @@ function Edit({ editor }: Props) {
         history.redo();
     }
 
+    const onClickAddPoint = () => {
+        const { scene, selectMesh, sketchInput } = editor;
+
+        const mesh = selectMesh.pickedObject;
+        if (!mesh) return
+
+        sketchInput.callback = {
+            onPointerMove: (v: Vector) => {
+            },
+            onPointerDown: (v: Vector) => {
+                const { curve } = mesh.metadata;
+                curve.append(new Vector(v.x, v.y, v.z));
+                editor.updateCurveMesh(mesh);
+            },
+            onPointerUp: (v: Vector) => {
+
+            },
+        }
+
+        selectMesh.removeCallbacks(scene);
+        sketchInput.registerCallbacks(scene);
+    }
+
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
             <Menu.Target>
                 <Button variant="transparent">Edit</Button>
             </Menu.Target>
             <Menu.Dropdown>
-                <Menu.Item>Add Point</Menu.Item>
+                <Menu.Item onClick={onClickAddPoint}>Add Point</Menu.Item>
                 <Menu.Item>Add Tangent</Menu.Item>
                 <Menu.Item>Remove Point</Menu.Item>
                 <Menu.Item>Remove Tangent</Menu.Item>
