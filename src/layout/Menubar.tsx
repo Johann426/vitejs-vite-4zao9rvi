@@ -5,6 +5,7 @@ import { IconUpload, IconFile, IconDownload } from "@tabler/icons-react";
 import type Editor from "../Editor";
 import { BsplineCurveInt } from "../modeling/BsplineCurveInt";
 import { Vector } from "../modeling/NurbsLib";
+import { useState } from "react";
 
 interface Props {
     editor: Editor;
@@ -56,7 +57,8 @@ function File() {
 }
 
 function Edit({ editor }: Props) {
-    const { history } = editor;
+    const [disabled, setDisabled] = useState(false);
+    const { history, editMesh, sketchInput } = editor;
 
     const onClickUndo = () => {
         history.undo();
@@ -67,8 +69,7 @@ function Edit({ editor }: Props) {
     }
 
     const onClickAddPoint = () => {
-        const { scene, selectMesh, sketchInput } = editor;
-
+        const { scene, selectMesh } = editor;
         const mesh = selectMesh.pickedObject;
         if (!mesh) return
 
@@ -92,15 +93,47 @@ function Edit({ editor }: Props) {
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
             <Menu.Target>
-                <Button variant="transparent">Edit</Button>
+                <Button
+                    variant="transparent"
+                    onMouseEnter={() => {
+                        setDisabled(editor.selectMesh.pickedObject ? false : true)
+                    }}
+                >
+                    Edit
+                </Button>
             </Menu.Target>
             <Menu.Dropdown>
-                <Menu.Item onClick={onClickAddPoint}>Add Point</Menu.Item>
-                <Menu.Item>Add Tangent</Menu.Item>
-                <Menu.Item>Remove Point</Menu.Item>
-                <Menu.Item>Remove Tangent</Menu.Item>
-                <Menu.Item>Add Knuckle</Menu.Item>
-                <Menu.Item>Remove Knuckle</Menu.Item>
+                <Menu.Item
+                    onClick={onClickAddPoint}
+                    disabled={disabled}
+                >
+                    Add Point
+                </Menu.Item>
+                <Menu.Item
+                    disabled={disabled}
+                >
+                    Add Tangent
+                </Menu.Item>
+                <Menu.Item
+                    disabled={disabled}
+                >
+                    Remove Point
+                </Menu.Item>
+                <Menu.Item
+                    disabled={disabled}
+                >
+                    Remove Tangent
+                </Menu.Item>
+                <Menu.Item
+                    disabled={disabled}
+                >
+                    Add Knuckle
+                </Menu.Item>
+                <Menu.Item
+                    disabled={disabled}
+                >
+                    Remove Knuckle
+                </Menu.Item>
                 <Menu.Item>Knot Insert</Menu.Item>
                 <Menu.Item>Knot Removal</Menu.Item>
                 <Menu.Item>Insert Point</Menu.Item>
@@ -112,7 +145,11 @@ function Edit({ editor }: Props) {
                 <Menu.Item>Trim</Menu.Item>
                 <Menu.Item>Surface Knot Insert</Menu.Item>
                 <Menu.Divider />
-                <Menu.Item>Delete</Menu.Item>
+                <Menu.Item
+                    disabled={disabled}
+                >
+                    Delete
+                </Menu.Item>
                 <Menu.Item rightSection={<Text>ctrl+C</Text>}>Copy</Menu.Item>
                 <Menu.Item rightSection={<Text>ctrl+X</Text>}>Cut</Menu.Item>
                 <Menu.Item rightSection={<Text>ctrl+P</Text>}>Paste</Menu.Item>
@@ -125,14 +162,32 @@ function Edit({ editor }: Props) {
 }
 
 function Curve({ editor }: Props) {
+    const { editMesh, sketchInput, } = editor;
 
     const onClickInterpolatedSpline = () => {
+        const { scene, selectMesh, pickables } = editor;
+
         const curve = new BsplineCurveInt(3);
         editor.addCurve(curve);
 
-        const mesh = editor.pickables[editor.pickables.length - 1];
-        editor.editMesh.registerMesh(mesh);
-        editor.selectMesh.pickedObject = mesh;
+        const mesh = pickables[pickables.length - 1];
+        console.log(pickables)
+        selectMesh.pickedObject = mesh;
+
+        sketchInput.callback = {
+            onPointerMove: (v: Vector) => {
+            },
+            onPointerDown: (v: Vector) => {
+                curve.append(new Vector(v.x, v.y, v.z));
+                editor.updateCurveMesh(mesh);
+            },
+            onPointerUp: (v: Vector) => {
+
+            },
+        }
+
+        selectMesh.removeCallbacks(scene);
+        sketchInput.registerCallbacks(scene);
     }
 
     return (

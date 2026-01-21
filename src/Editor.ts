@@ -206,7 +206,7 @@ export default class Editor {
       scene.activeCamera = cameras[this.nViewport];
     })
 
-    this.test(scene);
+    // this.test(scene);
 
   }
 
