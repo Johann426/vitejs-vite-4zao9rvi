@@ -1,10 +1,8 @@
-import { Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder, VertexBuffer, ShaderLanguage } from "@babylonjs/core";
+import { Color3, Vector3, ShaderMaterial, PointsCloudSystem, MeshBuilder, VertexBuffer } from "@babylonjs/core";
 import type { Scene, LinesMesh } from "@babylonjs/core";
 import { Vector } from "./modeling/NurbsLib.ts";
 import { Parametric } from "./modeling/Parametric.js";
-
-const MAX_POINTS = 100;
-const MAX_LINE_SEG = 100;
+import { MAX_POINTS, MAX_LINE_SEG } from "./constant.ts"
 
 function createPointShader(scene: Scene) {
     return new ShaderMaterial(

@@ -1,21 +1,9 @@
-import {
-  Vector3,
-  Color4,
-  Viewport,
-  ArcRotateCamera,
-  HemisphericLight,
-  MeshBuilder,
-  StandardMaterial,
-  Color3,
-  GlowLayer,
-} from "@babylonjs/core";
 import type { Scene, Mesh } from "@babylonjs/core";
+import { Vector3, Color4, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, GlowLayer, } from "@babylonjs/core";
+
 import type { Parametric } from "./modeling/Parametric.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.ts";
 import { Vector } from "./modeling/NurbsLib";
-import { PointHelper, LinesHelper, CurveHelper, CurvatureHelper } from "./DesignHelper.js";
-import { SelectMesh } from "./events/SelectMesh.js";
-import { KeyEventHandler } from "./events/KeyEvent.js";
 
 import type Command from "./commands/Command.js";
 import { History } from "./commands/History.js";
@@ -24,15 +12,14 @@ import { AddPointCommand } from "./commands/AddPointCommand.js";
 import { ModifyPointCommand } from "./commands/ModifyPointCommand.ts";
 import { RemovePointCommand } from "./commands/RemovePointCommand.ts";
 import { RemoveVertexCommand } from "./commands/RemoveVertexCommand.ts";
-import { EditMesh } from "./events/EditMesh.ts";
 
-const curvatureScale = 1.0;
-const ctrlPointsSize = 7.0;
-const designPointsSize = 8.0;
-const curvatureColor = new Color3(0.5, 0.0, 0.0);
-const ctrlPointsColor = new Color3(0.5, 0.5, 0.5);
-const ctrlpolygonColor = new Color3(0.5, 0.5, 0.5);
-const designPointsColor = new Color3(1.0, 1.0, 0.0);
+import { EditMesh } from "./events/EditMesh.ts";
+import { SelectMesh } from "./events/SelectMesh.js";
+import { KeyEventHandler } from "./events/KeyEvent.js";
+
+import { PointHelper, LinesHelper, CurveHelper, CurvatureHelper } from "./DesignHelper.js";
+
+import { CONFIG } from "./constant.ts";
 
 export default class Editor {
   private timestamp: number;
@@ -44,10 +31,10 @@ export default class Editor {
   glowLayer!: GlowLayer;
   pickables: Mesh[] = [];
   history: History = new History();
-  curvature: CurvatureHelper = new CurvatureHelper(curvatureColor, curvatureScale);
-  ctrlPoints: PointHelper = new PointHelper(ctrlPointsSize, ctrlPointsColor);
-  ctrlPolygon: LinesHelper = new LinesHelper(ctrlpolygonColor);
-  designPoints: PointHelper = new PointHelper(designPointsSize, designPointsColor);
+  curvature: CurvatureHelper = new CurvatureHelper(CONFIG.curvatureColor, CONFIG.curvatureScale);
+  ctrlPoints: PointHelper = new PointHelper(CONFIG.ctrlPointsSize, CONFIG.ctrlPointsColor);
+  ctrlPolygon: LinesHelper = new LinesHelper(CONFIG.ctrlpolygonColor);
+  designPoints: PointHelper = new PointHelper(CONFIG.designPointsSize, CONFIG.designPointsColor);
   editMesh = new EditMesh(this);
 
   constructor(
