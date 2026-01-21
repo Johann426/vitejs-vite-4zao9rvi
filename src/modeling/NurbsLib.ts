@@ -5,15 +5,6 @@
 import { LU } from "../math/linalg.ts";
 
 const EPSILON = Number.EPSILON;
-// const PI = Math.PI;
-// const abs = Math.abs;
-// const max = Math.max;
-// const min = Math.min;
-// const sin = Math.sin;
-// const cos = Math.cos;
-// const sqrt = Math.sqrt;
-// const ceil = Math.ceil;
-// const floor = Math.floor;
 const { PI, abs, max, min, sin, cos, sqrt, ceil, floor, hypot } = Math;
 
 /**

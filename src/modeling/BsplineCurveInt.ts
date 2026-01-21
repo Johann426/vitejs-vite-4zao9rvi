@@ -9,7 +9,7 @@ export class BsplineCurveInt extends Bspline {
     private _vertices: Vertex[];
 
     constructor(deg: number, vertices: Vertex[] = []) {
-        super(deg, Array(), Array());
+        super(deg, [], []);
         this._vertices = vertices;
     }
 
