@@ -3,6 +3,7 @@ import { Color3 } from "@babylonjs/core";
 export const PI = Math.PI;
 export const MAX_POINTS = 200;
 export const MAX_LINE_SEG = 200;
+export const PICK_MARGIN = 4; // Tolerance in pixels in gpu picking
 
 export const CONFIG = {
     curvatureScale: 1.0,

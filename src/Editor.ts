@@ -1,5 +1,5 @@
 import type { Scene, Mesh } from "@babylonjs/core";
-import { Vector3, Color4, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, GlowLayer, } from "@babylonjs/core";
+import { Vector3, Color4, Matrix, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, GlowLayer, } from "@babylonjs/core";
 
 import type { Parametric } from "./modeling/Parametric.js";
 import { BsplineCurveInt } from "./modeling/BsplineCurveInt.ts";
@@ -67,14 +67,14 @@ export default class Editor {
     this.selectMesh.pickedObject = mesh;
 
     this.addPoint(new Vector(0, 0, 0));
-    this.addPoint(new Vector(1, 1, 1));
-    this.addPoint(new Vector(0, 0, 2));
+    this.addPoint(new Vector(1, 1, 0));
+    this.addPoint(new Vector(2, 0, 0));
 
-    this.addPoint(new Vector(0, 0, 4));
+    this.addPoint(new Vector(3, 0, 0));
     this.removePoint(3);
 
-    this.addPoint(new Vector(0, 0, 3));
-    this.modPoint(3, new Vector(-1, -1, -1));
+    this.addPoint(new Vector(-1, -1, -1));
+    this.modPoint(3, new Vector(4, 1, 0));
 
     this.selectMesh.pickedObject = undefined;
     this.selectMesh.setPickables([mesh]);
@@ -82,7 +82,7 @@ export default class Editor {
     // Ray test
     const plane = MeshBuilder.CreatePlane("plane", { size: 10 }, scene);
     // plane.rotation.x = Math.PI / 2; // xy plane -> x-z plane
-    plane.position.y = 0;
+    plane.position.z = 0;
     plane.isPickable = true;
     plane.material = new StandardMaterial("mat", scene);
     plane.material.backFaceCulling = false;
@@ -216,6 +216,62 @@ export default class Editor {
     if (index > -1) this.callbacks.splice(index, 1);
   }
 
+  getUserCoord(sketchPlane: any) {// sketchPlane could be surface, currently z-plane
+    // Get coordinates of pointer within the canvas (in pixel)
+    const scene = this.scene;
+    const x = scene.pointerX;
+    const y = scene.pointerY;
+
+    const camera = scene.activeCamera;
+    if (!camera) return;
+
+    const engine = scene.getEngine();
+    const width = engine.getRenderWidth();
+    const height = engine.getRenderHeight();
+
+    // calculate viewport coordinates (normalized, from 0 to 1)
+    const viewport = camera.viewport;
+    const viewportX = (x - viewport.x * width) / (viewport.width * width);
+    const viewportY = (height - y - viewport.y * height) / (viewport.height * height);
+
+    // Near plane (z=0)
+    const origin = Vector3.Unproject(
+      new Vector3(viewportX * width, viewportY * height, 0),
+      width,
+      height,
+      Matrix.Identity(),
+      camera.getViewMatrix(),
+      camera.getProjectionMatrix()
+    );
+
+    // Far plane (z=1)
+    const dest = Vector3.Unproject(
+      new Vector3(viewportX * width, viewportY * height, 1),
+      width,
+      height,
+      Matrix.Identity(),
+      camera.getViewMatrix(),
+      camera.getProjectionMatrix()
+    );
+
+    // direction vector
+    const direction = dest.subtract(origin).normalize();
+
+    // ray equation: P(t) = O + t D, where O is origin and D is direction
+    if (direction.z !== 0) {
+      // Pz(t) = 0 at z-plane, t = - Oz / Dz
+      const t = -origin.z / direction.z;
+      if (t >= 0) {
+        //intersection point with sketch plane
+        const p = origin.add(direction.scale(t));
+        console.log("origin", origin);
+        console.log("direction", direction);
+        console.log("Intersection point:", p);
+        return new Vector(p.x, p.y, p.z);
+      }
+    }
+  }
+
   // set index of viewport correspond to the pointer's coordinates
   setIndexViewport(dividerX: number, dividerY: number): number {
     const scene = this.scene;
@@ -223,11 +279,11 @@ export default class Editor {
 
     if (canvas) {
       // Get coordinates of pointer within the canvas
-      const posX = scene.pointerX;
-      const posY = scene.pointerY;
+      const x = scene.pointerX;
+      const y = scene.pointerY;
       // Convert canvas coordinates to normalized viewport coordinates (0 to 1)
-      const normalizedX = posX / canvas.clientWidth;
-      const normalizedY = posY / canvas.clientHeight;
+      const normalizedX = x / canvas.clientWidth;
+      const normalizedY = y / canvas.clientHeight;
       // Determine which viewport is clicked and store the ref
       if (normalizedX <= dividerX && normalizedY <= dividerY) {
         this.nViewport = 0;
