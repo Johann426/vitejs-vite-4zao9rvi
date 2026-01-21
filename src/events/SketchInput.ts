@@ -41,13 +41,15 @@ export class SketchInput {
         this._sketchPl = plane
     }
 
+    // register pointer observers
     registerCallbacks(scene: Scene) {
         this.observers.push(scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE));
         this.observers.push(scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN));
         this.observers.push(scene.onPointerObservable.add(this.onPointerUp, PointerEventTypes.POINTERUP));
     }
 
-    removeCallbacks(scene: Scene) {
+    // unregister pointer observers
+    unregister(scene: Scene) {
         this.observers.forEach(observer => scene.onPointerObservable.remove(observer));
         this.observers.length = 0;
     }
@@ -55,7 +57,7 @@ export class SketchInput {
     // Clean up observers when disposing of the SelectMesh instance
     dispose() {
         const scene = this.editor.scene;
-        this.removeCallbacks(scene);
+        this.unregister(scene);
     }
 
     // Resolve the pointer input to a corresponding point on the sketch plane(or surface)

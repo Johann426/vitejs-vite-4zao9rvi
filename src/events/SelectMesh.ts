@@ -15,18 +15,20 @@ export class SelectMesh {
 
     constructor(
         private editor: Editor,
-        private onSelectMesh: (mesh?: Mesh) => void
+        private onSelectMesh: (mesh?: Mesh) => void // callback when a mesh is selected
     ) {
         const scene = editor.scene;
         this.registerCallbacks(scene);
     }
 
+    // Register pointer event callbacks for mesh selection
     registerCallbacks(scene: Scene) {
         this.observers.push(scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE));
         this.observers.push(scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN));
     }
 
-    removeCallbacks(scene: Scene) {
+    // Unregister pointer event callbacks
+    unregister(scene: Scene) {
         this.observers.forEach(observer => scene.onPointerObservable.remove(observer));
         this.observers.length = 0;
     }
@@ -36,7 +38,7 @@ export class SelectMesh {
         this.pickedObject = undefined;
         this.picker.dispose();
         const scene = this.editor.scene;
-        this.removeCallbacks(scene);
+        this.unregister(scene);
     }
 
     // Restore the original color of the previously picked object

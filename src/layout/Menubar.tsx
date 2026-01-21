@@ -86,7 +86,7 @@ function Edit({ editor }: Props) {
             },
         }
 
-        selectMesh.removeCallbacks(scene);
+        selectMesh.unregister(scene);
         sketchInput.registerCallbacks(scene);
     }
 
@@ -186,7 +186,7 @@ function Curve({ editor }: Props) {
             },
         }
 
-        selectMesh.removeCallbacks(scene);
+        selectMesh.unregister(scene);
         sketchInput.registerCallbacks(scene);
     }
 

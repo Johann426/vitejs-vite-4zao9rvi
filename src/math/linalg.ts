@@ -54,17 +54,15 @@ function gauss(a: number[][], b: number[]): number[] {
                 jmax = i;
             }
         }
-
+        // Check for singularity
         if (a[jmax][j] === 0) {
             throw new Error("Singular matrix detected");
         }
-
         // Swap rows in matrix and right-hand side vector
         if (jmax !== j) {
             [a[j], a[jmax]] = [a[jmax], a[j]];
             [b[j], b[jmax]] = [b[jmax], b[j]];
         }
-
         // Eliminate entries below the pivot
         for (let i = j + 1; i < n; i++) {
             const factor = a[i][j] / a[j][j];
@@ -83,17 +81,15 @@ function gauss(a: number[][], b: number[]): number[] {
 function tdma(a: number[], b: number[], c: number[], r: number[]): number[] {
     const n = r.length;
     const cp: number[] = new Array(n).fill(0);
-
+    // Modify the first coefficients
     cp[0] = c[0] / b[0];
     r[0] = r[0] / b[0];
-
     // Forward sweep
     for (let i = 1; i < n; i++) {
         const tmp = b[i] - a[i] * (i > 0 ? cp[i - 1] : 0);
         cp[i] = c[i] / tmp;
         r[i] = (r[i] - a[i] * (i > 0 ? r[i - 1] : 0)) / tmp;
     }
-
     // Back substitution
     for (let i = n - 2; i >= 0; i--) {
         r[i] -= cp[i] * r[i + 1];
@@ -108,10 +104,9 @@ abstract class Decomposer<T extends { a: number[][] }> {
     protected decomposed: T;
 
     constructor(input: number[][]) {
-        this.decomposed = this.dcmp(input);
-        this.a = this.decomposed.a;
+        this.decomposed = this.dcmp(input); // Perform decomposition
+        this.a = this.decomposed.a; // Store decomposed matrix
     }
-
     protected abstract dcmp(a: number[][]): T;
     abstract solve(b: number[]): number[];
     abstract det(): number;
@@ -227,23 +222,23 @@ class QR extends Decomposer<{ a: number[][] }> {
             const x = a.slice(k).map((row) => row[k]);
             const normx = Math.sqrt(x.reduce((sum, xi) => sum + xi * xi, 0));
             if (normx === 0) continue;
-
+            // Compute v^T x and v^T v
             const sign = x[0] < 0 ? -1 : 1;
             let vtx = normx * normx + sign * normx * x[0];
             let vtv = 2 * vtx;
-
             // Compute normal vector of hyperplane for Householder transformation
             const v = [...x];
             v[0] += sign * normx;
             // normalize by v[0] to reuse storage A
             const d = v.length;
+            // normalize v
             for (let j = 1; j < d; j++) {
                 v[j] /= v[0];
             }
+            // Normalize v^T x
             vtx /= v[0];
             vtv /= v[0] * v[0];
             v[0] = 1.0;
-
             // Apply Householder transformation to A: ( I - 2 v v^T / v^T v ) A
             for (let i = k; i < n; i++) {
                 let sum = i === k ? vtx : v.reduce((sum, vj, j) => sum + vj * a[k + j][i], 0); // sum += v^T A
@@ -253,7 +248,6 @@ class QR extends Decomposer<{ a: number[][] }> {
                     a[k + j][i] -= 2 * v[j] * sum; // A - 2 v w^T where w^T = v^T A / v^T v
                 }
             }
-
             // Store Householder vector in lower part of A
             for (let j = 1; j < d; j++) {
                 a[k + j][k] = v[j];
@@ -283,9 +277,9 @@ class QR extends Decomposer<{ a: number[][] }> {
                 s += v[i] * b[k + i]; // v^T b
             }
             s *= 2 / vtv; // 2 v^T b / v^T v
-
+            // Apply Householder transformation to b
             for (let i = 0; i < d; i++) {
-                b[k + i] -= s * v[i]; // b ← b - s·v where s = 2 v^T b / v^T v
+                b[k + i] -= s * v[i]; // b = b - s·v where s = 2 v^T b / v^T v
             }
         }
         // Extract upper triangular matrix R from A

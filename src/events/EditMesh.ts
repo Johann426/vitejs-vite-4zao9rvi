@@ -21,6 +21,7 @@ export class EditMesh {
         this.spheres.length = 0;
     }
 
+    // register mesh for editing
     registerMesh(mesh: Mesh) {
         this.unregister();
 
@@ -43,6 +44,7 @@ export class EditMesh {
         }
     }
 
+    // unregister mesh editing
     unregister() {
         const { ptrDrag, spheres } = this;
 
