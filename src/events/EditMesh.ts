@@ -13,13 +13,11 @@ export class EditMesh {
     private spheres: Mesh[] = [];
     private savedPt: Vector = new Vector();
 
-    constructor(
-        private editor: Editor,
-    ) { }
+    constructor(private editor: Editor) {}
 
     // Clean up observers when disposing of the SelectMesh instance
     dispose() {
-        this.spheres.forEach(e => e.dispose());
+        this.spheres.forEach((e) => e.dispose());
         this.spheres.length = 0;
     }
 
@@ -53,23 +51,22 @@ export class EditMesh {
     unregister() {
         const { ptrDrag, spheres } = this;
 
-        ptrDrag.forEach(e => {
+        ptrDrag.forEach((e) => {
             e.onDragStartObservable.clear();
-            e.onDragEndObservable.clear()
+            e.onDragEndObservable.clear();
             e.onDragObservable.clear();
-        })
+        });
         ptrDrag.length = 0;
 
-        spheres.forEach(e => e.dispose());
+        spheres.forEach((e) => e.dispose());
         spheres.length = 0;
 
         this.registered = false;
     }
 
     async editCurve(mesh: LinesMesh, size: number) {
-
         function delay(ms: number) {
-            return new Promise(resolve => setTimeout(resolve, ms));
+            return new Promise((resolve) => setTimeout(resolve, ms));
         }
 
         // wait until the select event listener is unregistered
@@ -109,7 +106,7 @@ export class EditMesh {
                 const func = (particle: { position: Vector3 }) => {
                     const v = curve.designPoints[i];
                     particle.position = new Vector3(v.x, v.y, v.z);
-                }
+                };
                 pcs.addPoints(1, func);
                 pcs.buildMeshAsync();
             });
@@ -123,7 +120,7 @@ export class EditMesh {
                 // update particle position
                 particles[0].position = v;
                 pcs.setParticles();
-            })
+            });
 
             pointerDragBehavior.onDragEndObservable.add(() => {
                 this.editing = false;
@@ -136,7 +133,6 @@ export class EditMesh {
             });
         });
     }
-
 }
 
 // // Enable drag behavior to curve mesh

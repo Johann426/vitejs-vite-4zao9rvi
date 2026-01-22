@@ -4,7 +4,7 @@ export class History {
     private undos: Command[] = [];
     private redos: Command[] = [];
 
-    constructor() { }
+    constructor() {}
 
     excute(cmd: Command) {
         this.undos.push(cmd);

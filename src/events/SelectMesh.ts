@@ -1,6 +1,6 @@
 import { Plane as BPlane } from "@babylonjs/core";
 import { GPUPicker, Color3, Mesh, PointerEventTypes, Matrix } from "@babylonjs/core";
-import type { Scene, Observer, PointerInfo, } from "@babylonjs/core";
+import type { Scene, Observer, PointerInfo } from "@babylonjs/core";
 import Editor from "../Editor";
 import { Vector } from "../modeling/NurbsLib";
 import { Plane } from "../modeling/Plane";
@@ -31,12 +31,12 @@ export class SelectMesh {
         this.observers.push(scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE));
         this.observers.push(scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN));
         this.registered = true;
-        console.log("registered")
-        console.log(this.editor.pickables)
+        console.log("registered");
+        console.log(this.editor.pickables);
     }
 
     removeCallbacks(scene: Scene) {
-        this.observers.forEach(observer => scene.onPointerObservable.remove(observer));
+        this.observers.forEach((observer) => scene.onPointerObservable.remove(observer));
         this.observers.length = 0;
         this.registered = false;
     }
@@ -51,7 +51,7 @@ export class SelectMesh {
 
     // Restore the original color of the previously picked object
     restoreColor() {
-        const mesh = this.savedMesh
+        const mesh = this.savedMesh;
         if (mesh instanceof Mesh) {
             mesh.metadata.helper.setColor(this.savedColor);
             this.savedMesh = undefined;
@@ -60,7 +60,7 @@ export class SelectMesh {
 
     // Handle pointer move events to highlight objects under the cursor
     onPointerMove = () => {
-        const { editor, picker } = this
+        const { editor, picker } = this;
         const { scene } = editor;
 
         if (picker.pickingInProgress) return;
@@ -86,27 +86,27 @@ export class SelectMesh {
 
     // Handle pointer down events to select objects
     onPointerDown = (pointerInfo: PointerInfo) => {
-        const { editor, picker } = this
+        const { editor, picker } = this;
         const { scene } = editor;
         const [x, y] = [scene.pointerX, scene.pointerY];
         const [x1, y1, x2, y2] = [x - PICK_MARGIN, y - PICK_MARGIN, x + PICK_MARGIN, y + PICK_MARGIN];
 
         const event: PointerEvent = pointerInfo.event as PointerEvent;
 
-        if (event.button === 0) { // left click
+        if (event.button === 0) {
+            // left click
             picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
                 if (pickingInfo) {
                     if (pickingInfo.meshes.length == 0) {
-                        if (editor.editMesh.editing) return
+                        if (editor.editMesh.editing) return;
                         this.onSelectMesh();
                         this.pickedObject = undefined;
                         editor.editMesh.unregister();
-                    }
-                    else if (pickingInfo.meshes[0] instanceof Mesh) {
+                    } else if (pickingInfo.meshes[0] instanceof Mesh) {
                         const mesh = pickingInfo.meshes[0];
                         if (this.pickedObject == mesh) {
-                            console.log("return")
-                            return
+                            console.log("return");
+                            return;
                         }
                         // excute onSelectMesh callback & register mesh to start editing
                         this.onSelectMesh(mesh);
@@ -120,7 +120,8 @@ export class SelectMesh {
             });
         }
 
-        if (event.button === 2) { // right click
+        if (event.button === 2) {
+            // right click
             const camera = scene.activeCamera;
             if (!camera) return;
             const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, Matrix.Identity(), camera);
@@ -149,7 +150,7 @@ export class SelectMesh {
 
     // Set the list of pickable meshes for the GPU picker
     setPickingList(pickables?: Mesh[]) {
-        const { editor, picker } = this
+        const { editor, picker } = this;
         if (pickables) {
             picker.setPickingList(pickables);
         } else {

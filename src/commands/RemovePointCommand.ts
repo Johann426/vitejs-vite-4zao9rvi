@@ -8,7 +8,7 @@ export class RemovePointCommand implements Command {
     constructor(
         private index: number,
         private curve: Curve<Vector>,
-        private callback: () => void,
+        private callback: () => void
     ) {
         this.saved = curve.designPoints[index];
     }

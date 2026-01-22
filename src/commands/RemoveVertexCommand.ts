@@ -8,7 +8,7 @@ export class RemoveVertexCommand implements Command {
     constructor(
         private index: number,
         private curve: BsplineCurveInt,
-        private callback: () => void,
+        private callback: () => void
     ) {
         this.saved = curve.vertices[index];
     }

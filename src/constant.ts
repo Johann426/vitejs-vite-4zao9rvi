@@ -13,7 +13,7 @@ export const CONFIG = {
     ctrlPointsColor: new Color3(0.5, 0.5, 0.5),
     ctrlpolygonColor: new Color3(0.5, 0.5, 0.5),
     designPointsColor: new Color3(1.0, 1.0, 0.0),
-}
+};
 
 export enum HTTP_STATUS {
     SUCCESS = 200,

@@ -11,7 +11,10 @@ interface Observer<T> {
 class Point implements Observable<Point> {
     private observers: Observer<Line>[] = [];
 
-    constructor(public x: number, public y: number) { }
+    constructor(
+        public x: number,
+        public y: number
+    ) {}
 
     add(observer: Observer<Line>): void {
         this.observers.push(observer);
@@ -39,16 +42,20 @@ class Point implements Observable<Point> {
 
 class Line implements Observer<Line> {
     // Line은 두 Point 객체를 구독합니다.
-    constructor(private startPoint: Point, private endPoint: Point) {
+    constructor(
+        private startPoint: Point,
+        private endPoint: Point
+    ) {
         startPoint.add(this); // 시작점 구독
-        endPoint.add(this);   // 끝점 구독
+        endPoint.add(this); // 끝점 구독
     }
 
     // 구독 대상(Point)의 상태가 변경될 때 호출됨
     update(subject: Observable<Point>): void {
         if (subject instanceof Point) {
-            console.log(`선이 알림을 받았습니다. ${subject === this.startPoint ? '시작점' : '끝점'}이 이동했습니다. 업데이트 합니다.`);
+            console.log(
+                `선이 알림을 받았습니다. ${subject === this.startPoint ? "시작점" : "끝점"}이 이동했습니다. 업데이트 합니다.`
+            );
         }
     }
-
 }

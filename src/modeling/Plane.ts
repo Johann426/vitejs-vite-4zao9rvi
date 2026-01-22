@@ -30,7 +30,7 @@ class Plane {
         return this.normal.dot(point) + this.scalar;
     }
 
-    distanceToSphere(sphere: { center: Vector, radius: number }) {
+    distanceToSphere(sphere: { center: Vector; radius: number }) {
         return this.distanceToPoint(sphere.center) - sphere.radius;
     }
 
@@ -47,19 +47,18 @@ class Plane {
     }
 
     // if intersection point(p) exist, p = O + tD,  Np - d = 0, substituting, N(O + tD) - d = 0, then t = -(N·O - D) / N·D
-    intersectRay(ray: { origin: Vector, direction: Vector }): Vector | null {
-
+    intersectRay(ray: { origin: Vector; direction: Vector }): Vector | null {
         const normal = this.normal;
-        const denominator = normal.dot(ray.direction)
+        const denominator = normal.dot(ray.direction);
         const epsilon = 1e-12;
-        if (Math.abs(denominator) < epsilon) { // plane is coplanar with ray
+        if (Math.abs(denominator) < epsilon) {
+            // plane is coplanar with ray
             return null;
         }
 
-        const t = - (normal.dot(ray.origin) - this.scalar) / denominator;
+        const t = -(normal.dot(ray.origin) - this.scalar) / denominator;
 
         return t >= 0 ? ray.origin.add(ray.direction.mul(t)) : null;
-
     }
 
     clone(): Plane {

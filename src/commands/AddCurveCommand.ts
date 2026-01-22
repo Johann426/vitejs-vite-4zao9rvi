@@ -4,7 +4,7 @@ import type { Parametric } from "../modeling/Parametric";
 import { LinesMesh, Color3 } from "@babylonjs/core";
 import { CurveHelper } from "../DesignHelper";
 
-const lineColor = new Color3(0, 1, 0)
+const lineColor = new Color3(0, 1, 0);
 
 export class AddCurveCommand implements Command {
     private mesh: LinesMesh;
@@ -38,11 +38,10 @@ export class AddCurveCommand implements Command {
         if (index !== -1) {
             editor.pickables.splice(index, 1);
         }
-        editor.updateCurveMesh(mesh)
+        editor.updateCurveMesh(mesh);
     }
 
     redo() {
         this.execute();
     }
-
 }

@@ -9,9 +9,7 @@ interface IObservable {
 }
 
 export class Observer implements IObserver {
-    constructor(
-        private callback: () => void
-    ) { }
+    constructor(private callback: () => void) {}
 
     update() {
         this.callback();
@@ -30,7 +28,7 @@ export class Observable implements IObservable {
     }
 
     add(callback: () => void) {
-        const observer = new Observer(callback)
+        const observer = new Observer(callback);
         this._observers.push(observer);
 
         return observer;

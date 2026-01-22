@@ -11,8 +11,8 @@ export class Vertex {
         private position: Vector,
         private _knuckle: boolean = false,
         private tangentI: Vector = new Vector(),
-        private tangentO: Vector = new Vector(),
-    ) { }
+        private tangentO: Vector = new Vector()
+    ) {}
 
     get point() {
         return this.position;

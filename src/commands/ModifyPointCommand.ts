@@ -9,7 +9,7 @@ export class ModifyPointCommand implements Command {
         private index: number,
         private point: Vector,
         private curve: Curve<Vector>,
-        private callback: () => void,
+        private callback: () => void
     ) {
         this.saved = curve.designPoints[index];
     }

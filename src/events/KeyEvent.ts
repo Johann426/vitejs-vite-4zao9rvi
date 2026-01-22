@@ -1,6 +1,6 @@
 import Editor from "../Editor";
 import { KeyboardEventTypes } from "@babylonjs/core";
-import type { Nullable, Observer, KeyboardInfo, } from "@babylonjs/core";
+import type { Nullable, Observer, KeyboardInfo } from "@babylonjs/core";
 
 export class KeyEventHandler {
     editor: Editor;
@@ -16,7 +16,7 @@ export class KeyEventHandler {
     onKeyDown = (kbInfo: KeyboardInfo) => {
         const { editor } = this;
         const { scene, selectMesh, editMesh, sketchInput } = editor;
-        const { ctrlKey, metaKey, key, code } = kbInfo.event
+        const { ctrlKey, metaKey, key, code } = kbInfo.event;
 
         if ((ctrlKey || metaKey) && key.toLowerCase() === "z") {
             kbInfo.event.preventDefault();
@@ -78,4 +78,3 @@ export class KeyEventHandler {
         }
     }
 }
-

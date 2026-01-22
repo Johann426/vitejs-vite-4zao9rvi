@@ -1,4 +1,4 @@
-import { parameterize, assignKnot, globalCurveInterpTngt, split, Vector, } from "./NurbsLib.js";
+import { parameterize, assignKnot, globalCurveInterpTngt, split, Vector } from "./NurbsLib.js";
 import { Bspline } from "./Bspline.ts";
 import { BsplineCurve } from "./BsplineCurve.ts";
 import { Vertex } from "./Vertex.ts";
@@ -9,7 +9,7 @@ export class BsplineCurveInt extends Bspline {
     private _vertices: Vertex[];
 
     constructor(deg: number, vertices: Vertex[] = []) {
-        super(deg, Array(), Array());
+        super(deg, [], []);
         this._vertices = vertices;
     }
 
@@ -32,13 +32,13 @@ export class BsplineCurveInt extends Bspline {
     }
 
     append(v: Vector) {
-        const vertex = new Vertex(new Vector(v.x, v.y, v.z))
+        const vertex = new Vertex(new Vector(v.x, v.y, v.z));
         this._vertices.push(vertex);
         this.needsUpdate = true;
     }
 
     remove(i: number) {
-        this._vertices.splice(i, 1)[0];
+        this._vertices.splice(i, 1);
         this.needsUpdate = true;
     }
 
@@ -48,7 +48,7 @@ export class BsplineCurveInt extends Bspline {
     }
 
     incert(i: number, v: Vector) {
-        const vertex = new Vertex(new Vector(v.x, v.y, v.z))
+        const vertex = new Vertex(new Vector(v.x, v.y, v.z));
         this._vertices.splice(i, 0, vertex);
         this.needsUpdate = true;
     }
@@ -169,7 +169,7 @@ export class BsplineCurveInt extends Bspline {
         const nm1 = points.length - 1;
         const pts = points.map((e) => e.point);
         const prm = parameterize(pts, this.method);
-        const pole = points.map(e => ({ point: e.point }))
+        const pole = points.map((e) => ({ point: e.point }));
 
         // specify end derivatives
         if (points.length > 1) {
@@ -191,7 +191,8 @@ export class BsplineCurveInt extends Bspline {
             const d0 = pts[1].sub(pts[0]);
             const de = pts[nm1].sub(pts[nm1 - 1]);
             return [d0, de];
-        } else {// pts.length > 2
+        } else {
+            // pts.length > 2
             const alpha1 = (prm[1] - prm[0]) / (prm[2] - prm[0]);
             const d1 = pts[1].sub(pts[0]).mul(1 / (prm[1] - prm[0]));
             const d2 = pts[2].sub(pts[1]).mul(1 / (prm[2] - prm[1]));
@@ -261,7 +262,7 @@ export class BsplineCurveInt extends Bspline {
         return data;
     }
 
-    static fromJSON(data: { deg: number, points: Vertex[] }) {
+    static fromJSON(data: { deg: number; points: Vertex[] }) {
         return new BsplineCurveInt(data.deg, data.points);
     }
 }

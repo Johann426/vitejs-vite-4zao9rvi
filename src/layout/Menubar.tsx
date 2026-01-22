@@ -23,7 +23,7 @@ function File() {
         }
     };
 
-    const onClickSave = () => { };
+    const onClickSave = () => {};
 
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={200} classNames={classes}>
@@ -62,33 +62,30 @@ function Edit({ editor }: Props) {
 
     const onClickUndo = () => {
         editor.undo();
-    }
+    };
 
     const onClickRedo = () => {
         editor.redo();
-    }
+    };
 
     const onClickAddPoint = () => {
         const { scene, selectMesh } = editor;
         const mesh = selectMesh.pickedObject;
-        if (!mesh) return
+        if (!mesh) return;
 
         sketchInput.callback = {
-            onPointerMove: (v: Vector) => {
-            },
+            onPointerMove: (v: Vector) => {},
             onPointerDown: (v: Vector) => {
                 const { curve } = mesh.metadata;
                 curve.append(new Vector(v.x, v.y, v.z));
                 editor.updateCurveMesh(mesh);
             },
-            onPointerUp: (v: Vector) => {
-
-            },
-        }
+            onPointerUp: (v: Vector) => {},
+        };
 
         selectMesh.removeCallbacks(scene);
         sketchInput.registerCallbacks(scene);
-    }
+    };
 
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
@@ -96,44 +93,21 @@ function Edit({ editor }: Props) {
                 <Button
                     variant="transparent"
                     onMouseEnter={() => {
-                        setDisabled(editor.selectMesh.pickedObject ? false : true)
+                        setDisabled(editor.selectMesh.pickedObject ? false : true);
                     }}
                 >
                     Edit
                 </Button>
             </Menu.Target>
             <Menu.Dropdown>
-                <Menu.Item
-                    onClick={onClickAddPoint}
-                    disabled={disabled}
-                >
+                <Menu.Item onClick={onClickAddPoint} disabled={disabled}>
                     Add Point
                 </Menu.Item>
-                <Menu.Item
-                    disabled={disabled}
-                >
-                    Add Tangent
-                </Menu.Item>
-                <Menu.Item
-                    disabled={disabled}
-                >
-                    Remove Point
-                </Menu.Item>
-                <Menu.Item
-                    disabled={disabled}
-                >
-                    Remove Tangent
-                </Menu.Item>
-                <Menu.Item
-                    disabled={disabled}
-                >
-                    Add Knuckle
-                </Menu.Item>
-                <Menu.Item
-                    disabled={disabled}
-                >
-                    Remove Knuckle
-                </Menu.Item>
+                <Menu.Item disabled={disabled}>Add Tangent</Menu.Item>
+                <Menu.Item disabled={disabled}>Remove Point</Menu.Item>
+                <Menu.Item disabled={disabled}>Remove Tangent</Menu.Item>
+                <Menu.Item disabled={disabled}>Add Knuckle</Menu.Item>
+                <Menu.Item disabled={disabled}>Remove Knuckle</Menu.Item>
                 <Menu.Item>Knot Insert</Menu.Item>
                 <Menu.Item>Knot Removal</Menu.Item>
                 <Menu.Item>Insert Point</Menu.Item>
@@ -145,24 +119,24 @@ function Edit({ editor }: Props) {
                 <Menu.Item>Trim</Menu.Item>
                 <Menu.Item>Surface Knot Insert</Menu.Item>
                 <Menu.Divider />
-                <Menu.Item
-                    disabled={disabled}
-                >
-                    Delete
-                </Menu.Item>
+                <Menu.Item disabled={disabled}>Delete</Menu.Item>
                 <Menu.Item rightSection={<Text>ctrl+C</Text>}>Copy</Menu.Item>
                 <Menu.Item rightSection={<Text>ctrl+X</Text>}>Cut</Menu.Item>
                 <Menu.Item rightSection={<Text>ctrl+P</Text>}>Paste</Menu.Item>
                 <Menu.Divider />
-                <Menu.Item rightSection={<Text>ctrl+Z</Text>} onClick={onClickUndo}>Undo</Menu.Item>
-                <Menu.Item rightSection={<Text>ctrl+Y</Text>} onClick={onClickRedo}>Redo</Menu.Item>
+                <Menu.Item rightSection={<Text>ctrl+Z</Text>} onClick={onClickUndo}>
+                    Undo
+                </Menu.Item>
+                <Menu.Item rightSection={<Text>ctrl+Y</Text>} onClick={onClickRedo}>
+                    Redo
+                </Menu.Item>
             </Menu.Dropdown>
         </Menu>
     );
 }
 
 function Curve({ editor }: Props) {
-    const { editMesh, sketchInput, } = editor;
+    const { editMesh, sketchInput } = editor;
 
     const onClickInterpolatedSpline = () => {
         const { scene, selectMesh, pickables } = editor;
@@ -185,29 +159,25 @@ function Curve({ editor }: Props) {
                     //     curve.modify(index, new Vector(v.x, v.y, v.z));
                     //     editor.updateCurveMesh(mesh);
                     // }
-                    curve.append(new Vector(v.x, v.y, v.z))
+                    curve.append(new Vector(v.x, v.y, v.z));
                     editor.updateCurveMesh(mesh);
                     const index = curve.designPoints.length - 1;
                     curve.remove(index);
-
                 },
                 onPointerDown: (v: Vector) => {
                     editor.addPoint(v);
                     // flag = true;
                 },
-                onPointerUp: (v: Vector) => {
-
-                },
-            }
+                onPointerUp: (v: Vector) => {},
+            };
 
             selectMesh.removeCallbacks(scene);
             sketchInput.registerCallbacks(scene);
-        }
+        };
 
         addInterpolatedSpline();
         editor.repeat = addInterpolatedSpline;
-
-    }
+    };
 
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
@@ -223,9 +193,7 @@ function Curve({ editor }: Props) {
                 <Menu.Item>Bspline</Menu.Item>
                 <Menu.Item>Nurbs</Menu.Item>
                 <Menu.Divider />
-                <Menu.Item onClick={onClickInterpolatedSpline}>
-                    Interpolated Spline
-                </Menu.Item>
+                <Menu.Item onClick={onClickInterpolatedSpline}>Interpolated Spline</Menu.Item>
                 <Menu.Item disabled>Offset Curve</Menu.Item>
             </Menu.Dropdown>
         </Menu>

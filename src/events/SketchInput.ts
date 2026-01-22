@@ -1,14 +1,14 @@
 import { PointerEventTypes, Matrix } from "@babylonjs/core";
-import type { Scene, Observer, PointerInfo, } from "@babylonjs/core";
+import type { Scene, Observer, PointerInfo } from "@babylonjs/core";
 import Editor from "../Editor";
 import { Vector } from "../modeling/NurbsLib";
 import { Plane } from "../modeling/Plane";
 
 interface callbackProps {
-    onPointerMove: (v: Vector) => void,
-    onPointerDown: (v: Vector) => void,
-    onPointerUp: (v: Vector) => void,
-};
+    onPointerMove: (v: Vector) => void;
+    onPointerDown: (v: Vector) => void;
+    onPointerUp: (v: Vector) => void;
+}
 
 export class SketchInput {
     public registered: boolean = false;
@@ -18,13 +18,11 @@ export class SketchInput {
     private _sketchPl: Plane = new Plane();
     private _callback: callbackProps;
 
-    constructor(
-        private editor: Editor,
-    ) {
+    constructor(private editor: Editor) {
         this._callback = {
-            onPointerMove: () => { },
-            onPointerDown: () => { },
-            onPointerUp: () => { },
+            onPointerMove: () => {},
+            onPointerDown: () => {},
+            onPointerUp: () => {},
         };
     }
 
@@ -37,11 +35,11 @@ export class SketchInput {
     }
 
     get sketchPlane() {
-        return this._sketchPl
+        return this._sketchPl;
     }
 
     set sketchPlane(plane: Plane) {
-        this._sketchPl = plane
+        this._sketchPl = plane;
     }
 
     registerCallbacks(scene: Scene) {
@@ -56,7 +54,7 @@ export class SketchInput {
     }
 
     removeCallbacks(scene: Scene) {
-        this.observers.forEach(observer => scene.onPointerObservable.remove(observer));
+        this.observers.forEach((observer) => scene.onPointerObservable.remove(observer));
         this.observers.length = 0;
         this.registered = false;
     }
@@ -69,7 +67,7 @@ export class SketchInput {
 
     // Resolve the pointer input to a corresponding point on the sketch plane(or surface)
     coord() {
-        const { editor } = this
+        const { editor } = this;
         const { scene } = editor;
 
         const camera = scene.activeCamera;
@@ -113,5 +111,5 @@ export class SketchInput {
         }
 
         this.editing = false;
-    }
+    };
 }
