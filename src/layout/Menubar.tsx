@@ -169,18 +169,31 @@ function Curve({ editor }: Props) {
 
         const addInterpolatedSpline = () => {
             const curve = new BsplineCurveInt(3);
+            let flag: boolean = true;
             editor.addCurve(curve);
 
             const mesh = pickables[pickables.length - 1];
-            console.log(pickables)
             selectMesh.pickedObject = mesh;
 
             sketchInput.callback = {
                 onPointerMove: (v: Vector) => {
+                    // if (flag) {
+                    //     curve.append(new Vector(v.x, v.y, v.z))
+                    //     flag = false;
+                    // } else {
+                    //     const index = curve.designPoints.length - 1;
+                    //     curve.modify(index, new Vector(v.x, v.y, v.z));
+                    //     editor.updateCurveMesh(mesh);
+                    // }
+                    curve.append(new Vector(v.x, v.y, v.z))
+                    editor.updateCurveMesh(mesh);
+                    const index = curve.designPoints.length - 1;
+                    curve.remove(index);
+
                 },
                 onPointerDown: (v: Vector) => {
-                    curve.append(new Vector(v.x, v.y, v.z));
-                    editor.updateCurveMesh(mesh);
+                    editor.addPoint(v);
+                    // flag = true;
                 },
                 onPointerUp: (v: Vector) => {
 

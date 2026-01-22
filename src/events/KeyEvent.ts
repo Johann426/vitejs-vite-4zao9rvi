@@ -28,24 +28,24 @@ export class KeyEventHandler {
         }
 
         if (code === "Space" || key === " ") {
-            const editing = sketchInput.editing || editMesh.editing;
-            if (editing) return;
+            // Exit early when editing
+            if (editMesh.editing || sketchInput.editing) return;
 
-            const picked = selectMesh.pickedObject;
+            // Unregister if any
+            if (editMesh.registered) {
+                editMesh.unregister();
+            }
 
+            // Finish sketching
             if (sketchInput.registered) {
+                sketchInput.removeCallbacks(scene);
+
+                const picked = selectMesh.pickedObject;
                 if (picked) {
+                    // start edit mode
+                    editor.updateCurveMesh(picked);
                     editMesh.registerMesh(picked);
                 }
-                // unregister
-                editMesh.unregister();
-                sketchInput.removeCallbacks(scene);
-                // start select mode
-                selectMesh.registerCallbacks(scene);
-            } else if (editMesh.registered) {
-                // unregister
-                editMesh.unregister();
-                sketchInput.removeCallbacks(scene);
                 // start select mode
                 selectMesh.registerCallbacks(scene);
             } else {
