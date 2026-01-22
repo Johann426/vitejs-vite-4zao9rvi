@@ -23,7 +23,7 @@ function File() {
         }
     };
 
-    const onClickSave = () => {};
+    const onClickSave = () => { };
 
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={200} classNames={classes}>
@@ -73,14 +73,19 @@ function Edit({ editor }: Props) {
         const mesh = selectMesh.pickedObject;
         if (!mesh) return;
 
+        const curve = mesh.metadata.curve;
+
         sketchInput.callback = {
-            onPointerMove: (v: Vector) => {},
-            onPointerDown: (v: Vector) => {
-                const { curve } = mesh.metadata;
+            onPointerMove: (v: Vector) => {
                 curve.append(new Vector(v.x, v.y, v.z));
                 editor.updateCurveMesh(mesh);
+                const index = curve.designPoints.length - 1;
+                curve.remove(index);
             },
-            onPointerUp: (v: Vector) => {},
+            onPointerDown: (v: Vector) => {
+                editor.addPoint(v);
+            },
+            onPointerUp: (v: Vector) => { },
         };
 
         selectMesh.removeCallbacks(scene);
@@ -143,7 +148,6 @@ function Curve({ editor }: Props) {
 
         const addInterpolatedSpline = () => {
             const curve = new BsplineCurveInt(3);
-            let flag: boolean = true;
             editor.addCurve(curve);
 
             const mesh = pickables[pickables.length - 1];
@@ -151,14 +155,6 @@ function Curve({ editor }: Props) {
 
             sketchInput.callback = {
                 onPointerMove: (v: Vector) => {
-                    // if (flag) {
-                    //     curve.append(new Vector(v.x, v.y, v.z))
-                    //     flag = false;
-                    // } else {
-                    //     const index = curve.designPoints.length - 1;
-                    //     curve.modify(index, new Vector(v.x, v.y, v.z));
-                    //     editor.updateCurveMesh(mesh);
-                    // }
                     curve.append(new Vector(v.x, v.y, v.z));
                     editor.updateCurveMesh(mesh);
                     const index = curve.designPoints.length - 1;
@@ -166,9 +162,8 @@ function Curve({ editor }: Props) {
                 },
                 onPointerDown: (v: Vector) => {
                     editor.addPoint(v);
-                    // flag = true;
                 },
-                onPointerUp: (v: Vector) => {},
+                onPointerUp: (v: Vector) => { },
             };
 
             selectMesh.removeCallbacks(scene);
