@@ -3,8 +3,10 @@ import type { Mesh } from "@babylonjs/core";
 import { Vector3, MeshBuilder, PointerDragBehavior, LinesMesh, PointsCloudSystem } from "@babylonjs/core";
 import type { Parametric } from "../modeling/Parametric";
 import { Vector } from "../modeling/NurbsLib";
+import { PICK_MARGIN, CONFIG } from "../constant";
 
 export class EditMesh {
+    public registered: boolean = false;
     public editing: boolean = false;
 
     private ptrDrag: PointerDragBehavior[] = [];
@@ -21,30 +23,33 @@ export class EditMesh {
         this.spheres.length = 0;
     }
 
-    // register mesh for editing
     registerMesh(mesh: Mesh) {
-        this.unregister();
+        if (this.registered) {
+            this.unregister();
+        }
 
         const { editor } = this;
         const { scene } = editor;
         const camera = scene.activeCamera;
         if (!camera) return;
 
+        // calc distance between camera and origin (assume sphere is at origin)
         const distance = Vector3.Distance(camera.position, new Vector3());
         const fov = camera.fov;
         const screenHeight = scene.getEngine().getRenderHeight();
         // 거리 d에서 월드 단위 1이 차지하는 픽셀 수 계산
         const worldUnitInPixels = screenHeight / (2 * Math.tan(fov / 2)) / distance;
-        const desiredPixelSize = 10;
-        // 원하는 픽셀 크기를 맞추기 위한 스케일
-        const scale = desiredPixelSize / worldUnitInPixels;
+        const desiredPixelSize = PICK_MARGIN + CONFIG.designPointsSize;
+        // 원하는 픽셀 크기를 맞추기 위한 size
+        const size = desiredPixelSize / worldUnitInPixels;
 
         if (mesh instanceof LinesMesh) {
-            this.editCurve(mesh, scale);
+            this.editCurve(mesh, size);
         }
+
+        this.registered = true;
     }
 
-    // unregister mesh editing
     unregister() {
         const { ptrDrag, spheres } = this;
 
@@ -57,14 +62,17 @@ export class EditMesh {
 
         spheres.forEach(e => e.dispose());
         spheres.length = 0;
+
+        this.registered = false;
     }
 
-    async editCurve(mesh: LinesMesh, scale: number) {
+    async editCurve(mesh: LinesMesh, size: number) {
 
         function delay(ms: number) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
+        // wait until the select event listener is unregistered
         await delay(200);
 
         const { editor } = this;
@@ -81,10 +89,12 @@ export class EditMesh {
             // disable update on every frame
             pointerDragBehavior.updateDragPlane = false;
 
-            // create invisible sphere 
-            const sphere = MeshBuilder.CreateSphere(`sphere${i}`, { diameter: scale });
+            // create sphere
+            const sphere = MeshBuilder.CreateSphere(`sphere${i}`, { diameter: size * 2 });
             this.spheres.push(sphere);
-            sphere.visibility = 1;
+            // make the sphere invisible
+            sphere.visibility = 0;
+            // add behavior to the sphere
             sphere.addBehavior(pointerDragBehavior);
             sphere.position = new Vector3(p.x, p.y, p.z);
 

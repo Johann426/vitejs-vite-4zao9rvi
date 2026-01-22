@@ -58,14 +58,14 @@ function File() {
 
 function Edit({ editor }: Props) {
     const [disabled, setDisabled] = useState(false);
-    const { history, editMesh, sketchInput } = editor;
+    const { editMesh, sketchInput } = editor;
 
     const onClickUndo = () => {
-        history.undo();
+        editor.undo();
     }
 
     const onClickRedo = () => {
-        history.redo();
+        editor.redo();
     }
 
     const onClickAddPoint = () => {
@@ -86,7 +86,7 @@ function Edit({ editor }: Props) {
             },
         }
 
-        selectMesh.unregister(scene);
+        selectMesh.removeCallbacks(scene);
         sketchInput.registerCallbacks(scene);
     }
 
@@ -167,27 +167,33 @@ function Curve({ editor }: Props) {
     const onClickInterpolatedSpline = () => {
         const { scene, selectMesh, pickables } = editor;
 
-        const curve = new BsplineCurveInt(3);
-        editor.addCurve(curve);
+        const addInterpolatedSpline = () => {
+            const curve = new BsplineCurveInt(3);
+            editor.addCurve(curve);
 
-        const mesh = pickables[pickables.length - 1];
-        console.log(pickables)
-        selectMesh.pickedObject = mesh;
+            const mesh = pickables[pickables.length - 1];
+            console.log(pickables)
+            selectMesh.pickedObject = mesh;
 
-        sketchInput.callback = {
-            onPointerMove: (v: Vector) => {
-            },
-            onPointerDown: (v: Vector) => {
-                curve.append(new Vector(v.x, v.y, v.z));
-                editor.updateCurveMesh(mesh);
-            },
-            onPointerUp: (v: Vector) => {
+            sketchInput.callback = {
+                onPointerMove: (v: Vector) => {
+                },
+                onPointerDown: (v: Vector) => {
+                    curve.append(new Vector(v.x, v.y, v.z));
+                    editor.updateCurveMesh(mesh);
+                },
+                onPointerUp: (v: Vector) => {
 
-            },
+                },
+            }
+
+            selectMesh.removeCallbacks(scene);
+            sketchInput.registerCallbacks(scene);
         }
 
-        selectMesh.unregister(scene);
-        sketchInput.registerCallbacks(scene);
+        addInterpolatedSpline();
+        editor.repeat = addInterpolatedSpline;
+
     }
 
     return (

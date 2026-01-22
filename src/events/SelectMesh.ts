@@ -7,7 +7,9 @@ import { Plane } from "../modeling/Plane";
 import { PICK_MARGIN } from "../constant";
 
 export class SelectMesh {
+    public registered: boolean = false;
     public pickedObject: Mesh | undefined;
+
     private picker: GPUPicker = new GPUPicker();
     private savedMesh: Mesh | undefined;
     private savedColor: Color3 = new Color3(0, 0, 0);
@@ -15,22 +17,28 @@ export class SelectMesh {
 
     constructor(
         private editor: Editor,
-        private onSelectMesh: (mesh?: Mesh) => void // callback when a mesh is selected
+        private onSelectMesh: (mesh?: Mesh) => void
     ) {
         const scene = editor.scene;
         this.registerCallbacks(scene);
     }
 
-    // Register pointer event callbacks for mesh selection
     registerCallbacks(scene: Scene) {
+        if (this.registered) {
+            this.removeCallbacks(scene);
+        }
+
         this.observers.push(scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE));
         this.observers.push(scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN));
+        this.registered = true;
+        console.log("registered")
+        console.log(this.editor.pickables)
     }
 
-    // Unregister pointer event callbacks
-    unregister(scene: Scene) {
+    removeCallbacks(scene: Scene) {
         this.observers.forEach(observer => scene.onPointerObservable.remove(observer));
         this.observers.length = 0;
+        this.registered = false;
     }
 
     // Clean up observers when disposing of the SelectMesh instance
@@ -38,7 +46,7 @@ export class SelectMesh {
         this.pickedObject = undefined;
         this.picker.dispose();
         const scene = this.editor.scene;
-        this.unregister(scene);
+        this.removeCallbacks(scene);
     }
 
     // Restore the original color of the previously picked object
@@ -140,7 +148,7 @@ export class SelectMesh {
     };
 
     // Set the list of pickable meshes for the GPU picker
-    setPickables(pickables: Mesh[]) {
+    setPickingList(pickables?: Mesh[]) {
         const { editor, picker } = this
         if (pickables) {
             picker.setPickingList(pickables);

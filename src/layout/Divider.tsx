@@ -42,7 +42,7 @@ export default function Divider({ editor, ...rest }: DividerProps) {
             setObservable(scene);
         } else {
             // callback to be added when scene is ready(by onSceneReady)
-            editor.addCallback(setObservable);
+            editor.addInitializer(setObservable);
         }
 
         // Cleanup when component unmounts
@@ -54,36 +54,33 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         };
     }, [editor, x, y]); // re-render with changed dependencies
 
-    // get left position (normalized from 0 to 1)
     const getPosX = (e: PointerEvent) => {
+        // left position (normalized from 0 to 1)
         const width = parentRef.current?.clientWidth ?? 100;
         const coorx = e.clientX / width;
         return Math.max(0, Math.min(1, coorx));
     };
 
-    // get top position (normalized from 0 to 1)
     const getPosY = (e: PointerEvent) => {
+        // top position (normalized from 0 to 1)
         const height = parentRef.current?.clientHeight ?? 100;
         const offset = getComputedStyle(document.body).getPropertyValue("--menuH");
         const coory = (e.clientY - parseFloat(offset)) / height;
         return Math.max(0, Math.min(1, coory));
     };
 
-    // set position of vertical divider and update viewport
     const setPositionX = (e: PointerEvent) => {
         const posX = getPosX(e);
         setX(posX);
         setViewport(posX, y);
     };
 
-    // set position of horizontal divider and update viewport
     const setPositionY = (e: PointerEvent) => {
         const posY = getPosY(e);
         setY(posY);
         setViewport(x, posY);
     };
 
-    // set viewport of each camera
     const setViewport = (x: number, y: number) => {
         const { scene } = editor;
         const cameras = scene.activeCameras;
@@ -100,7 +97,6 @@ export default function Divider({ editor, ...rest }: DividerProps) {
         });
     };
 
-    // Render the divider and overlays
     return (
         <div ref={parentRef} {...rest}>
             <div //top-left overlay

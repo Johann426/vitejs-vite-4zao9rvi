@@ -26,8 +26,10 @@ export class AddCurveCommand implements Command {
 
     execute() {
         const { editor, mesh } = this;
+        const { selectMesh } = editor;
         editor.pickables.push(mesh);
-        editor.updateCurveMesh(mesh)
+        selectMesh.setPickingList();
+        editor.updateCurveMesh(mesh);
     }
 
     undo() {

@@ -11,6 +11,9 @@ interface callbackProps {
 };
 
 export class SketchInput {
+    public registered: boolean = false;
+    public editing: boolean = false;
+
     private observers: Observer<PointerInfo>[] = [];
     private _sketchPl: Plane = new Plane();
     private _callback: callbackProps;
@@ -41,23 +44,27 @@ export class SketchInput {
         this._sketchPl = plane
     }
 
-    // register pointer observers
     registerCallbacks(scene: Scene) {
+        if (this.registered) {
+            this.removeCallbacks(scene);
+        }
+
         this.observers.push(scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE));
         this.observers.push(scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN));
         this.observers.push(scene.onPointerObservable.add(this.onPointerUp, PointerEventTypes.POINTERUP));
+        this.registered = true;
     }
 
-    // unregister pointer observers
-    unregister(scene: Scene) {
+    removeCallbacks(scene: Scene) {
         this.observers.forEach(observer => scene.onPointerObservable.remove(observer));
         this.observers.length = 0;
+        this.registered = false;
     }
 
     // Clean up observers when disposing of the SelectMesh instance
     dispose() {
         const scene = this.editor.scene;
-        this.unregister(scene);
+        this.removeCallbacks(scene);
     }
 
     // Resolve the pointer input to a corresponding point on the sketch plane(or surface)
@@ -94,6 +101,8 @@ export class SketchInput {
         if (v) {
             this.callback.onPointerDown(v);
         }
+
+        this.editing = true;
     };
 
     onPointerUp = () => {
@@ -102,5 +111,7 @@ export class SketchInput {
         if (v) {
             this.callback.onPointerUp(v);
         }
+
+        this.editing = false;
     }
 }

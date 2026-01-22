@@ -28,7 +28,7 @@ class BsplineCurve extends Bspline {
         return removed[0];
     }
 
-    modify(i: number, v: Vector) {
+    mod(i: number, v: Vector) {
         this.ctrlp[i] = new Vector(v.x, v.y, v.z);
         this.needsUpdate = true;
     }

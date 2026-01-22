@@ -23,21 +23,28 @@ import { CONFIG } from "./constant.ts";
 import { SketchInput } from "./events/SketchInput.ts";
 
 export default class Editor {
-  private timestamp: number;
-  private nViewport: number = 0;
-  private callbacks: ((scene: Scene) => void)[] = [];
   scene!: Scene;
-  selectMesh!: SelectMesh;
-  keyEventHandler!: KeyEventHandler;
   glowLayer!: GlowLayer;
-  pickables: Mesh[] = [];
-  history: History = new History();
-  curvature: CurvatureHelper = new CurvatureHelper(CONFIG.curvatureColor, CONFIG.curvatureScale);
-  ctrlPoints: PointHelper = new PointHelper(CONFIG.ctrlPointsSize, CONFIG.ctrlPointsColor);
-  ctrlPolygon: LinesHelper = new LinesHelper(CONFIG.ctrlpolygonColor);
-  designPoints: PointHelper = new PointHelper(CONFIG.designPointsSize, CONFIG.designPointsColor);
+  // event handler
+  keyEventHandler!: KeyEventHandler;
+  selectMesh!: SelectMesh;
   editMesh = new EditMesh(this);
   sketchInput = new SketchInput(this);
+  // list of pickable meshes
+  pickables: Mesh[] = [];
+  repeat: () => void = () => { };
+
+  // design helpers
+  private curvature: CurvatureHelper = new CurvatureHelper(CONFIG.curvatureColor, CONFIG.curvatureScale);
+  private ctrlPoints: PointHelper = new PointHelper(CONFIG.ctrlPointsSize, CONFIG.ctrlPointsColor);
+  private ctrlPolygon: LinesHelper = new LinesHelper(CONFIG.ctrlpolygonColor);
+  private designPoints: PointHelper = new PointHelper(CONFIG.designPointsSize, CONFIG.designPointsColor);
+
+  private timestamp: number;
+  private nViewport: number = 0;
+  private initializers: ((scene: Scene) => void)[] = [];
+  private history: History = new History();
+
 
   constructor(
     { timestamp, ...rest }: { timestamp: number }
@@ -48,18 +55,18 @@ export default class Editor {
 
   dispose() {
     this.scene.dispose();
-    this.selectMesh.dispose();
-    this.keyEventHandler.dispose();
     this.glowLayer.dispose();
-    this.callbacks = [];
-    this.pickables = [];
-    this.history.clear();
+    this.keyEventHandler.dispose();
+    this.selectMesh.dispose();
+    this.editMesh.dispose();
+    this.sketchInput.dispose();
     this.curvature.dispose();
     this.ctrlPoints.dispose();
     this.ctrlPolygon.dispose();
     this.designPoints.dispose();
-    this.editMesh.dispose();
-    this.sketchInput.dispose();
+    this.history.clear();
+    this.initializers = [];
+    this.pickables = [];
   }
 
   test(scene: Scene) {
@@ -81,7 +88,7 @@ export default class Editor {
     this.modPoint(3, new Vector(4, 1, 0));
 
     this.selectMesh.pickedObject = undefined;
-    this.selectMesh.setPickables([mesh]);
+    this.selectMesh.setPickingList([mesh]);
 
     // Ray test
     const plane = MeshBuilder.CreatePlane("plane", { size: 10 }, scene);
@@ -94,38 +101,6 @@ export default class Editor {
     plane.enableEdgesRendering();
     plane.edgesWidth = 2.0;
     plane.edgesColor = new Color4(0.5, 0.5, 0.5, 1);
-
-
-
-
-
-    // plane.disableEdgesRendering();
-
-    // function getPointerGroundIntersection(scene: Scene, evt: PointerEvent) {
-    //   const camera = scene.activeCamera;
-
-    //   if (!camera) return null;
-
-    //   // from cam to pointer ray
-    //   const ray = scene.createPickingRay(evt.clientX, evt.clientY, null, camera, false);
-    //   const pickInfo = ray.intersectsMesh(plane);
-
-    //   return pickInfo.hit ? pickInfo.pickedPoint! : null;
-    // }
-
-    // scene.onPointerObservable.add((pointerInfo) => {
-    //   if (pointerInfo.type === PointerEventTypes.POINTERDOWN) {
-    //     const evt = pointerInfo.event as PointerEvent;
-    //     const point = getPointerGroundIntersection(scene, evt);
-
-    //     if (point) {
-    //       console.log("Intersection:", point.toString());
-    //     } else {
-    //       console.log("No intersection with ground plane");
-    //     }
-    //   }
-    // });
-
   }
 
   onRender(scene: Scene) {
@@ -141,7 +116,7 @@ export default class Editor {
     scene.clearColor = new Color4(0, 0, 0, 0);
 
     this.scene = scene;
-    this.callbacks.forEach((callback) => callback(scene));
+    this.initializers.forEach((callback) => callback(scene));
 
     // Select mesh by using GPU pick
     const onSelectMesh = (mesh?: Mesh) => this.updateCurveMesh(mesh);
@@ -210,14 +185,9 @@ export default class Editor {
 
   }
 
-  // add callback to be excuted when scene is ready
-  addCallback(callback: (scene: Scene) => void) {
-    this.callbacks.push(callback);
-  }
-
-  removeCallback(callback: (scene: Scene) => void) {
-    const index = this.callbacks.indexOf(callback);
-    if (index > -1) this.callbacks.splice(index, 1);
+  // add initializer to be excuted when scene is ready
+  addInitializer(fn: (scene: Scene) => void) {
+    this.initializers.push(fn);
   }
 
   getUserCoord(sketchPlane: any) {// sketchPlane could be surface, currently z-plane
@@ -376,6 +346,14 @@ export default class Editor {
 
   execute(cmd: Command) {
     this.history.excute(cmd);
+  }
+
+  undo() {
+    this.history.undo();
+  }
+
+  redo() {
+    this.history.redo();
   }
 
 }

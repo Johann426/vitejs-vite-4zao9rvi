@@ -1,13 +1,10 @@
 import type Command from "./Command";
 
 export class History {
-    undos: Command[];
-    redos: Command[];
+    private undos: Command[] = [];
+    private redos: Command[] = [];
 
-    constructor() {
-        this.undos = [];
-        this.redos = [];
-    }
+    constructor() { }
 
     excute(cmd: Command) {
         this.undos.push(cmd);

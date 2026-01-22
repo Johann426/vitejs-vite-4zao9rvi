@@ -14,18 +14,43 @@ export class KeyEventHandler {
 
     // Handle keyboard down events
     onKeyDown = (kbInfo: KeyboardInfo) => {
-        const { ctrlKey, metaKey, key } = kbInfo.event
-        const { scene, history } = this.editor;
+        const { editor } = this;
+        const { scene, selectMesh, editMesh, sketchInput } = editor;
+        const { ctrlKey, metaKey, key, code } = kbInfo.event
 
         if ((ctrlKey || metaKey) && key.toLowerCase() === "z") {
             kbInfo.event.preventDefault();
-            console.log(history);
-            history.undo();
+            editor.undo();
         }
         if ((ctrlKey || metaKey) && key.toLowerCase() === "y") {
             kbInfo.event.preventDefault();
-            console.log(history);
-            history.redo();
+            editor.redo();
+        }
+
+        if (code === "Space" || key === " ") {
+            const editing = sketchInput.editing || editMesh.editing;
+            if (editing) return;
+
+            const picked = selectMesh.pickedObject;
+
+            if (sketchInput.registered) {
+                if (picked) {
+                    editMesh.registerMesh(picked);
+                }
+                // unregister
+                editMesh.unregister();
+                sketchInput.removeCallbacks(scene);
+                // start select mode
+                selectMesh.registerCallbacks(scene);
+            } else if (editMesh.registered) {
+                // unregister
+                editMesh.unregister();
+                sketchInput.removeCallbacks(scene);
+                // start select mode
+                selectMesh.registerCallbacks(scene);
+            } else {
+                editor.repeat();
+            }
         }
 
         const camera = scene.activeCamera;
