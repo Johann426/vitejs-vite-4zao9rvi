@@ -78,7 +78,7 @@ export class EditMesh {
         const points = curve.designPoints;
 
         points.forEach((p, i) => {
-            // pointer drag behavier for each point
+            // pointer drag behavier can be attached to a mesh
             const pointerDragBehavior = new PointerDragBehavior();
             this.ptrDrag.push(pointerDragBehavior);
             // use the specified axis/plane fixed
