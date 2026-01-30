@@ -20,9 +20,9 @@ export class SketchInput {
 
     constructor(private editor: Editor) {
         this._callback = {
-            onPointerMove: () => {},
-            onPointerDown: () => {},
-            onPointerUp: () => {},
+            onPointerMove: () => { },
+            onPointerDown: () => { },
+            onPointerUp: () => { },
         };
     }
 
@@ -77,11 +77,7 @@ export class SketchInput {
         const plane = this.sketchPlane;
         const origin = new Vector(ray.origin.x, ray.origin.y, ray.origin.z);
         const direction = new Vector(ray.direction.x, ray.direction.y, ray.direction.z);
-        // console.log("camera", camera?.position);
-        // console.log("origin", origin.components);
-        // console.log("direction", direction.components);
         const intersection = plane.intersectRay({ origin: origin, direction: direction });
-        // console.log("intersect", intersection?.components);
         return intersection;
     }
 
