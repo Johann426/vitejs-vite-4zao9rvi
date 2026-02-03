@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Viewport, PointerEventTypes } from "@babylonjs/core";
+import type Editor from "../Editor";
 import type { Scene, Camera, Observer, PointerInfo } from "@babylonjs/core";
-import Editor from "../Editor";
+import { Viewport, PointerEventTypes } from "@babylonjs/core";
 
 interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
     editor: Editor;

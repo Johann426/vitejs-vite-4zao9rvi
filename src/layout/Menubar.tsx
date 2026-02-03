@@ -1,14 +1,25 @@
 import classes from "./Menubar.module.css";
+import type Editor from "../Editor";
 import { Menu, Button, Text, Modal, Group } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconUpload, IconFile, IconDownload } from "@tabler/icons-react";
-import type Editor from "../Editor";
 import { BsplineCurveInt } from "../modeling/BsplineCurveInt";
 import { Vector } from "../modeling/NurbsLib";
 import { useState } from "react";
 
-interface Props {
+interface MenubarProps extends React.HTMLAttributes<HTMLDivElement> {
     editor: Editor;
+}
+
+export default function Menubar({ editor, ...rest }: MenubarProps) {
+    return (
+        <div {...rest}>
+            <File />
+            <Edit editor={editor} />
+            <Curve editor={editor} />
+            <Surface />
+        </div>
+    );
 }
 
 function File() {
@@ -56,7 +67,7 @@ function File() {
     );
 }
 
-function Edit({ editor }: Props) {
+function Edit({ editor }: { editor: Editor }) {
     const [disabled, setDisabled] = useState(false);
     const { editMesh, sketchInput } = editor;
 
@@ -140,7 +151,7 @@ function Edit({ editor }: Props) {
     );
 }
 
-function Curve({ editor }: Props) {
+function Curve({ editor }: { editor: Editor }) {
     const { editMesh, sketchInput } = editor;
 
     const onClickInterpolatedSpline = () => {
@@ -214,17 +225,3 @@ function Surface() {
     );
 }
 
-interface MenubarProps extends React.HTMLAttributes<HTMLDivElement> {
-    editor: Editor;
-}
-
-export default function Menubar({ editor, ...rest }: MenubarProps) {
-    return (
-        <div {...rest}>
-            <File />
-            <Edit editor={editor} />
-            <Curve editor={editor} />
-            <Surface />
-        </div>
-    );
-}

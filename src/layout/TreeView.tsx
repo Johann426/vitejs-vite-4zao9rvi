@@ -52,8 +52,8 @@ interface GroupData {
     label: string;
     obj: object;
     bool: boolean; // boolean indicating folded state
-    group: GroupData[] | null; // list of sub group
-    items: ItemData[] | null; // lisst of items
+    group: GroupData[]; // list of sub group
+    items: ItemData[]; // lisst of items
 }
 
 function Group({ label, obj, bool, group, items, ...callbacks }: GroupData) {
@@ -68,9 +68,9 @@ function Group({ label, obj, bool, group, items, ...callbacks }: GroupData) {
             <span onClick={onClick} {...callbacks}>
                 {label}
             </span>
-            {open && ( // if true, render subgroup and items
+            {open && (group.length > 0 || items.length > 0) && ( // if true, render subgroup and items
                 <ul>
-                    {group?.map((v, i) => (
+                    {group.map((v, i) => (
                         <Group
                             key={`${v.label}-subgroup${i}`}
                             label={v.label}
@@ -80,7 +80,7 @@ function Group({ label, obj, bool, group, items, ...callbacks }: GroupData) {
                             items={v.items}
                         />
                     ))}
-                    {items?.map((v, i) => (
+                    {items.map((v, i) => (
                         <Item key={`${v.label}-item${i}`} label={v.label} obj={v.obj} />
                     ))}
                 </ul>
@@ -99,8 +99,8 @@ export default function TreeView({ groupList, itemList, ...callbacks }: TreeData
         x: 0,
         y: 0,
     });
-    const [group, setGroup] = useState<GroupData[] | null>(groupList); // subgroup
-    const [items, setItems] = useState<ItemData[] | null>(itemList);
+    const [group, setGroup] = useState<GroupData[]>(groupList); // subgroup
+    const [items, setItems] = useState<ItemData[]>(itemList);
     const [open, setOpen] = useState(false); // state of context menu opened
     const [area, setArea] = useState<string | null>(null); // target area of dragOver and possibly drop region
 
