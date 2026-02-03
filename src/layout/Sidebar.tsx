@@ -3,34 +3,23 @@ import type Editor from "../Editor";
 import { Tabs } from "@mantine/core";
 import { IconLayersSubtract, IconChartBarPopular, IconSettings } from "@tabler/icons-react";
 import TreeView from "./TreeView";
+import type { GroupData, ItemData } from "./TreeView";
 import Setting from "./Setting";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     editor: Editor;
 }
 
-const defaultGroup: GroupProps = {
+const defaultGroup: GroupData = {
     label: "default group",
     obj: {},
     bool: true,
     group: [],
     items: [{ label: "default item", obj: {} }],
 };
-const item1 = { label: "item1", obj: {} }
-const item2 = { label: "item2", obj: {} };
+const item1: ItemData = { label: "item1", obj: {} }
+const item2: ItemData = { label: "item2", obj: {} };
 
-interface GroupProps {
-    label: string,
-    obj: Object,
-    bool: boolean,
-    group: GroupProps[],
-    items: ItemProps[],
-}
-
-interface ItemProps {
-    label: string,
-    obj: Object,
-}
 
 export default function Sidebar({ editor, ...rest }: SidebarProps) {
     const [groups, setGroups] = useState([defaultGroup]);
@@ -53,6 +42,7 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
 
                 <Tabs.Panel value="layer" p="xs">
                     Tree view
+                    {/* <TreeView id="treeview" groupList={groups} itemList={items} onNewGroup={ } onNewItem={ } /> */}
                     <TreeView id="treeview" groupList={groups} itemList={items} />
                 </Tabs.Panel>
 
