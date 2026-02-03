@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 
-interface ItemData {
+export interface ItemData {
     label: string;
     obj: object;
 }
@@ -48,7 +48,7 @@ function Item({ label, obj, ...callbacks }: ItemData) {
     );
 }
 
-interface GroupData {
+export interface GroupData {
     label: string;
     obj: object;
     bool: boolean; // boolean indicating folded state
@@ -92,14 +92,16 @@ function Group({ label, obj, bool, group, items, ...callbacks }: GroupData) {
 interface TreeData extends React.HTMLAttributes<HTMLDivElement> {
     groupList: GroupData[];
     itemList: ItemData[];
+    onNewGroup?: () => GroupData;
+    onNewItem?: () => ItemData;
 }
 
-export default function TreeView({ groupList, itemList, ...callbacks }: TreeData) {
+export default function TreeView({ groupList, itemList, onNewGroup, onNewItem, ...rest }: TreeData) {
     const [coord, setCoord] = useState<{ x: number; y: number }>({
         x: 0,
         y: 0,
     });
-    const [group, setGroup] = useState<GroupData[]>(groupList); // subgroup
+    const [groups, setGroups] = useState<GroupData[]>(groupList); // subgroup
     const [items, setItems] = useState<ItemData[]>(itemList);
     const [open, setOpen] = useState(false); // state of context menu opened
     const [area, setArea] = useState<string | null>(null); // target area of dragOver and possibly drop region
@@ -108,14 +110,10 @@ export default function TreeView({ groupList, itemList, ...callbacks }: TreeData
         x,
         y,
         bool,
-        onNewItem,
-        onNewGroup,
     }: {
         x: number;
         y: number;
         bool: boolean;
-        onNewItem: () => void;
-        onNewGroup: () => void;
     }) => {
         const onPointerDown = (e: React.PointerEvent<HTMLDivElement>, str: string) => {
             e.stopPropagation();
@@ -136,7 +134,9 @@ export default function TreeView({ groupList, itemList, ...callbacks }: TreeData
                         <div
                             onPointerDown={(e) => {
                                 e.stopPropagation(); //prevent from being closed before executing callback
-                                onNewGroup();
+                                const group = onNewGroup ? onNewGroup() : { label: "new group", obj: Object(), bool: false, group: [], items: [] };
+                                groups.push(group);
+                                setGroups(groups);
                                 setOpen(false);
                             }}
                         >
@@ -145,7 +145,9 @@ export default function TreeView({ groupList, itemList, ...callbacks }: TreeData
                         <div
                             onPointerDown={(e) => {
                                 e.stopPropagation();
-                                onNewItem();
+                                const item = onNewItem ? onNewItem() : { label: "new item", obj: Object() };
+                                items.push(item);
+                                setItems(items);
                                 setOpen(false);
                             }}
                         >
@@ -154,8 +156,9 @@ export default function TreeView({ groupList, itemList, ...callbacks }: TreeData
                         <hr />
                         <div onPointerDown={(e) => console.log(e, "Rename")}>Rename</div>
                         <div onPointerDown={(e) => onPointerDown(e, "Delete")}>Delete</div>
-                    </div>
-                )}
+                    </div >
+                )
+                }
             </>
         );
     };
@@ -225,37 +228,10 @@ export default function TreeView({ groupList, itemList, ...callbacks }: TreeData
     // function onDragOver(event) {}
     // function onDropFolder(event) {}
 
-    const onNewItem = () => {
-        const newItems = items?.slice();
-        if (newItems) {
-            newItems.push({ label: "new item", obj: Object() });
-            setItems(newItems);
-        } else {
-            setItems([{ label: "new item", obj: Object() }]);
-        }
-    };
-
-    const onNewGroup = () => {
-        const newGroup = {
-            label: "new group",
-            obj: Object(),
-            bool: false,
-            group: null,
-            items: null,
-        };
-        if (group) {
-            const copy = group.slice();
-            copy.push(newGroup);
-            setGroup(copy);
-        } else {
-            setGroup([newGroup]);
-        }
-    };
-
     return (
-        <div onPointerDown={onPointerDown} onContextMenu={onContextMenu} {...callbacks}>
+        <div onPointerDown={onPointerDown} onContextMenu={onContextMenu} {...rest}>
             <ul onPointerDown={onPointerDown}>
-                {group?.map((v, i) => (
+                {groups?.map((v, i) => (
                     <Group
                         key={`${v.label}-subgroup${i}`}
                         label={v.label}
@@ -272,7 +248,7 @@ export default function TreeView({ groupList, itemList, ...callbacks }: TreeData
             </ul>
             {createPortal(
                 // createPortal to avoid layout constraints of parent
-                <ContextMenu x={coord.x} y={coord.y} bool={open} onNewGroup={onNewGroup} onNewItem={onNewItem} />,
+                <ContextMenu x={coord.x} y={coord.y} bool={open} />,
                 document.body // render contextMenu directly into <body>
             )}
         </div>
