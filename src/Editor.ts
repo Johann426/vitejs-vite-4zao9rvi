@@ -309,6 +309,25 @@ export default class Editor {
     }
   }
 
+  undo() {
+    this.history.undo();
+  }
+
+  redo() {
+    this.history.redo();
+  }
+
+  // command of execute
+  execute(cmd: Command) {
+    this.history.excute(cmd);
+  }
+
+  // execute command of add a curve
+  addCurve(curve: Parametric) {
+    this.execute(new AddCurveCommand(this, curve));
+  }
+
+  // execute command of add a point
   addPoint(point: Vector) {
     const mesh = this.selectMesh.pickedObject;
 
@@ -319,6 +338,7 @@ export default class Editor {
     this.execute(new AddPointCommand(point, curve, callback));
   }
 
+  // execute command
   modPoint(index: number, point: Vector) {
     const mesh = this.selectMesh.pickedObject;
 
@@ -329,6 +349,7 @@ export default class Editor {
     this.execute(new ModifyPointCommand(index, point, curve, callback));
   }
 
+  // execute command
   removePoint(index: number) {
     const mesh = this.selectMesh.pickedObject;
 
@@ -336,24 +357,46 @@ export default class Editor {
 
     const curve: Parametric = mesh.metadata.curve;
     const callback = () => this.updateCurveMesh(mesh);
-    curve instanceof BsplineCurveInt ? this.execute(new RemoveVertexCommand(index, curve, callback)) : this.execute(new RemovePointCommand(index, curve, callback));
-
+    if (curve instanceof BsplineCurveInt) {
+      this.execute(new RemoveVertexCommand(index, curve, callback))
+    } else {
+      this.execute(new RemovePointCommand(index, curve, callback));
+    }
   }
 
-  addCurve(curve: Parametric) {
-    this.execute(new AddCurveCommand(this, curve));
-  }
+  // callback function of add an interpolated curve to be used in menubar and sidebar
+  addInterpolatedSpline = () => {
+    const editor = this;
+    const { scene, selectMesh, sketchInput, pickables } = editor;
 
-  execute(cmd: Command) {
-    this.history.excute(cmd);
-  }
+    const addBsplineCurveInt = () => {
+      const curve = new BsplineCurveInt(3);
+      editor.addCurve(curve);
 
-  undo() {
-    this.history.undo();
-  }
+      const mesh = pickables[pickables.length - 1];
+      selectMesh.pickedObject = mesh;
 
-  redo() {
-    this.history.redo();
-  }
+      sketchInput.callback = {
+        onPointerMove: (v: Vector) => {
+          curve.append(new Vector(v.x, v.y, v.z));
+          editor.updateCurveMesh(mesh);
+          const index = curve.designPoints.length - 1;
+          curve.remove(index);
+        },
+        onPointerDown: (v: Vector) => {
+          editor.addPoint(v);
+        },
+        onPointerUp: (v: Vector) => { },
+      };
+
+      selectMesh.removeCallbacks(scene);
+      sketchInput.registerCallbacks(scene);
+    };
+
+    addBsplineCurveInt();
+    editor.repeat = addBsplineCurveInt;
+
+    console.log(editor.pickables.length)
+  };
 
 }

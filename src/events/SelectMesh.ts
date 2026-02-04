@@ -31,8 +31,8 @@ export class SelectMesh {
         this.observers.push(scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE));
         this.observers.push(scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN));
         this.registered = true;
-        console.log("registered");
-        console.log(this.editor.pickables);
+        // console.log("registered");
+        // console.log(this.editor.pickables);
     }
 
     removeCallbacks(scene: Scene) {

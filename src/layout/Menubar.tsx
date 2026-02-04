@@ -152,38 +152,6 @@ function Edit({ editor }: { editor: Editor }) {
 }
 
 function Curve({ editor }: { editor: Editor }) {
-    const { editMesh, sketchInput } = editor;
-
-    const onClickInterpolatedSpline = () => {
-        const { scene, selectMesh, pickables } = editor;
-
-        const addInterpolatedSpline = () => {
-            const curve = new BsplineCurveInt(3);
-            editor.addCurve(curve);
-
-            const mesh = pickables[pickables.length - 1];
-            selectMesh.pickedObject = mesh;
-
-            sketchInput.callback = {
-                onPointerMove: (v: Vector) => {
-                    curve.append(new Vector(v.x, v.y, v.z));
-                    editor.updateCurveMesh(mesh);
-                    const index = curve.designPoints.length - 1;
-                    curve.remove(index);
-                },
-                onPointerDown: (v: Vector) => {
-                    editor.addPoint(v);
-                },
-                onPointerUp: (v: Vector) => { },
-            };
-
-            selectMesh.removeCallbacks(scene);
-            sketchInput.registerCallbacks(scene);
-        };
-
-        addInterpolatedSpline();
-        editor.repeat = addInterpolatedSpline;
-    };
 
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
@@ -199,7 +167,7 @@ function Curve({ editor }: { editor: Editor }) {
                 <Menu.Item>Bspline</Menu.Item>
                 <Menu.Item>Nurbs</Menu.Item>
                 <Menu.Divider />
-                <Menu.Item onClick={onClickInterpolatedSpline}>Interpolated Spline</Menu.Item>
+                <Menu.Item onClick={editor.addInterpolatedSpline}>Interpolated Spline</Menu.Item>
                 <Menu.Item disabled>Offset Curve</Menu.Item>
             </Menu.Dropdown>
         </Menu>
