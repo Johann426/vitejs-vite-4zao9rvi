@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 export interface ItemData {
@@ -97,14 +97,19 @@ interface TreeData extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export default function TreeView({ groupList, itemList, onNewGroup, onNewItem, ...rest }: TreeData) {
-    const [coord, setCoord] = useState<{ x: number; y: number }>({
-        x: 0,
-        y: 0,
-    });
     const [groups, setGroups] = useState<GroupData[]>(groupList); // subgroup
     const [items, setItems] = useState<ItemData[]>(itemList);
     const [open, setOpen] = useState(false); // state of context menu opened
     const [area, setArea] = useState<string | null>(null); // target area of dragOver and possibly drop region
+    const [coord, setCoord] = useState<{ x: number; y: number }>({ x: 0, y: 0, }); // coordinates of context menu
+
+    useEffect(() => {
+        setGroups(groupList);
+    }, [groupList]);
+
+    useEffect(() => {
+        setItems(itemList);
+    }, [itemList]);
 
     const ContextMenu = ({
         x,
