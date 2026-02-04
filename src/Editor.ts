@@ -32,6 +32,7 @@ export default class Editor {
   sketchInput = new SketchInput(this);
   // list of pickable meshes
   pickables: Mesh[] = [];
+  lengthOfPickables: number = 0;
   repeat: () => void = () => { };
 
   // design helpers
@@ -397,6 +398,10 @@ export default class Editor {
     editor.repeat = addBsplineCurveInt;
 
     console.log(editor.pickables.length)
+    editor.lengthOfPickables = editor.pickables.length;
+    editor.callback();
   };
+
+  callback = () => { }
 
 }

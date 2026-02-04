@@ -22,6 +22,13 @@ const defaultGroup: GroupData = {
 const item1: ItemData = { label: "item1", obj: {} }
 const item2: ItemData = { label: "item2", obj: {} };
 
+const gg = {
+    label: "new group",
+    obj: {},
+    bool: true,
+    group: [],
+    items: [{ label: "new item", obj: {} }],
+};
 
 export default function Sidebar({ editor, ...rest }: SidebarProps) {
     const [groups, setGroups] = useState([defaultGroup]);
@@ -30,20 +37,28 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
     // Set group list & item list when the component mounts
     useEffect(() => {
 
-        setGroups([defaultGroup]);
+        editor.callback = () => {
 
-        const arr = editor.pickables.map(mesh => {
-            const item = { label: "new curve", obj: mesh };
-            return item;
-        })
-        setItems(arr);
+            // setGroups([gg]);
+
+            const arr = editor.pickables.map(mesh => {
+                const item = {
+                    label: "new curve",
+                    obj: mesh
+                };
+                return item;
+            })
+
+            console.log(arr)
+
+            setItems(arr);
+        }
 
         // Cleanup when component unmounts
         return () => {
-            setGroups([]);
-            setItems([]);
+            editor.callback = () => { };
         };
-    }, [editor.pickables.length]); // re-render with changed dependencies
+    }, [editor.lengthOfPickables]); // re-render with changed dependencies
 
     const onNewGroup = () => {
 
@@ -58,11 +73,13 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
 
     const onNewItem = () => {
 
+        setGroups([gg]); // not working
+
         editor.addInterpolatedSpline();
         const mesh = editor.selectMesh.pickedObject;
 
         return {
-            label: "mew mesh",
+            label: "new mesh",
             obj: mesh!,
         }
     };
