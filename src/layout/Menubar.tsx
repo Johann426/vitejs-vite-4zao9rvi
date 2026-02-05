@@ -3,7 +3,6 @@ import type Editor from "../Editor";
 import { Menu, Button, Text, Modal, Group } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconUpload, IconFile, IconDownload } from "@tabler/icons-react";
-import { BsplineCurveInt } from "../modeling/BsplineCurveInt";
 import { Vector } from "../modeling/NurbsLib";
 import { useState } from "react";
 

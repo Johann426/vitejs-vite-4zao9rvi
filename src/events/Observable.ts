@@ -9,7 +9,7 @@ interface IObservable {
 }
 
 export class Observer implements IObserver {
-    constructor(private callback: () => void) {}
+    constructor(private callback: () => void) { }
 
     update() {
         this.callback();
@@ -48,6 +48,12 @@ export class Observable implements IObservable {
     notify() {
         for (const obs of this._observers) {
             obs.update();
+        }
+    }
+
+    clear() {
+        if (this._observers) {
+            this._observers.length = 0;
         }
     }
 }
