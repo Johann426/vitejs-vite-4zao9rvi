@@ -22,14 +22,6 @@ const defaultGroup: GroupData = {
 const item1: ItemData = { label: "item1", obj: {} }
 const item2: ItemData = { label: "item2", obj: {} };
 
-const gg = {
-    label: "new group",
-    obj: {},
-    bool: true,
-    group: [],
-    items: [{ label: "new item", obj: {} }],
-};
-
 export default function Sidebar({ editor, ...rest }: SidebarProps) {
     const [groups, setGroups] = useState([defaultGroup]);
     const [items, setItems] = useState([item1, item2]);
@@ -38,8 +30,6 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
     useEffect(() => {
 
         editor.callback = () => {
-
-            // setGroups([gg]);
 
             const arr = editor.pickables.map(mesh => {
                 const item = {
@@ -58,7 +48,7 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
         return () => {
             editor.callback = () => { };
         };
-    }, [editor.lengthOfPickables]); // re-render with changed dependencies
+    }, [editor.pickables.length]); // re-render with changed dependencies
 
     const onNewGroup = () => {
 
@@ -72,8 +62,6 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
     };
 
     const onNewItem = () => {
-
-        setGroups([gg]); // not working
 
         editor.addInterpolatedSpline();
         const mesh = editor.selectMesh.pickedObject;
@@ -102,7 +90,7 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
                 <Tabs.Panel value="layer" p="xs">
                     Tree view
                     {/* <TreeView id="treeview" groupList={groups} itemList={items} onNewGroup={ } onNewItem={ } /> */}
-                    <TreeView id="treeview" groupList={groups} itemList={items} onNewItem={onNewItem} />
+                    <TreeView id="treeview" groupList={groups} itemList={items} onNewGroup={onNewGroup} onNewItem={onNewItem} />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="properties" p="xs">
