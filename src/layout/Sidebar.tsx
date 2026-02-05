@@ -1,12 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
-import type Editor from "../Editor";
+import React, { useState, useEffect } from "react";
 import { Tabs } from "@mantine/core";
 import { IconLayersSubtract, IconChartBarPopular, IconSettings } from "@tabler/icons-react";
 import TreeView from "./TreeView";
-import type { GroupData, ItemData } from "./TreeView";
 import Setting from "./Setting";
-import { BsplineCurveInt } from "../modeling/BsplineCurveInt";
-import { Vector } from "../modeling/NurbsLib";
+import type Editor from "../Editor";
+import type { GroupData, ItemData } from "./TreeView";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     editor: Editor;
@@ -19,12 +17,10 @@ const defaultGroup: GroupData = {
     group: [],
     items: [{ label: "default item", obj: {} }],
 };
-const item1: ItemData = { label: "item1", obj: {} }
-const item2: ItemData = { label: "item2", obj: {} };
 
 export default function Sidebar({ editor, ...rest }: SidebarProps) {
-    const [groups, setGroups] = useState([defaultGroup]);
-    const [items, setItems] = useState([item1, item2]);
+    const [groups, setGroups] = useState<GroupData[]>([defaultGroup]);
+    const [items, setItems] = useState<ItemData[]>([]);
 
     // Set group list & item list when the component mounts
     useEffect(() => {
@@ -38,8 +34,6 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
                 };
                 return item;
             })
-
-            console.log(arr)
 
             setItems(arr);
         }

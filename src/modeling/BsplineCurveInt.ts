@@ -1,9 +1,9 @@
 import { parameterize, assignKnot, globalCurveInterpTngt, split, Vector } from "./NurbsLib.js";
-import { Bspline } from "./Bspline.ts";
-import { BsplineCurve } from "./BsplineCurve.ts";
-import { Vertex } from "./Vertex.ts";
+import Bspline from "./Bspline.ts";
+import BsplineCurve from "./BsplineCurve.ts";
+import Vertex from "./Vertex.ts";
 
-export class BsplineCurveInt extends Bspline {
+export default class BsplineCurveInt extends Bspline {
     private method = "chordal";
     private needsUpdate: boolean = false;
     private _vertices: Vertex[];

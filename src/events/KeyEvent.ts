@@ -2,7 +2,7 @@ import Editor from "../Editor";
 import { KeyboardEventTypes } from "@babylonjs/core";
 import type { Nullable, Observer, KeyboardInfo } from "@babylonjs/core";
 
-export class KeyEventHandler {
+export default class KeyEventHandler {
     editor: Editor;
     keyDownObserver: Nullable<Observer<KeyboardInfo>> = null;
 

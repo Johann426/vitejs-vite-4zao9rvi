@@ -1,7 +1,7 @@
 import { curvePoint, curveDers, calcGreville, knotInsert, knotsRemoval, Vector } from "./NurbsLib.js";
-import { Parametric } from "./Parametric.ts";
+import Parametric from "./Parametric.ts";
 
-abstract class Bspline extends Parametric {
+export default abstract class Bspline extends Parametric {
     protected dmax: number = 3;
 
     constructor(deg: number, knots: number[] | undefined, ctrlp: Vector[] | undefined) {
@@ -44,5 +44,3 @@ abstract class Bspline extends Parametric {
         return curveDers(this.deg, this.knots, this.ctrlp, t, k);
     }
 }
-
-export { Bspline };

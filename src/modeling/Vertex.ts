@@ -1,6 +1,6 @@
 import { Vector } from "./NurbsLib";
 
-export class Vertex {
+export default class Vertex {
     /**
      * @param position defines position vector of the vertex
      * @param _knuckle defines knuckle
@@ -12,7 +12,7 @@ export class Vertex {
         private _knuckle: boolean = false,
         private tangentI: Vector = new Vector(),
         private tangentO: Vector = new Vector()
-    ) {}
+    ) { }
 
     get point() {
         return this.position;

@@ -6,7 +6,7 @@ import { CurveHelper } from "../DesignHelper";
 
 const lineColor = new Color3(0, 1, 0);
 
-export class AddCurveCommand implements Command {
+export default class AddCurveCommand implements Command {
     private mesh: LinesMesh;
 
     constructor(

@@ -2,7 +2,7 @@ import type Command from "./Command";
 import type { Vector } from "../modeling/NurbsLib";
 import type Curve from "../modeling/Curve";
 
-export class RemovePointCommand implements Command {
+export default class RemovePointCommand implements Command {
     private saved: Vector;
 
     constructor(

@@ -6,7 +6,7 @@ import { Vector } from "../modeling/NurbsLib";
 import { Plane } from "../modeling/Plane";
 import { PICK_MARGIN } from "../constant";
 
-export class SelectMesh {
+export default class SelectMesh {
     public registered: boolean = false;
     public pickedObject: Mesh | undefined;
 

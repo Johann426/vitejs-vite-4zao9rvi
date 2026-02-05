@@ -1,7 +1,7 @@
 import { parameterize, deBoorKnots, calcGreville, Vector, split } from "./NurbsLib.js";
-import { Bspline } from "./Bspline.ts";
+import Bspline from "./Bspline.ts";
 
-class BsplineCurve extends Bspline {
+export default class BsplineCurve extends Bspline {
     needsUpdate: boolean = false;
     param: number[] = [];
 
@@ -113,5 +113,3 @@ class BsplineCurve extends Bspline {
         return new BsplineCurve(deg, knot, ctrl);
     }
 }
-
-export { BsplineCurve };

@@ -3,7 +3,7 @@ import { Vector } from "./NurbsLib.js";
 /*
  * Abstract class representing parametric form of geometric model
  */
-export abstract class Parametric implements Curve<Vector> {
+export default abstract class Parametric implements Curve<Vector> {
     protected param: number[] = [];
     protected knots: number[] = [];
     protected ctrlp: Vector[] = [];

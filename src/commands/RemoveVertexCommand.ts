@@ -2,7 +2,7 @@ import type Command from "./Command";
 import type { Vertex } from "../modeling/Vertex";
 import type { BsplineCurveInt } from "../modeling/BsplineCurveInt";
 
-export class RemoveVertexCommand implements Command {
+export default class RemoveVertexCommand implements Command {
     private saved: Vertex;
 
     constructor(

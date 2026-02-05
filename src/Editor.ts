@@ -1,26 +1,26 @@
 import type { Scene, Mesh } from "@babylonjs/core";
 import { Vector3, Color4, Matrix, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, GlowLayer, } from "@babylonjs/core";
 
-import type { Parametric } from "./modeling/Parametric.js";
-import { BsplineCurveInt } from "./modeling/BsplineCurveInt.ts";
+import type Parametric from "./modeling/Parametric.js";
+import BsplineCurveInt from "./modeling/BsplineCurveInt.ts";
 import { Vector } from "./modeling/NurbsLib";
 
 import type Command from "./commands/Command.js";
-import { History } from "./commands/History.js";
-import { AddCurveCommand } from "./commands/AddCurveCommand.js";
-import { AddPointCommand } from "./commands/AddPointCommand.js";
-import { ModifyPointCommand } from "./commands/ModifyPointCommand.ts";
-import { RemovePointCommand } from "./commands/RemovePointCommand.ts";
-import { RemoveVertexCommand } from "./commands/RemoveVertexCommand.ts";
+import History from "./commands/History.js";
+import AddCurveCommand from "./commands/AddCurveCommand.js";
+import AddPointCommand from "./commands/AddPointCommand.js";
+import ModifyPointCommand from "./commands/ModifyPointCommand.ts";
+import RemovePointCommand from "./commands/RemovePointCommand.ts";
+import RemoveVertexCommand from "./commands/RemoveVertexCommand.ts";
 
-import { EditMesh } from "./events/EditMesh.ts";
-import { SelectMesh } from "./events/SelectMesh.js";
-import { KeyEventHandler } from "./events/KeyEvent.js";
+import EditMesh from "./events/EditMesh.ts";
+import SelectMesh from "./events/SelectMesh.js";
+import SketchInput from "./events/SketchInput.ts";
+import KeyEventHandler from "./events/KeyEvent.js";
 
 import { PointHelper, LinesHelper, CurveHelper, CurvatureHelper } from "./DesignHelper.js";
 
 import { CONFIG } from "./constant.ts";
-import { SketchInput } from "./events/SketchInput.ts";
 
 export default class Editor {
   scene!: Scene;

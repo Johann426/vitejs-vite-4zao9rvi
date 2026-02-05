@@ -1,3 +1,3 @@
-export class AddMeshCommand {
-    constructor() {}
+export default class AddMeshCommand {
+    constructor() { }
 }

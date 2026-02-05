@@ -10,7 +10,7 @@ interface callbackProps {
     onPointerUp: (v: Vector) => void;
 }
 
-export class SketchInput {
+export default class SketchInput {
     public registered: boolean = false;
     public editing: boolean = false;
 

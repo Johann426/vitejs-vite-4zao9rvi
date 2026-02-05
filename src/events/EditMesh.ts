@@ -5,7 +5,7 @@ import type { Parametric } from "../modeling/Parametric";
 import { Vector } from "../modeling/NurbsLib";
 import { PICK_MARGIN, CONFIG } from "../constant";
 
-export class EditMesh {
+export default class EditMesh {
     public registered: boolean = false;
     public editing: boolean = false;
 
@@ -13,7 +13,7 @@ export class EditMesh {
     private spheres: Mesh[] = [];
     private savedPt: Vector = new Vector();
 
-    constructor(private editor: Editor) {}
+    constructor(private editor: Editor) { }
 
     // Clean up observers when disposing of the SelectMesh instance
     dispose() {
