@@ -69,7 +69,6 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
 
                 <Tabs.Panel value="layer" p="xs">
                     Tree view
-                    {/* <TreeView id="treeview" groupList={groups} itemList={items} onNewGroup={ } onNewItem={ } /> */}
                     <TreeView id="treeview" groupList={groups} itemList={[]} onNewGroup={onNewGroup} onNewItem={onNewItem} />
                 </Tabs.Panel>
 
