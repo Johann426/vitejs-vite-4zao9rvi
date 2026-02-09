@@ -95,11 +95,13 @@ function Group({ id, label, obj, bool, group, items, ...callbacks }: GroupData) 
 interface TreeData extends React.HTMLAttributes<HTMLDivElement> {
     groupList: GroupData[];
     itemList: ItemData[];
-    onNewGroup: () => GroupData;
+    onNewGroup: () => void;
     onNewItem: () => void;
 }
 
 export default function TreeView({ groupList, itemList, onNewGroup, onNewItem, ...rest }: TreeData) {
+    // const [groups, setGroups] = useState<GroupData[]>(groupList); // subgroup
+    // const [items, setItems] = useState<ItemData[]>(itemList);
     const [open, setOpen] = useState(false); // state of context menu opened
     const [area, setArea] = useState<string | null>(null); // target area of dragOver and possibly drop region
     const [coord, setCoord] = useState<{ x: number; y: number }>({ x: 0, y: 0, }); // coordinates of context menu
@@ -132,9 +134,7 @@ export default function TreeView({ groupList, itemList, onNewGroup, onNewItem, .
                         <div
                             onPointerDown={(e) => {
                                 e.stopPropagation(); //prevent from being closed before executing callback
-                                const group = onNewGroup();
-                                groupList.push(group);
-                                // setGroups(groups);
+                                onNewGroup();
                                 setOpen(false);
                             }}
                         >
@@ -143,9 +143,6 @@ export default function TreeView({ groupList, itemList, onNewGroup, onNewItem, .
                         <div
                             onPointerDown={(e) => {
                                 e.stopPropagation();
-                                // const item = onNewItem();
-                                // itemList.push(item);
-                                // // setItems(items);
                                 onNewItem();
                                 setOpen(false);
                             }}

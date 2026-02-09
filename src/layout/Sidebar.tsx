@@ -22,48 +22,34 @@ const defaultGroup: GroupData = {
 
 export default function Sidebar({ editor, ...rest }: SidebarProps) {
     const [groups, setGroups] = useState<GroupData[]>([defaultGroup]);
-    const [items, setItems] = useState<ItemData[]>([]);
 
     const { treeNode } = editor;
-    // Set group list & item list when the component mounts
-    useEffect(() => {
 
-        // add callback to update treeview
-        const observer = treeNode.add(() => {
+    treeNode.add(() => {
 
-            function getDataFromTreeNode(node: TreeNode): GroupData {
+        function getDataFromTreeNode(node: TreeNode): GroupData {
 
-                return {
-                    id: node.id,
-                    label: node.label,
-                    obj: {},
-                    bool: node.bool,
-                    group: node.group.map(e => getDataFromTreeNode(e)),
-                    items: node.items.map(e => ({ id: e.id, label: e.label, obj: e.obj }))
-                }
+            return {
+                id: node.id,
+                label: node.label,
+                obj: {},
+                bool: node.bool,
+                group: node.group.map(e => getDataFromTreeNode(e)),
+                items: node.items.map(e => ({ id: e.id, label: e.label, obj: e.obj }))
             }
+        }
 
-            const group = getDataFromTreeNode(treeNode);
+        const group = getDataFromTreeNode(treeNode);
 
-            setGroups([group]);
-
-        })
-
-        // Cleanup when component unmounts
-        return () => {
-            treeNode.remove(observer);
-        };
-    }, [treeNode.group.length]); // re-render with changed dependencies
+        setGroups([group]);
+    })
 
     const onNewGroup = () => {
-
-        return treeNode.newGroup("new group");
+        treeNode.newGroup("new group");
     };
 
     const onNewItem = () => {
-
         editor.addInterpolatedSpline();
-
     };
 
     return (
@@ -84,7 +70,7 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
                 <Tabs.Panel value="layer" p="xs">
                     Tree view
                     {/* <TreeView id="treeview" groupList={groups} itemList={items} onNewGroup={ } onNewItem={ } /> */}
-                    <TreeView id="treeview" groupList={groups} itemList={items} onNewGroup={onNewGroup} onNewItem={onNewItem} />
+                    <TreeView id="treeview" groupList={groups} itemList={[]} onNewGroup={onNewGroup} onNewItem={onNewItem} />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="properties" p="xs">
