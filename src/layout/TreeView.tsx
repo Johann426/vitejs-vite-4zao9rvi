@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 export interface ItemData {
+    id: string;
     label: string;
     obj: object;
 }
 
-function Item({ label, obj, ...callbacks }: ItemData) {
+function Item({ id, label, obj, ...callbacks }: ItemData) {
     const [className, setClassName] = useState("model");
 
     const onClick = () => {
@@ -49,6 +50,7 @@ function Item({ label, obj, ...callbacks }: ItemData) {
 }
 
 export interface GroupData {
+    id: string;
     label: string;
     obj: object;
     bool: boolean; // boolean indicating folded state
@@ -56,7 +58,7 @@ export interface GroupData {
     items: ItemData[]; // lisst of items
 }
 
-function Group({ label, obj, bool, group, items, ...callbacks }: GroupData) {
+function Group({ id, label, obj, bool, group, items, ...callbacks }: GroupData) {
     const [open, setOpen] = useState(bool); //boolean for state opened & display inside folder
 
     const onClick = () => {
@@ -72,7 +74,8 @@ function Group({ label, obj, bool, group, items, ...callbacks }: GroupData) {
                 <ul>
                     {group.map((v, i) => (
                         <Group
-                            key={`${v.label}-subgroup${i}`}
+                            key={v.id}
+                            id={v.id}
                             label={v.label}
                             obj={v.obj}
                             bool={v.bool}
@@ -81,7 +84,7 @@ function Group({ label, obj, bool, group, items, ...callbacks }: GroupData) {
                         />
                     ))}
                     {items.map((v, i) => (
-                        <Item key={`${v.label}-item${i}`} label={v.label} obj={v.obj} />
+                        <Item key={v.id} id={v.id} label={v.label} obj={v.obj} />
                     ))}
                 </ul>
             )}
@@ -93,23 +96,13 @@ interface TreeData extends React.HTMLAttributes<HTMLDivElement> {
     groupList: GroupData[];
     itemList: ItemData[];
     onNewGroup: () => GroupData;
-    onNewItem: () => ItemData;
+    onNewItem: () => void;
 }
 
 export default function TreeView({ groupList, itemList, onNewGroup, onNewItem, ...rest }: TreeData) {
-    // const [groups, setGroups] = useState<GroupData[]>(groupList); // subgroup
-    // const [items, setItems] = useState<ItemData[]>(itemList);
     const [open, setOpen] = useState(false); // state of context menu opened
     const [area, setArea] = useState<string | null>(null); // target area of dragOver and possibly drop region
     const [coord, setCoord] = useState<{ x: number; y: number }>({ x: 0, y: 0, }); // coordinates of context menu
-
-    // useEffect(() => {
-    //     setGroups(groupList);
-    // }, [groupList]);
-
-    // useEffect(() => {
-    //     setItems(itemList);
-    // }, [itemList]);
 
     const ContextMenu = ({
         x,
@@ -139,7 +132,7 @@ export default function TreeView({ groupList, itemList, onNewGroup, onNewItem, .
                         <div
                             onPointerDown={(e) => {
                                 e.stopPropagation(); //prevent from being closed before executing callback
-                                const group = onNewGroup ? onNewGroup() : { label: "new group", obj: Object(), bool: false, group: [], items: [] };
+                                const group = onNewGroup();
                                 groupList.push(group);
                                 // setGroups(groups);
                                 setOpen(false);
@@ -150,9 +143,10 @@ export default function TreeView({ groupList, itemList, onNewGroup, onNewItem, .
                         <div
                             onPointerDown={(e) => {
                                 e.stopPropagation();
-                                const item = onNewItem();
-                                itemList.push(item);
-                                // setItems(items);
+                                // const item = onNewItem();
+                                // itemList.push(item);
+                                // // setItems(items);
+                                onNewItem();
                                 setOpen(false);
                             }}
                         >
@@ -238,17 +232,15 @@ export default function TreeView({ groupList, itemList, onNewGroup, onNewItem, .
             <ul onPointerDown={onPointerDown}>
                 {groupList.map((v, i) => (
                     <Group
-                        key={`${v.label}-subgroup${i}`}
-                        label={v.label}
-                        obj={v.obj}
-                        bool={v.bool}
-                        group={v.group}
-                        items={v.items}
+                        key={v.id}
+                        {...v}
                     />
                 ))}
                 {itemList.map((v, i) => (
-                    <Item key={`${v.label}-item${i}`} label={v.label} obj={v.obj} />
-                    // <Item key={`${v.label}-item${i}`} label={v.label} obj={v.obj} {...{ onDragOver: onDragOver(`${v.label}-item${i}`) }} /> // to do: if key => setClass
+                    <Item
+                        key={v.id}
+                        {...v}
+                    />
                 ))}
             </ul>
             {createPortal(

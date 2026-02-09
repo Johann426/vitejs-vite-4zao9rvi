@@ -13,10 +13,11 @@ import ModifyPointCommand from "./commands/ModifyPointCommand.ts";
 import RemovePointCommand from "./commands/RemovePointCommand.ts";
 import RemoveVertexCommand from "./commands/RemoveVertexCommand.ts";
 
-import EditMesh from "./events/EditMesh.ts";
-import SelectMesh from "./events/SelectMesh.js";
-import SketchInput from "./events/SketchInput.ts";
 import KeyEventHandler from "./events/KeyEvent.js";
+import SelectMesh from "./events/SelectMesh.js";
+import EditMesh from "./events/EditMesh.ts";
+import SketchInput from "./events/SketchInput.ts";
+import TreeNode from "./events/TreeModel.ts";
 
 import { PointHelper, LinesHelper, CurveHelper, CurvatureHelper } from "./DesignHelper.js";
 
@@ -32,6 +33,7 @@ export default class Editor {
   sketchInput = new SketchInput(this);
   // list of pickable meshes
   pickables: Mesh[] = [];
+  treeNode: TreeNode = new TreeNode("root")
   // repeat callback by space key event
   repeat: () => void = () => { };
 
@@ -367,7 +369,7 @@ export default class Editor {
   // callback function of add an interpolated curve to be used in menubar and sidebar
   addInterpolatedSpline = () => {
     const editor = this;
-    const { scene, selectMesh, sketchInput, pickables } = editor;
+    const { scene, selectMesh, sketchInput, pickables, treeNode } = editor;
 
     const addBsplineCurveInt = () => {
       const curve = new BsplineCurveInt(3);
@@ -391,14 +393,16 @@ export default class Editor {
 
       selectMesh.removeCallbacks(scene);
       sketchInput.registerCallbacks(scene);
+
+      // new tree item
+      const treeItem = treeNode.newItem("new curve", mesh);
+      console.log(treeItem.id);
+
     };
 
     addBsplineCurveInt();
     editor.repeat = addBsplineCurveInt;
 
-    editor.callback();
   };
-
-  callback = () => { }
 
 }

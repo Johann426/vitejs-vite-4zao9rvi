@@ -5,65 +5,65 @@ import TreeView from "./TreeView";
 import Setting from "./Setting";
 import type Editor from "../Editor";
 import type { GroupData, ItemData } from "./TreeView";
+import type TreeNode from "../events/TreeModel";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     editor: Editor;
 }
 
 const defaultGroup: GroupData = {
-    label: "default group",
+    id: "",
+    label: "root",
     obj: {},
     bool: true,
     group: [],
-    items: [{ label: "default item", obj: {} }],
+    items: [{ id: "", label: "", obj: {} }],
 };
 
 export default function Sidebar({ editor, ...rest }: SidebarProps) {
     const [groups, setGroups] = useState<GroupData[]>([defaultGroup]);
     const [items, setItems] = useState<ItemData[]>([]);
 
+    const { treeNode } = editor;
     // Set group list & item list when the component mounts
     useEffect(() => {
 
-        editor.callback = () => {
+        // add callback to update treeview
+        const observer = treeNode.add(() => {
 
-            const arr = editor.pickables.map(mesh => {
-                const item = {
-                    label: "new curve",
-                    obj: mesh
-                };
-                return item;
-            })
+            function getDataFromTreeNode(node: TreeNode): GroupData {
 
-            setItems(arr);
-        }
+                return {
+                    id: node.id,
+                    label: node.label,
+                    obj: {},
+                    bool: node.bool,
+                    group: node.group.map(e => getDataFromTreeNode(e)),
+                    items: node.items.map(e => ({ id: e.id, label: e.label, obj: e.obj }))
+                }
+            }
+
+            const group = getDataFromTreeNode(treeNode);
+
+            setGroups([group]);
+
+        })
 
         // Cleanup when component unmounts
         return () => {
-            editor.callback = () => { };
+            treeNode.remove(observer);
         };
-    }, [editor.pickables.length]); // re-render with changed dependencies
+    }, [treeNode.group.length]); // re-render with changed dependencies
 
     const onNewGroup = () => {
 
-        return {
-            label: "new group",
-            obj: Object(),
-            bool: false, // boolean indicating folded state
-            group: [], // list of sub group
-            items: [], // lisst of items
-        }
+        return treeNode.newGroup("new group");
     };
 
     const onNewItem = () => {
 
         editor.addInterpolatedSpline();
-        const mesh = editor.selectMesh.pickedObject;
 
-        return {
-            label: "new mesh",
-            obj: mesh!,
-        }
     };
 
     return (
