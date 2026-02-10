@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 
 export interface ItemData {
@@ -71,7 +71,7 @@ function Group({ id, label, obj, bool, group, items, ...callbacks }: GroupData) 
                 {label}
             </span>
             {open && (group.length > 0 || items.length > 0) && ( // if true, render subgroup and items
-                <ul>
+                <ul style={{ paddingLeft: "20px" }}>
                     {group.map((v, i) => (
                         <Group
                             key={v.id}
@@ -93,18 +93,17 @@ function Group({ id, label, obj, bool, group, items, ...callbacks }: GroupData) 
 }
 
 interface TreeData extends React.HTMLAttributes<HTMLDivElement> {
-    groupList: GroupData[];
-    itemList: ItemData[];
+    data: GroupData;
     onNewGroup: () => void;
     onNewItem: () => void;
 }
 
-export default function TreeView({ groupList, itemList, onNewGroup, onNewItem, ...rest }: TreeData) {
-    // const [groups, setGroups] = useState<GroupData[]>(groupList); // subgroup
+export default function TreeView({ data, onNewGroup, onNewItem, ...rest }: TreeData) {
+    // const [groups, setGroups] = useState<GroupData[]>(groupList);
     // const [items, setItems] = useState<ItemData[]>(itemList);
     const [open, setOpen] = useState(false); // state of context menu opened
-    const [area, setArea] = useState<string | null>(null); // target area of dragOver and possibly drop region
     const [coord, setCoord] = useState<{ x: number; y: number }>({ x: 0, y: 0, }); // coordinates of context menu
+    const [area, setArea] = useState<string | null>(null); // target area of dragOver and possibly drop region
 
     const ContextMenu = ({
         x,
@@ -226,19 +225,23 @@ export default function TreeView({ groupList, itemList, onNewGroup, onNewItem, .
 
     return (
         <div onPointerDown={onPointerDown} onContextMenu={onContextMenu} {...rest}>
-            <ul onPointerDown={onPointerDown}>
-                {groupList.map((v, i) => (
+            <ul onPointerDown={onPointerDown} style={{ paddingLeft: "10px" }}>
+                {/* {groups.map((v) => (
                     <Group
                         key={v.id}
                         {...v}
                     />
                 ))}
-                {itemList.map((v, i) => (
+                {items.map((v) => (
                     <Item
                         key={v.id}
                         {...v}
                     />
-                ))}
+                ))} */}
+                <Group
+                    key={data.id}
+                    {...data}
+                />
             </ul>
             {createPortal(
                 // createPortal to avoid layout constraints of parent

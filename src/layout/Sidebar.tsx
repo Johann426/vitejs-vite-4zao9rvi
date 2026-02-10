@@ -1,47 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Tabs } from "@mantine/core";
 import { IconLayersSubtract, IconChartBarPopular, IconSettings } from "@tabler/icons-react";
 import TreeView from "./TreeView";
 import Setting from "./Setting";
 import type Editor from "../Editor";
-import type { GroupData, ItemData } from "./TreeView";
-import type TreeNode from "../events/TreeModel";
+import type { GroupData } from "./TreeView";
+import type TreeNode from "../events/TreeNode";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     editor: Editor;
 }
 
-const defaultGroup: GroupData = {
-    id: "",
-    label: "root",
-    obj: {},
-    bool: true,
-    group: [],
-    items: [{ id: "", label: "", obj: {} }],
-};
-
 export default function Sidebar({ editor, ...rest }: SidebarProps) {
-    const [groups, setGroups] = useState<GroupData[]>([defaultGroup]);
-
     const { treeNode } = editor;
+    const [data, setData] = useState<GroupData>(treeNode);
 
+    // add callback to notify and update treeview using React Hook(useState)
     treeNode.add(() => {
-
-        function getDataFromTreeNode(node: TreeNode): GroupData {
-
-            return {
-                id: node.id,
-                label: node.label,
-                obj: {},
-                bool: node.bool,
-                group: node.group.map(e => getDataFromTreeNode(e)),
-                items: node.items.map(e => ({ id: e.id, label: e.label, obj: e.obj }))
-            }
-        }
-
-        const group = getDataFromTreeNode(treeNode);
-
-        setGroups([group]);
+        // change ref. value to trigger re-render
+        // const tree = getDataFromTreeNode(treeNode);
+        const tree = { ...treeNode }
+        setData(tree);
     })
 
     const onNewGroup = () => {
@@ -49,7 +28,7 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
     };
 
     const onNewItem = () => {
-        editor.addInterpolatedSpline();
+        editor.addInterpolatedSpline()
     };
 
     return (
@@ -69,7 +48,7 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
 
                 <Tabs.Panel value="layer" p="xs">
                     Tree view
-                    <TreeView id="treeview" groupList={groups} itemList={[]} onNewGroup={onNewGroup} onNewItem={onNewItem} />
+                    <TreeView id="treeview" data={data} onNewGroup={onNewGroup} onNewItem={onNewItem} />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="properties" p="xs">
@@ -82,4 +61,16 @@ export default function Sidebar({ editor, ...rest }: SidebarProps) {
             </Tabs>
         </div>
     );
+}
+
+function getDataFromTreeNode(node: TreeNode): GroupData {
+
+    return {
+        id: node.id,
+        label: node.label,
+        obj: {},
+        bool: node.bool,
+        group: node.group.map(e => getDataFromTreeNode(e)),
+        items: node.items.map(e => ({ id: e.id, label: e.label, obj: e.obj }))
+    }
 }

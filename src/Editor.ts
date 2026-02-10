@@ -17,7 +17,7 @@ import KeyEventHandler from "./events/KeyEvent.js";
 import SelectMesh from "./events/SelectMesh.js";
 import EditMesh from "./events/EditMesh.ts";
 import SketchInput from "./events/SketchInput.ts";
-import TreeNode from "./events/TreeModel.ts";
+import TreeNode from "./events/TreeNode.ts";
 
 import { PointHelper, LinesHelper, CurveHelper, CurvatureHelper } from "./DesignHelper.js";
 
@@ -26,14 +26,17 @@ import { CONFIG } from "./constant.ts";
 export default class Editor {
   scene!: Scene;
   glowLayer!: GlowLayer;
+
   // event handler
   keyEventHandler!: KeyEventHandler;
   selectMesh!: SelectMesh;
   editMesh = new EditMesh(this);
   sketchInput = new SketchInput(this);
+
   // list of pickable meshes
   pickables: Mesh[] = [];
-  treeNode: TreeNode = new TreeNode("root")
+  treeNode: TreeNode = new TreeNode("root");
+
   // repeat callback by space key event
   repeat: () => void = () => { };
 
@@ -396,7 +399,6 @@ export default class Editor {
 
       // new tree item
       const treeItem = treeNode.newItem("new curve", mesh);
-      console.log(treeItem.id);
 
     };
 
