@@ -1,97 +1,6 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 
-export interface ItemData {
-    id: string;
-    label: string;
-    obj: object;
-}
-
-function Item({ id, label, obj, ...callbacks }: ItemData) {
-    const [className, setClassName] = useState("model");
-
-    const onClick = () => {
-        setClassName("selected");
-    };
-
-    const onDragStart = () => setClassName("dragging");
-
-    const onDragEnd = () => setClassName("model");
-
-    const onDragLeave = () => setClassName("model");
-
-    const onDragOver = (e: React.DragEvent<HTMLLIElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log("dragOver");
-        setClassName("dragOver");
-    };
-
-    const onDrop = (e: React.DragEvent<HTMLLIElement>) => {
-        e.preventDefault();
-        console.log("Dropped!");
-    };
-
-    return (
-        <li
-            className={className}
-            draggable
-            onClick={onClick}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-            onDragLeave={onDragLeave}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-            {...callbacks}
-        >
-            {label}
-        </li>
-    );
-}
-
-export interface GroupData {
-    id: string;
-    label: string;
-    obj: object;
-    bool: boolean; // boolean indicating folded state
-    group: GroupData[]; // list of sub group
-    items: ItemData[]; // lisst of items
-}
-
-function Group({ id, label, obj, bool, group, items, ...callbacks }: GroupData) {
-    const [open, setOpen] = useState(bool); //boolean for state opened & display inside folder
-
-    const onClick = () => {
-        setOpen((prev) => !prev); // toggle boolean
-    };
-
-    return (
-        <li className={open ? "group-opened" : "group"}>
-            <span onClick={onClick} {...callbacks}>
-                {label}
-            </span>
-            {open && (group.length > 0 || items.length > 0) && ( // if true, render subgroup and items
-                <ul style={{ paddingLeft: "20px" }}>
-                    {group.map((v, i) => (
-                        <Group
-                            key={v.id}
-                            id={v.id}
-                            label={v.label}
-                            obj={v.obj}
-                            bool={v.bool}
-                            group={v.group}
-                            items={v.items}
-                        />
-                    ))}
-                    {items.map((v, i) => (
-                        <Item key={v.id} id={v.id} label={v.label} obj={v.obj} />
-                    ))}
-                </ul>
-            )}
-        </li>
-    );
-}
-
 interface TreeData extends React.HTMLAttributes<HTMLDivElement> {
     data: GroupData;
     onNewGroup: () => void;
@@ -105,15 +14,7 @@ export default function TreeView({ data, onNewGroup, onNewItem, ...rest }: TreeD
     const [coord, setCoord] = useState<{ x: number; y: number }>({ x: 0, y: 0, }); // coordinates of context menu
     const [area, setArea] = useState<string | null>(null); // target area of dragOver and possibly drop region
 
-    const ContextMenu = ({
-        x,
-        y,
-        bool,
-    }: {
-        x: number;
-        y: number;
-        bool: boolean;
-    }) => {
+    function ContextMenu({ x, y, bool, }: { x: number; y: number; bool: boolean; }) {
         const onPointerDown = (e: React.PointerEvent<HTMLDivElement>, str: string) => {
             e.stopPropagation();
             console.log(str);
@@ -168,7 +69,7 @@ export default function TreeView({ data, onNewGroup, onNewItem, ...rest }: TreeD
         setCoord({ x: e.clientX, y: e.clientY });
     };
 
-    const onDragOver = (key: string) => (e: React.DragEvent<HTMLElement>) => {
+    const onDragOver = (e: React.DragEvent<HTMLElement>) => {
         e.preventDefault(); // prevent default to allow drop event
         e.stopPropagation(); // prevent event target reaching from child nodes
 
@@ -176,7 +77,7 @@ export default function TreeView({ data, onNewGroup, onNewItem, ...rest }: TreeD
         const height = (e.currentTarget as HTMLElement).clientHeight;
         const area = offsetY / height;
 
-        console.log(key);
+        console.log("drag over");
         // setArea(key);
 
         // if (area <= 0.5) {
@@ -225,19 +126,7 @@ export default function TreeView({ data, onNewGroup, onNewItem, ...rest }: TreeD
 
     return (
         <div onPointerDown={onPointerDown} onContextMenu={onContextMenu} {...rest}>
-            <ul onPointerDown={onPointerDown} style={{ paddingLeft: "10px" }}>
-                {/* {groups.map((v) => (
-                    <Group
-                        key={v.id}
-                        {...v}
-                    />
-                ))}
-                {items.map((v) => (
-                    <Item
-                        key={v.id}
-                        {...v}
-                    />
-                ))} */}
+            <ul onPointerDown={onPointerDown} onDragOver={onDragOver} onDrop={onDrop}>
                 <Group
                     key={data.id}
                     {...data}
@@ -249,5 +138,104 @@ export default function TreeView({ data, onNewGroup, onNewItem, ...rest }: TreeD
                 document.body // render contextMenu directly into <body>
             )}
         </div>
+    );
+}
+
+export interface GroupData {
+    id: string;
+    label: string;
+    obj: object;
+    bool: boolean; // boolean indicating folded state
+    group: GroupData[]; // list of sub group
+    items: ItemData[]; // lisst of items
+}
+
+function Group({ id, label, obj, bool, group, items, ...callbacks }: GroupData) {
+    const [open, setOpen] = useState(bool); //boolean for state opened & display inside folder
+
+    const onClick = () => {
+        setOpen((prev) => !prev); // toggle boolean
+    };
+
+    const onDragOver = (e: React.DragEvent<HTMLElement>) => {
+        e.preventDefault(); // prevent default to allow drop event
+        // e.stopPropagation(); // prevent event target reaching from child nodes
+
+        const offsetY = (e.nativeEvent as MouseEvent).offsetY;
+        const height = (e.currentTarget as HTMLElement).clientHeight;
+        const area = offsetY / height;
+        console.log("aa")
+    }
+
+    return (
+        <li
+            className={open ? "group-opened" : "group"}
+            draggable
+            onDragOver={onDragOver}
+        >
+            <span onClick={onClick} {...callbacks}>
+                {label}
+            </span>
+            {open && (group.length > 0 || items.length > 0) && ( // if true, render subgroup and items
+                <ul>
+                    {group.map(v => (
+                        <Group key={v.id} {...v} />
+                    ))}
+                    {items.map(v => (
+                        <Item key={v.id} {...v} />
+                    ))}
+                </ul>
+            )}
+        </li>
+    );
+}
+
+export interface ItemData {
+    id: string;
+    label: string;
+    obj: object;
+}
+
+function Item({ id, label, obj, ...callbacks }: ItemData) {
+    const [className, setClassName] = useState("model");
+
+    const onClick = () => {
+        setClassName("selected");
+    };
+
+    const onDragStart = () => setClassName("dragging");
+
+    const onDragEnd = () => setClassName("model");
+
+    const onDragLeave = () => setClassName("model");
+
+    const onDragOver = (e: React.DragEvent<HTMLLIElement>) => {
+        e.preventDefault();
+        // e.stopPropagation();
+        console.log("dragOver");
+        setClassName("dragOver");
+    };
+
+    const onDrop = (e: React.DragEvent<HTMLLIElement>) => {
+        e.preventDefault();
+        const draggedId = e.dataTransfer.getData("text/plain");
+        console.log(`Dropped! draggedId=${draggedId}, targetId=${id}`);
+        console.log("Dropped!");
+    };
+
+    return (
+        <li
+            className={className}
+            draggable
+            // onClick={onClick}
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            // onDragLeave={onDragLeave}
+            // onDragOver={onDragOver}
+            // onDrop={onDrop}
+            {...callbacks}
+        >
+            {label}
+        </li>
     );
 }

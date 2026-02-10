@@ -119,11 +119,6 @@ td input {
     text-align: inherit;
 }
 
-ul,
-#treeview {
-    list-style-type: none;
-}
-
 #treeview {
     color: beige;
     font-size: 14px;
@@ -133,6 +128,11 @@ ul,
     height: 50%;
     overflow: auto;
     scrollbar-gutter: stable;
+}
+
+#treeview ul {
+    list-style-type: none;
+    padding-left: 10px;
 }
 
 #treeview li::before {
