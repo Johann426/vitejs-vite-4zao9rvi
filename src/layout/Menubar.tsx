@@ -1,10 +1,11 @@
 import classes from "./Menubar.module.css";
-import type Editor from "../Editor";
 import { Menu, Button, Text, Modal, Group } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconUpload, IconFile, IconDownload } from "@tabler/icons-react";
-import { Vector } from "../modeling/NurbsLib";
 import { useState } from "react";
+
+import type Editor from "../Editor";
+import { addPointCurve, removePointCurve } from "../Editor";
 
 interface MenubarProps extends React.HTMLAttributes<HTMLDivElement> {
     editor: Editor;
@@ -68,39 +69,6 @@ function File() {
 
 function Edit({ editor }: { editor: Editor }) {
     const [disabled, setDisabled] = useState(false);
-    const { editMesh, sketchInput } = editor;
-
-    const onClickUndo = () => {
-        editor.undo();
-    };
-
-    const onClickRedo = () => {
-        editor.redo();
-    };
-
-    const onClickAddPoint = () => {
-        const { scene, selectMesh } = editor;
-        const mesh = selectMesh.pickedObject;
-        if (!mesh) return;
-
-        const curve = mesh.metadata.curve;
-
-        sketchInput.callback = {
-            onPointerMove: (v: Vector) => {
-                curve.append(new Vector(v.x, v.y, v.z));
-                editor.updateCurveMesh(mesh);
-                const index = curve.designPoints.length - 1;
-                curve.remove(index);
-            },
-            onPointerDown: (v: Vector) => {
-                editor.addPoint(v);
-            },
-            onPointerUp: (v: Vector) => { },
-        };
-
-        selectMesh.removeCallbacks(scene);
-        sketchInput.registerCallbacks(scene);
-    };
 
     return (
         <Menu trigger="hover" position="bottom-start" offset={-1} width={300} classNames={classes}>
@@ -115,14 +83,42 @@ function Edit({ editor }: { editor: Editor }) {
                 </Button>
             </Menu.Target>
             <Menu.Dropdown>
-                <Menu.Item onClick={onClickAddPoint} disabled={disabled}>
+                <Menu.Item
+                    onClick={() => addPointCurve(editor)}
+                    disabled={disabled}
+                >
                     Add Point
                 </Menu.Item>
-                <Menu.Item disabled={disabled}>Add Tangent</Menu.Item>
-                <Menu.Item disabled={disabled}>Remove Point</Menu.Item>
-                <Menu.Item disabled={disabled}>Remove Tangent</Menu.Item>
-                <Menu.Item disabled={disabled}>Add Knuckle</Menu.Item>
-                <Menu.Item disabled={disabled}>Remove Knuckle</Menu.Item>
+                <Menu.Item
+                    onClick={() => { }}
+                    disabled={disabled}
+                >
+                    Add Tangent
+                </Menu.Item>
+                <Menu.Item
+                    onClick={() => removePointCurve(editor)}
+                    disabled={disabled}
+                >
+                    Remove Point
+                </Menu.Item>
+                <Menu.Item
+                    onClick={() => { }}
+                    disabled={disabled}
+                >
+                    Remove Tangent
+                </Menu.Item>
+                <Menu.Item
+                    onClick={() => { }}
+                    disabled={disabled}
+                >
+                    Add Knuckle
+                </Menu.Item>
+                <Menu.Item
+                    onClick={() => { }}
+                    disabled={disabled}
+                >
+                    Remove Knuckle
+                </Menu.Item>
                 <Menu.Item>Knot Insert</Menu.Item>
                 <Menu.Item>Knot Removal</Menu.Item>
                 <Menu.Item>Insert Point</Menu.Item>
@@ -139,14 +135,14 @@ function Edit({ editor }: { editor: Editor }) {
                 <Menu.Item rightSection={<Text>ctrl+X</Text>}>Cut</Menu.Item>
                 <Menu.Item rightSection={<Text>ctrl+P</Text>}>Paste</Menu.Item>
                 <Menu.Divider />
-                <Menu.Item rightSection={<Text>ctrl+Z</Text>} onClick={onClickUndo}>
+                <Menu.Item rightSection={<Text>ctrl+Z</Text>} onClick={() => editor.undo()}>
                     Undo
                 </Menu.Item>
-                <Menu.Item rightSection={<Text>ctrl+Y</Text>} onClick={onClickRedo}>
+                <Menu.Item rightSection={<Text>ctrl+Y</Text>} onClick={() => editor.redo()}>
                     Redo
                 </Menu.Item>
             </Menu.Dropdown>
-        </Menu>
+        </Menu >
     );
 }
 

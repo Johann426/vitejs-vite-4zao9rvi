@@ -1,7 +1,7 @@
 import type Editor from "../Editor";
 import type { Mesh } from "@babylonjs/core";
 import { Vector3, MeshBuilder, PointerDragBehavior, LinesMesh, PointsCloudSystem } from "@babylonjs/core";
-import type { Parametric } from "../modeling/Parametric";
+import type Parametric from "../modeling/Parametric";
 import { Vector } from "../modeling/NurbsLib";
 import { PICK_MARGIN, CONFIG } from "../constant";
 
@@ -38,7 +38,7 @@ export default class EditMesh {
         // 거리 d에서 월드 단위 1이 차지하는 픽셀 수 계산
         const worldUnitInPixels = screenHeight / (2 * Math.tan(fov / 2)) / distance;
         const desiredPixelSize = PICK_MARGIN + CONFIG.designPointsSize;
-        // 원하는 픽셀 크기를 맞추기 위한 size
+        // Pixel size for defining the sphere’s diameter
         const size = desiredPixelSize / worldUnitInPixels;
 
         if (mesh instanceof LinesMesh) {
@@ -58,6 +58,7 @@ export default class EditMesh {
         });
         ptrDrag.length = 0;
 
+        // dispose shepres
         spheres.forEach((e) => e.dispose());
         spheres.length = 0;
 
@@ -77,7 +78,7 @@ export default class EditMesh {
         const { curve }: { curve: Parametric } = mesh.metadata;
         const points = curve.designPoints;
 
-        points.forEach((p, i) => {
+        points.forEach((p: Vector, i: number) => {
             // pointer drag behavier can be attached to a mesh
             const pointerDragBehavior = new PointerDragBehavior();
             this.ptrDrag.push(pointerDragBehavior);

@@ -31,8 +31,6 @@ export default class SelectMesh {
         this.observers.push(scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE));
         this.observers.push(scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN));
         this.registered = true;
-        // console.log("registered");
-        // console.log(this.editor.pickables);
     }
 
     removeCallbacks(scene: Scene) {
@@ -112,9 +110,6 @@ export default class SelectMesh {
                         this.onSelectMesh(mesh);
                         editor.editMesh.registerMesh(mesh);
                         this.pickedObject = mesh;
-                        // // remove callbacks
-                        // const scene = editor.scene;
-                        // this.removeCallbacks(scene);
                     }
                 }
             });
@@ -125,9 +120,6 @@ export default class SelectMesh {
             const camera = scene.activeCamera;
             if (!camera) return;
             const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, Matrix.Identity(), camera);
-            // const rayHelper = new RayHelper(ray);
-            // rayHelper.show(scene);
-            // const pickingInfo = ray.intersectsMesh(mesh);
             const plane = new Plane();
             const origin = new Vector(ray.origin.x, ray.origin.y, ray.origin.z);
             const direction = new Vector(ray.direction.x, ray.direction.y, ray.direction.z);

@@ -1,5 +1,5 @@
-import type { Scene, Mesh } from "@babylonjs/core";
-import { Vector3, Color4, Matrix, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, GlowLayer, } from "@babylonjs/core";
+import type { Scene, Mesh, Camera, Engine, AbstractEngine } from "@babylonjs/core";
+import { Vector3, Color4, Matrix, Viewport, ArcRotateCamera, HemisphericLight, MeshBuilder, StandardMaterial, GlowLayer, PointsCloudSystem, MeshShapeBlock, } from "@babylonjs/core";
 
 import type Parametric from "./modeling/Parametric.js";
 import BsplineCurveInt from "./modeling/BsplineCurveInt.ts";
@@ -85,27 +85,58 @@ export default class Editor {
     this.addPoint(new Vector(0, 0, 0));
     this.addPoint(new Vector(1, 1, 0));
     this.addPoint(new Vector(2, 0, 0));
+    this.addPoint(new Vector(3, 1, 0));
 
-    this.addPoint(new Vector(3, 0, 0));
-    this.removePoint(3);
+    this.selectMesh.setPickingList();
 
-    this.addPoint(new Vector(-1, -1, -1));
-    this.modPoint(3, new Vector(4, 1, 0));
+    const points = curve.designPoints;
 
-    this.selectMesh.pickedObject = undefined;
-    this.selectMesh.setPickingList([mesh]);
+    function worldToScreen(
+      position: Vector3,
+      camera: Camera,
+      engine: AbstractEngine
+    ): Vector3 {
 
-    // Ray test
-    const plane = MeshBuilder.CreatePlane("plane", { size: 10 }, scene);
-    // plane.rotation.x = Math.PI / 2; // xy plane -> x-z plane
-    plane.position.z = 0;
-    plane.isPickable = true;
-    plane.material = new StandardMaterial("mat", scene);
-    plane.material.backFaceCulling = false;
+      const view = camera.getViewMatrix();
+      const projection = camera.getProjectionMatrix();
 
-    plane.enableEdgesRendering();
-    plane.edgesWidth = 2.0;
-    plane.edgesColor = new Color4(0.5, 0.5, 0.5, 1);
+      const transform = view.multiply(projection);
+
+      const viewport = camera.viewport.toGlobal(
+        engine.getRenderWidth(),
+        engine.getRenderHeight()
+      );
+
+      return Vector3.Project(
+        position,
+        Matrix.Identity(),
+        transform,
+        viewport
+      );
+    }
+
+    points.forEach(p => {
+      const v = new Vector3(p.x, p.y, p.z);
+      const camera = scene.activeCameras![0];
+      const engine = scene.getEngine();
+      const w = engine.getRenderWidth();
+      const h = engine.getRenderHeight();
+
+      const screenPos = worldToScreen(v, camera, engine);
+      console.log("screen coords:", screenPos.x / w, 1 - ((screenPos.y - 0.5) / h));
+    })
+
+    points.forEach(p => {
+      const v = new Vector3(p.x, p.y, p.z);
+      const camera = scene.activeCameras![3];
+      const engine = scene.getEngine();
+      const w = engine.getRenderWidth();
+      const h = engine.getRenderHeight();
+
+      const screenPos = worldToScreen(v, camera, engine);
+      console.log("screen coords:", screenPos.x / w, 1 - ((screenPos.y - 0.5) / h));
+    })
+
   }
 
   onRender(scene: Scene) {
@@ -153,9 +184,9 @@ export default class Editor {
     // Set up position of each camera
     const positions = [
       new Vector3(10, 0, 0), // x-view
-      new Vector3(10, 10, 10), // perspective
+      new Vector3(10, 10, -10), // perspective
       new Vector3(0, 10, 0), // y-view
-      new Vector3(0, 0, 10), // z-view
+      new Vector3(0, 0, -10), // z-view
     ];
 
     cameras.map((camera: ArcRotateCamera, i: number) => {
@@ -164,6 +195,7 @@ export default class Editor {
       camera.setPosition(positions[i]);
     });
     cameras[0].attachControl(true);
+    cameras[2].upVector = new Vector3(0, -1, 0); // default is Vector3(0, 1, 0)
     [0, 2, 3].map((i: number) => {
       cameras[i].angularSensibilityX = Infinity
       cameras[i].angularSensibilityY = Infinity
@@ -186,7 +218,7 @@ export default class Editor {
       scene.activeCamera = cameras[this.nViewport];
     })
 
-    // this.test(scene);
+    this.test(scene);
 
   }
 
@@ -372,7 +404,7 @@ export default class Editor {
   // callback function of add an interpolated curve to be used in menubar and sidebar
   addInterpolatedSpline = () => {
     const editor = this;
-    const { scene, selectMesh, sketchInput, pickables, treeNode } = editor;
+    const { selectMesh, pickables, treeNode } = editor;
 
     const addBsplineCurveInt = () => {
       const curve = new BsplineCurveInt(3);
@@ -381,21 +413,7 @@ export default class Editor {
       const mesh = pickables[pickables.length - 1];
       selectMesh.pickedObject = mesh;
 
-      sketchInput.callback = {
-        onPointerMove: (v: Vector) => {
-          curve.append(new Vector(v.x, v.y, v.z));
-          editor.updateCurveMesh(mesh);
-          const index = curve.designPoints.length - 1;
-          curve.remove(index);
-        },
-        onPointerDown: (v: Vector) => {
-          editor.addPoint(v);
-        },
-        onPointerUp: (v: Vector) => { },
-      };
-
-      selectMesh.removeCallbacks(scene);
-      sketchInput.registerCallbacks(scene);
+      addPointCurve(editor);
 
       // new tree item
       const treeItem = treeNode.newItem("new curve", mesh);
@@ -407,4 +425,60 @@ export default class Editor {
 
   };
 
+}
+
+// prepare event handlers for adding points to the selected curve
+export function addPointCurve(editor: Editor) {
+  const { scene, selectMesh, sketchInput } = editor;
+
+  const mesh = selectMesh.pickedObject;
+  if (!mesh) return;
+
+  const curve = mesh.metadata.curve;
+
+  sketchInput.callback = {
+    onPointerMove: (v: Vector) => {
+      curve.append(new Vector(v.x, v.y, v.z));
+      editor.updateCurveMesh(mesh);
+      const index = curve.designPoints.length - 1;
+      curve.remove(index);
+    },
+    onPointerDown: (v: Vector) => {
+      editor.addPoint(v);
+    },
+    onPointerUp: (v: Vector) => { },
+  };
+
+  selectMesh.removeCallbacks(scene);
+  sketchInput.registerCallbacks(scene);
+}
+
+// prepare event handlers for removing points from the selected curve
+export function removePointCurve(editor: Editor) {
+  const { scene, selectMesh } = editor;
+
+  const mesh = selectMesh.pickedObject;
+  if (!mesh) return;
+
+  const curve = mesh.metadata.curve;
+  const points = curve.designPoints;
+  const pcss: PointsCloudSystem[] = [];
+
+  points.forEach((p: Vector) => {
+    const pcs = new PointsCloudSystem("designPoints", 10, scene);
+    const func = (particle: { position: Vector3 }) => {
+      particle.position = new Vector3(p.x, p.y, p.z);
+    };
+    pcs.addPoints(1, func);
+    pcs.buildMeshAsync().then(() => {
+      if (!pcs.mesh) return
+      console.log(pcs.mesh.isPickable);
+      pcs.mesh.isPickable = true;
+      pcs.particles[0].color = new Color4(1, 0, 0, 1);
+      pcs.particles[0].position = new Vector3(0, 0, 0);
+      pcs.setParticles();
+      pcss.push(pcs);
+      selectMesh.setPickingList(pcss.map(e => e.mesh!)); //not working in gpu pick
+    });
+  })
 }
