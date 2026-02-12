@@ -89,52 +89,26 @@ export default class Editor {
 
     this.selectMesh.setPickingList();
 
+    const engine = scene.getEngine();
+    const w = engine.getRenderWidth();
+    const h = engine.getRenderHeight();
+
     const points = curve.designPoints;
-
-    function worldToScreen(
-      position: Vector3,
-      camera: Camera,
-      engine: AbstractEngine
-    ): Vector3 {
-
-      const view = camera.getViewMatrix();
-      const projection = camera.getProjectionMatrix();
-
-      const transform = view.multiply(projection);
-
-      const viewport = camera.viewport.toGlobal(
-        engine.getRenderWidth(),
-        engine.getRenderHeight()
-      );
-
-      return Vector3.Project(
-        position,
-        Matrix.Identity(),
-        transform,
-        viewport
-      );
-    }
 
     points.forEach(p => {
       const v = new Vector3(p.x, p.y, p.z);
       const camera = scene.activeCameras![0];
-      const engine = scene.getEngine();
-      const w = engine.getRenderWidth();
-      const h = engine.getRenderHeight();
-
-      const screenPos = worldToScreen(v, camera, engine);
-      console.log("screen coords:", screenPos.x / w, 1 - ((screenPos.y - 0.5) / h));
+      const screenPos = this.worldToScreen(camera, v);
+      console.log("screen coords:", screenPos.x / w, screenPos.y / h);
+      // console.log("screen coords:", screenPos.x, screenPos.y, screenPos.z);
     })
 
     points.forEach(p => {
       const v = new Vector3(p.x, p.y, p.z);
       const camera = scene.activeCameras![3];
-      const engine = scene.getEngine();
-      const w = engine.getRenderWidth();
-      const h = engine.getRenderHeight();
-
-      const screenPos = worldToScreen(v, camera, engine);
-      console.log("screen coords:", screenPos.x / w, 1 - ((screenPos.y - 0.5) / h));
+      const screenPos = this.worldToScreen(camera, v);
+      console.log("screen coords:", screenPos.x / w, screenPos.y / h);
+      // console.log("screen coords:", screenPos.x, screenPos.y, screenPos.z);
     })
 
   }
@@ -227,6 +201,55 @@ export default class Editor {
     this.initializers.push(fn);
   }
 
+  // Project a position vector onto screen coordinates
+  worldToScreen(camera: Camera, v: Vector3) {
+    const view = camera.getViewMatrix();
+    const projection = camera.getProjectionMatrix();
+    const transform = view.multiply(projection);
+
+    const { scene } = this;
+    const engine = scene.getEngine();
+    const w = engine.getRenderWidth();
+    const h = engine.getRenderHeight();
+
+    // convert viewport into pixel unit
+    const viewport = camera.viewport.toGlobal(w, h);
+
+    const p = Vector3.Project(
+      v,
+      Matrix.Identity(),
+      transform,
+      viewport
+    );
+
+    return new Vector3(p.x, p.y, p.z);
+  }
+
+  // Unproject from screen space(top-left) to 3D world position
+  screenToWorld(camera: Camera, v: Vector3) {
+    const scene = this.scene;
+    const engine = scene.getEngine();
+    const w = engine.getRenderWidth();
+    const h = engine.getRenderHeight();
+
+    // convert viewport(bottom-left) into pixel unit
+    const viewport = camera.viewport.toGlobal(w, h);
+    const localX = v.x - viewport.x;
+    const localY = v.y - (h - viewport.y - viewport.height);
+
+    return Vector3.Unproject(
+      // new Vector3(scene.pointerX, scene.pointerY, 0),
+      // engine.getRenderWidth(),
+      // engine.getRenderHeight(),
+      new Vector3(localX, localY, v.z),
+      viewport.width,
+      viewport.height,
+      Matrix.Identity(),
+      camera.getViewMatrix(),
+      camera.getProjectionMatrix()
+    );
+  }
+
   getUserCoord(sketchPlane: any) {// sketchPlane could be surface, currently z-plane
     // Get coordinates of pointer within the canvas (in pixel)
     const scene = this.scene;
@@ -236,34 +259,11 @@ export default class Editor {
     const camera = scene.activeCamera;
     if (!camera) return;
 
-    const engine = scene.getEngine();
-    const width = engine.getRenderWidth();
-    const height = engine.getRenderHeight();
+    // Near plane of screen space (z=0)
+    const origin = this.screenToWorld(camera, new Vector3(x, y, 0));
 
-    // calculate viewport coordinates (normalized, from 0 to 1)
-    const viewport = camera.viewport;
-    const viewportX = (x - viewport.x * width) / (viewport.width * width);
-    const viewportY = (height - y - viewport.y * height) / (viewport.height * height);
-
-    // Near plane (z=0)
-    const origin = Vector3.Unproject(
-      new Vector3(viewportX * width, viewportY * height, 0),
-      width,
-      height,
-      Matrix.Identity(),
-      camera.getViewMatrix(),
-      camera.getProjectionMatrix()
-    );
-
-    // Far plane (z=1)
-    const dest = Vector3.Unproject(
-      new Vector3(viewportX * width, viewportY * height, 1),
-      width,
-      height,
-      Matrix.Identity(),
-      camera.getViewMatrix(),
-      camera.getProjectionMatrix()
-    );
+    // Far plane of screen space (z=1)
+    const dest = this.screenToWorld(camera, new Vector3(x, y, 1));
 
     // direction vector
     const direction = dest.subtract(origin).normalize();

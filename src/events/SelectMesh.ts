@@ -1,4 +1,4 @@
-import { Plane as BPlane } from "@babylonjs/core";
+import { Plane as BPlane, Vector3 } from "@babylonjs/core";
 import { GPUPicker, Color3, Mesh, PointerEventTypes, Matrix } from "@babylonjs/core";
 import type { Scene, Observer, PointerInfo } from "@babylonjs/core";
 import Editor from "../Editor";
@@ -116,27 +116,28 @@ export default class SelectMesh {
         }
 
         if (event.button === 2) {
-            // right click
-            const camera = scene.activeCamera;
-            if (!camera) return;
-            const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, Matrix.Identity(), camera);
-            const plane = new Plane();
-            const origin = new Vector(ray.origin.x, ray.origin.y, ray.origin.z);
-            const direction = new Vector(ray.direction.x, ray.direction.y, ray.direction.z);
-            console.log("camera", camera?.position);
-            console.log("origin", origin.components);
-            console.log("direction", direction.components);
-            const intersection = plane.intersectRay({ origin: origin, direction: direction });
-            console.log("intersect", intersection?.components);
+            // // right click
+            // const camera = scene.activeCamera;
+            // if (!camera) return;
+            // const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, Matrix.Identity(), camera);
+            // const plane = new Plane();
+            // const origin = new Vector(ray.origin.x, ray.origin.y, ray.origin.z);
+            // const direction = new Vector(ray.direction.x, ray.direction.y, ray.direction.z);
+            // console.log("camera", camera?.position);
+            // console.log("origin", origin.components);
+            // console.log("direction", direction.components);
+            // const intersection = plane.intersectRay({ origin: origin, direction: direction });
+            // console.log("intersect", intersection?.components);
 
-            const groundPlane = new BPlane(0, 0, 1, 0);
-            const distance = ray.intersectsPlane(groundPlane);
-            if (distance) {
-                const hitPoint = ray.origin.add(ray.direction.scale(distance));
-                console.log("hitPoint", [hitPoint.x, hitPoint.y, hitPoint.z]);
-            }
+            // const groundPlane = new BPlane(0, 0, 1, 0);
+            // const distance = ray.intersectsPlane(groundPlane);
+            // if (distance) {
+            //     const hitPoint = ray.origin.add(ray.direction.scale(distance));
+            //     console.log("hitPoint", [hitPoint.x, hitPoint.y, hitPoint.z]);
+            // }
 
-            editor.getUserCoord(0);
+            // editor.getUserCoord(0);
+
         }
     };
 
