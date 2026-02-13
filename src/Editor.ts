@@ -95,20 +95,18 @@ export default class Editor {
 
     const points = curve.designPoints;
 
-    points.forEach(p => {
-      const v = new Vector3(p.x, p.y, p.z);
-      const camera = scene.activeCameras![0];
-      const screenPos = this.worldToScreen(camera, v);
-      console.log("screen coords:", screenPos.x / w, screenPos.y / h);
-      // console.log("screen coords:", screenPos.x, screenPos.y, screenPos.z);
-    })
+    // scene.activeCameras?.forEach((camera, i) => {
+    //   const p = points[0];
+    //   const v = new Vector3(p.x, p.y, p.z);;
+    //   const screenPos = this.worldToScreen(camera, v);
+    //   console.log(`screen coords for camera${i}:`, screenPos.x / w, screenPos.y / h);
+    // })
 
-    points.forEach(p => {
+    points.forEach((p, i) => {
       const v = new Vector3(p.x, p.y, p.z);
       const camera = scene.activeCameras![3];
       const screenPos = this.worldToScreen(camera, v);
-      console.log("screen coords:", screenPos.x / w, screenPos.y / h);
-      // console.log("screen coords:", screenPos.x, screenPos.y, screenPos.z);
+      console.log(`screen coords for point${i}:`, screenPos.x / w, screenPos.y / h);
     })
 
   }
@@ -201,7 +199,7 @@ export default class Editor {
     this.initializers.push(fn);
   }
 
-  // Project a position vector onto screen coordinates
+  // Project a position vector onto screen coordinates(top-left)
   worldToScreen(camera: Camera, v: Vector3) {
     const view = camera.getViewMatrix();
     const projection = camera.getProjectionMatrix();
@@ -212,7 +210,7 @@ export default class Editor {
     const w = engine.getRenderWidth();
     const h = engine.getRenderHeight();
 
-    // convert viewport into pixel unit
+    // convert viewport(bottom-left) into pixel unit
     const viewport = camera.viewport.toGlobal(w, h);
 
     const p = Vector3.Project(
