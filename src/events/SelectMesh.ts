@@ -137,7 +137,6 @@ export default class SelectMesh {
             // }
 
             // editor.getUserCoord(0);
-
         }
     };
 
