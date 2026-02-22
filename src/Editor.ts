@@ -106,7 +106,8 @@ export default class Editor {
       const v = new Vector3(p.x, p.y, p.z);
       const camera = scene.activeCameras![3];
       const screenPos = this.worldToScreen(camera, v);
-      console.log(`screen coords for point${i}:`, screenPos.x / w, screenPos.y / h);
+      // console.log(`screen coords for point${i}:`, screenPos.x / w, screenPos.y / h);
+      console.log(`screen coords for point${i}:`, screenPos.x, screenPos.y);
     })
 
   }
@@ -212,6 +213,7 @@ export default class Editor {
 
     // convert viewport(bottom-left) into pixel unit
     const viewport = camera.viewport.toGlobal(w, h);
+    // const viewport = new Viewport(0.5, 0.0, 0.5, 0.5).toGlobal(w, h)
 
     const p = Vector3.Project(
       v,

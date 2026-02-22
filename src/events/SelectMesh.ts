@@ -137,6 +137,11 @@ export default class SelectMesh {
             // }
 
             // editor.getUserCoord(0);
+
+            const x = scene.pointerX;
+            const y = scene.pointerY;
+            console.log("pointer", x, y);
+
         }
     };
 
