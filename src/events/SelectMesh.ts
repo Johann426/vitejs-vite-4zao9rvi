@@ -101,7 +101,7 @@ export default class SelectMesh {
                         this.onSelectMesh();
                         this.pickedObject = undefined;
                         editor.editMesh.unregister();
-                    } else if (mesh instanceof LinesMesh) { // LineMesh selected
+                    } else if (mesh instanceof LinesMesh) { // LineMesh selected (curve selected)
                         if (this.pickedObject == mesh) {
                             console.log("return");
                             return;
@@ -110,7 +110,7 @@ export default class SelectMesh {
                         this.onSelectMesh(mesh);
                         editor.editMesh.registerMesh(mesh);
                         this.pickedObject = mesh;
-                    } else if (mesh.name.includes("sphere")) { // sphere selected
+                    } else if (mesh.name.includes("sphere")) { // sphere selected (Delete point on a curve)
                         console.log(mesh.name);
                     }
                 }
