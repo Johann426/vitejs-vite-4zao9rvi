@@ -1,9 +1,7 @@
-import { Plane as BPlane, Vector3 } from "@babylonjs/core";
-import { GPUPicker, Color3, Mesh, PointerEventTypes, Matrix } from "@babylonjs/core";
+import { GPUPicker, Color3, Mesh, LinesMesh, PointerEventTypes } from "@babylonjs/core";
 import type { Scene, Observer, PointerInfo } from "@babylonjs/core";
 import Editor from "../Editor";
 import { Vector } from "../modeling/NurbsLib";
-import { Plane } from "../modeling/Plane";
 import { PICK_MARGIN } from "../constant";
 
 export default class SelectMesh {
@@ -50,7 +48,7 @@ export default class SelectMesh {
     // Restore the original color of the previously picked object
     restoreColor() {
         const mesh = this.savedMesh;
-        if (mesh instanceof Mesh) {
+        if (mesh && "helper" in mesh) {
             mesh.metadata.helper.setColor(this.savedColor);
             this.savedMesh = undefined;
         }
@@ -73,8 +71,10 @@ export default class SelectMesh {
                 if (pickingInfo.meshes[0] instanceof Mesh) {
                     const mesh = pickingInfo.meshes[0];
                     this.savedMesh = mesh;
-                    this.savedColor = mesh.metadata.helper.color;
-                    mesh.metadata.helper.setColor(new Color3(1, 1, 0));
+                    if ("helper" in mesh) {
+                        this.savedColor = mesh.metadata.helper.color;
+                        mesh.metadata.helper.setColor(new Color3(1, 1, 0));
+                    }
                     this.editor.glowLayer.referenceMeshToUseItsOwnMaterial(mesh);
                     this.editor.glowLayer.removeExcludedMesh(mesh);
                 }
@@ -95,13 +95,13 @@ export default class SelectMesh {
             // left click
             picker.boxPickAsync(x1, y1, x2, y2).then((pickingInfo) => {
                 if (pickingInfo) {
-                    if (pickingInfo.meshes.length == 0) {
+                    const mesh = pickingInfo.meshes[0];
+                    if (!mesh) { // no mesh selected
                         if (editor.editMesh.editing) return;
                         this.onSelectMesh();
                         this.pickedObject = undefined;
                         editor.editMesh.unregister();
-                    } else if (pickingInfo.meshes[0] instanceof Mesh) {
-                        const mesh = pickingInfo.meshes[0];
+                    } else if (mesh instanceof LinesMesh) { // LineMesh selected
                         if (this.pickedObject == mesh) {
                             console.log("return");
                             return;
@@ -110,6 +110,8 @@ export default class SelectMesh {
                         this.onSelectMesh(mesh);
                         editor.editMesh.registerMesh(mesh);
                         this.pickedObject = mesh;
+                    } else if (mesh.name.includes("sphere")) { // sphere selected
+                        console.log(mesh.name);
                     }
                 }
             });

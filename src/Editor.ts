@@ -455,30 +455,41 @@ export function addPointCurve(editor: Editor) {
 
 // prepare event handlers for removing points from the selected curve
 export function removePointCurve(editor: Editor) {
-  const { scene, selectMesh } = editor;
+  const { scene, selectMesh, editMesh } = editor;
 
   const mesh = selectMesh.pickedObject;
   if (!mesh) return;
 
   const curve = mesh.metadata.curve;
   const points = curve.designPoints;
-  const pcss: PointsCloudSystem[] = [];
+  const spheres: Mesh[] = [];
 
-  points.forEach((p: Vector) => {
-    const pcs = new PointsCloudSystem("designPoints", 10, scene);
-    const func = (particle: { position: Vector3 }) => {
-      particle.position = new Vector3(p.x, p.y, p.z);
-    };
-    pcs.addPoints(1, func);
-    pcs.buildMeshAsync().then(() => {
-      if (!pcs.mesh) return
-      console.log(pcs.mesh.isPickable);
-      pcs.mesh.isPickable = true;
-      pcs.particles[0].color = new Color4(1, 0, 0, 1);
-      pcs.particles[0].position = new Vector3(0, 0, 0);
-      pcs.setParticles();
-      pcss.push(pcs);
-      selectMesh.setPickingList(pcss.map(e => e.mesh!)); //not working in gpu pick
-    });
+  points.forEach((p: Vector, i: number) => {
+    // const pcs = new PointsCloudSystem("designPoints", 10, scene);
+    // const func = (particle: { position: Vector3 }) => {
+    //   particle.position = new Vector3(p.x, p.y, p.z);
+    // };
+    // pcs.addPoints(1, func);
+    // pcs.buildMeshAsync().then(() => {
+    //   if (!pcs.mesh) return
+    //   console.log(pcs.mesh.isPickable);
+    //   pcs.mesh.isPickable = true;
+    //   pcs.particles[0].color = new Color4(1, 0, 0, 1);
+    //   pcs.particles[0].position = new Vector3(0, 0, 0);
+    //   pcs.setParticles();
+    //   pcss.push(pcs);
+    //   selectMesh.setPickingList(pcss.map(e => e.mesh!)); //not working in gpu pick
+    // });
+
+    // create sphere
+    const sphere = MeshBuilder.CreateSphere(`sphere${i}`, { diameter: 0.1 });
+    // make the sphere invisible
+    // sphere.visibility = 0;
+    sphere.position = new Vector3(p.x, p.y, p.z);
+    spheres.push(sphere);
   })
+
+  editMesh.unregister();
+  selectMesh.setPickingList(spheres);
+
 }

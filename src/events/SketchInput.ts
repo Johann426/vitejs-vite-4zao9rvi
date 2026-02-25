@@ -4,10 +4,14 @@ import Editor from "../Editor";
 import { Vector } from "../modeling/NurbsLib";
 import { Plane } from "../modeling/Plane";
 
-interface callbackProps {
+interface CallbackProps {
     onPointerMove: (v: Vector) => void;
     onPointerDown: (v: Vector) => void;
     onPointerUp: (v: Vector) => void;
+}
+
+interface SketchPlane {
+    intersectRay: (ray: { origin: Vector, direction: Vector }) => Vector | null;
 }
 
 export default class SketchInput {
@@ -15,8 +19,8 @@ export default class SketchInput {
     public editing: boolean = false;
 
     private observers: Observer<PointerInfo>[] = [];
-    private _sketchPl: Plane = new Plane();
-    private _callback: callbackProps;
+    private _sketchPl: SketchPlane = new Plane();
+    private _callback: CallbackProps;
 
     constructor(private editor: Editor) {
         this._callback = {
@@ -30,7 +34,7 @@ export default class SketchInput {
         return this._callback;
     }
 
-    set callback(callback: callbackProps) {
+    set callback(callback: CallbackProps) {
         this._callback = callback;
     }
 
@@ -38,7 +42,7 @@ export default class SketchInput {
         return this._sketchPl;
     }
 
-    set sketchPlane(plane: Plane) {
+    set sketchPlane(plane: SketchPlane) {
         this._sketchPl = plane;
     }
 
@@ -74,10 +78,9 @@ export default class SketchInput {
         if (!camera) return;
 
         const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, Matrix.Identity(), camera);
-        const plane = this.sketchPlane;
         const origin = new Vector(ray.origin.x, ray.origin.y, ray.origin.z);
         const direction = new Vector(ray.direction.x, ray.direction.y, ray.direction.z);
-        const intersection = plane.intersectRay({ origin: origin, direction: direction });
+        const intersection = this.sketchPlane.intersectRay({ origin: origin, direction: direction });
         return intersection;
     }
 
