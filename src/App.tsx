@@ -2,7 +2,7 @@ import "./App.css";
 import "@mantine/core/styles.css";
 import { MantineProvider } from "@mantine/core";
 import { theme } from "./theme";
-import { useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { Scene } from "@babylonjs/core";
 import Editor from "./Editor";
 import Menunar from "./layout/Menubar";
@@ -39,9 +39,13 @@ const info = {
     serviceWorkerSupported: 'serviceWorker' in navigator   // Whether Service Worker API is supported
 };
 
-const editor = new Editor(info);
-
 export default function App() {
+    const editorRef = useRef<Editor | null>(null);
+
+    if (!editorRef.current) editorRef.current = new Editor(info);
+
+    const editor = editorRef.current;
+
     useEffect(() => {
         return () => {
             editor.dispose();

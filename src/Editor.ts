@@ -213,16 +213,11 @@ export default class Editor {
 
     // convert viewport(bottom-left) into pixel unit
     const viewport = camera.viewport.toGlobal(w, h);
-    // const viewport = new Viewport(0.5, 0.0, 0.5, 0.5).toGlobal(w, h)
 
-    const p = Vector3.Project(
-      v,
-      Matrix.Identity(),
-      transform,
-      viewport
-    );
+    const p = Vector3.Project(v, Matrix.Identity(), transform, viewport);
 
-    return new Vector3(p.x, p.y, p.z);
+    // return new Vector3(p.x, p.y, p.z);
+    return new Vector3(p.x, p.y + h - 2 * viewport.y - viewport.height, p.z);
   }
 
   // Unproject from screen space(top-left) to 3D world position
