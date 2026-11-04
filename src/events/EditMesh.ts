@@ -1,5 +1,6 @@
 import type Editor from "../Editor";
-import { Vector3, MeshBuilder, PointerDragBehavior, LinesMesh, PointsCloudSystem } from "@babylonjs/core";
+import type { Observer, PointerInfo } from "@babylonjs/core";
+import { Vector3, LinesMesh, PointerEventTypes } from "@babylonjs/core";
 import type Parametric from "../modeling/Parametric";
 import { Vector } from "../modeling/NurbsLib";
 import { PICK_MARGIN, CONFIG } from "../constant";
@@ -8,133 +9,110 @@ export default class EditMesh {
     public registered: boolean = false;
     public editing: boolean = false;
 
-    private ptrDrag: PointerDragBehavior[] = [];
-    private spheres: Mesh[] = [];
+    private mesh: LinesMesh | null = null;
+    private dragIndex: number = -1;
     private savedPt: Vector = new Vector();
+    private observers: Observer<PointerInfo>[] =[];
 
     constructor(private editor: Editor) { }
 
-    // Clean up observers when disposing of the SelectMesh instance
     dispose() {
-        this.spheres.forEach((e) => e.dispose());
-        this.spheres.length = 0;
+        this.unregister();
     }
 
-    registerMesh(mesh: Mesh) {
-        if (this.registered) {
-            this.unregister();
-        }
+    registerMesh(mesh: LinesMesh) {
+        if (this.registered) this.unregister();
 
-        const { editor } = this;
-        const { scene } = editor;
-        const camera = scene.activeCamera;
-        if (!camera) return;
-
-        // calc distance between camera and origin (assume sphere is at origin)
-        const distance = Vector3.Distance(camera.position, new Vector3());
-        const fov = camera.fov;
-        const screenHeight = scene.getEngine().getRenderHeight();
-        // 거리 d에서 월드 단위 1이 차지하는 픽셀 수 계산
-        const worldUnitInPixels = screenHeight / (2 * Math.tan(fov / 2)) / distance;
-        const desiredPixelSize = PICK_MARGIN + CONFIG.designPointsSize;
-        // Pixel size for defining the sphere’s diameter
-        const size = desiredPixelSize / worldUnitInPixels;
-
-        if (mesh instanceof LinesMesh) {
-            this.editCurve(mesh, size);
-        }
-
+        this.mesh = mesh;
         this.registered = true;
+        
+        const { scene } = this.editor;
+        this.observers = [
+            scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE),
+            scene.onPointerObservable.add(this.onPointerDown, PointerEventTypes.POINTERDOWN),
+            scene.onPointerObservable.add(this.onPointerUp, PointerEventTypes.POINTERUP),
+        ].filter(Boolean) as Observer<PointerInfo>[];
     }
 
     unregister() {
-        const { ptrDrag, spheres } = this;
-
-        ptrDrag.forEach((e) => {
-            e.onDragStartObservable.clear();
-            e.onDragEndObservable.clear();
-            e.onDragObservable.clear();
-        });
-        ptrDrag.length = 0;
-
-        // dispose shepres
-        spheres.forEach((e) => e.dispose());
-        spheres.length = 0;
-
+        if (!this.registered) return;
+        const { scene } = this.editor;
+        this.observers.forEach(o => scene.onPointerObservable.remove(o));
+        this.observers.length = 0;
         this.registered = false;
+        this.editing = false;
+        this.mesh = null;
+        this.dragIndex = -1;
     }
 
-    async editCurve(mesh: LinesMesh, size: number) {
-        function delay(ms: number) {
-            return new Promise((resolve) => setTimeout(resolve, ms));
+    // Screen-space proximity pick: returns index of the nearest design point within PICK_MARGIN pixels, or -1 if none.
+    private pickNearestPoint(points: Vector[]): number {
+        const { scene } = this.editor;
+        const camera = scene.activeCamera;
+        if (!camera) return -1;
+
+        const cx = scene.pointerX;
+        const cy = scene.pointerY;
+        let minDist = PICK_MARGIN;
+        let nearest = -1;
+
+        for (let i = 0; i < points.length; i++) {
+            const screen = this.editor.worldToScreen(
+                camera,
+                new Vector3(points[i].x, points[i].y, points[i].z)
+            );
+            const dist = Math.hypot(screen.x - cx, screen.y - cy);
+            if (dist < minDist) {
+                minDist = dist;
+                nearest = i;
+            }
         }
 
-        // wait until the select event listener is unregistered
-        await delay(200);
-
-        const { editor } = this;
-        const { scene } = editor;
-        const { curve }: { curve: Parametric } = mesh.metadata;
-        const points = curve.designPoints;
-
-        points.forEach((p: Vector, i: number) => {
-            // pointer drag behavier can be attached to a mesh
-            const pointerDragBehavior = new PointerDragBehavior();
-            this.ptrDrag.push(pointerDragBehavior);
-            // use the specified axis/plane fixed
-            pointerDragBehavior.useObjectOrientationForDragging = false;
-            // disable update on every frame
-            pointerDragBehavior.updateDragPlane = false;
-
-            // create sphere
-            const sphere = MeshBuilder.CreateSphere(`sphere${i}`, { diameter: size * 2 });
-            this.spheres.push(sphere);
-            // make the sphere invisible
-            sphere.visibility = 0;
-            // add behavior to the sphere
-            sphere.addBehavior(pointerDragBehavior);
-            sphere.position = new Vector3(p.x, p.y, p.z);
-
-            let pcs: PointsCloudSystem;
-            let v: Vector3;
-
-            pointerDragBehavior.onDragStartObservable.add(() => {
-                this.editing = true;
-                this.savedPt = p;
-                // point being edited
-                pcs = new PointsCloudSystem("editPoint", 10, scene);
-                const func = (particle: { position: Vector3 }) => {
-                    const v = curve.designPoints[i];
-                    particle.position = new Vector3(v.x, v.y, v.z);
-                };
-                pcs.addPoints(1, func);
-                pcs.buildMeshAsync();
-            });
-
-            pointerDragBehavior.onDragObservable.add(() => {
-                const p = pointerDragBehavior.lastDragPosition;
-                v = new Vector3(p.x, p.y, p.z);
-                curve.modify(i, new Vector(v.x, v.y, v.z));
-                editor.updateCurveMesh(mesh);
-                const particles = pcs.particles;
-                // update particle position
-                particles[0].position = v;
-                pcs.setParticles();
-            });
-
-            pointerDragBehavior.onDragEndObservable.add(() => {
-                this.editing = false;
-                // restore curve before drag for undo
-                curve.modify(i, this.savedPt);
-                // execute command
-                editor.selectMesh.pickedObject = mesh;
-                editor.modPoint(i, new Vector(v.x, v.y, v.z));
-                pcs.dispose();
-            });
-        });
+        return nearest;
     }
-}
 
-// // Enable drag behavior to curve mesh
-// mesh.intersectionThreshold = 2;
-// mesh.addBehavior(pointerDragBehavior);
+    private onPointerMove = () => {
+        if (!this.editing || !this.mesh) return;
+
+        const { curve }: { curve: Parametric } = this.mesh.metadata;
+        const v = this.editor.getUserCoord(null);
+        if (!v) return;
+
+        curve.modify(this.dragIndex, v);
+        this.editor.updateCurveMesh(this.mesh);
+    };
+
+    private onPointerDown = (pointerInfo: PointerInfo) => {
+        if (!this.mesh) return;
+        const event = pointerInfo.event as PointerEvent;
+        if (event.button !== 0) return;
+
+        const { curve }: { curve: Parametric } = this.mesh.metadata;
+        const index = this.pickNearestPoint(curve.designPoints);
+        if (index === -1) return;
+
+        const p = curve.designPoints[index];
+        this.savedPt = new Vector(p.x, p.y, p.z);
+        this.dragIndex = index;
+        this.editing = true;
+    };
+
+    private onPointerUp = (pointerInfo: PointerInfo) => {
+        if (!this.editing || !this.mesh) return;
+        const event = pointerInfo.event as PointerEvent;
+        if (event.button !== 0) return;
+
+        const { curve }: { curve: Parametric } = this.mesh.metadata;
+        const pts = curve.designPoints;
+        const newPt = new Vector(pts[this.dragIndex].x, pts[this.dragIndex].y, pts[this.dragIndex].z);
+
+        // restore original so Command records the delta correctly
+        curve.modify(this.dragIndex, this.savedPt);
+
+        this.editor.selectMesh.pickedObject = this.mesh;
+        this.editor.modPoint(this.dragIndex, newPt);
+
+        this.editing = false;
+        this.dragIndex = -1;
+    };
+}
