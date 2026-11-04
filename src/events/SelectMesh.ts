@@ -59,6 +59,7 @@ export default class SelectMesh {
         const { editor, picker } = this;
         const { scene } = editor;
 
+        if (editor.editMesh.editing) return;
         if (picker.pickingInProgress) return;
 
         const [x, y] = [scene.pointerX, scene.pointerY];
