@@ -1,5 +1,4 @@
 import type Editor from "../Editor";
-import type { Mesh } from "@babylonjs/core";
 import { Vector3, MeshBuilder, PointerDragBehavior, LinesMesh, PointsCloudSystem } from "@babylonjs/core";
 import type Parametric from "../modeling/Parametric";
 import { Vector } from "../modeling/NurbsLib";
