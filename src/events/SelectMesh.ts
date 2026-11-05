@@ -1,7 +1,6 @@
 import { GPUPicker, Color3, Mesh, LinesMesh, PointerEventTypes } from "@babylonjs/core";
 import type { Scene, Observer, PointerInfo } from "@babylonjs/core";
 import Editor from "../Editor";
-import { Vector } from "../modeling/NurbsLib";
 import { PICK_MARGIN } from "../constant";
 
 export default class SelectMesh {

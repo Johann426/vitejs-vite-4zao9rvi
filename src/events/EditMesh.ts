@@ -12,7 +12,7 @@ export default class EditMesh {
     private mesh: LinesMesh | null = null;
     private dragIndex: number = -1;
     private savedPt: Vector = new Vector();
-    private observers: Observer<PointerInfo>[] =[];
+    private observers: Observer<PointerInfo>[] = [];
 
     constructor(private editor: Editor) { }
 
@@ -25,7 +25,7 @@ export default class EditMesh {
 
         this.mesh = mesh;
         this.registered = true;
-        
+
         const { scene } = this.editor;
         this.observers = [
             scene.onPointerObservable.add(this.onPointerMove, PointerEventTypes.POINTERMOVE),
